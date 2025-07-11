@@ -1,9 +1,0 @@
-{
-    "power": {
-        "file_path": "/data2/project_share/dataset_baseline/gcd/workspace/output/iEDA/rpt/place/gcd_preCTS.power.rpt",
-        "internal_power": 0.12,
-        "switch_power": 0.04,
-        "leakage_power": 0.0,
-        "total_power": 0.16
-    }
-}
