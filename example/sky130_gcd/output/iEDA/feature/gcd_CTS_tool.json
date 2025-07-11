@@ -1,0 +1,21 @@
+{
+    "CTS": {
+        "buffer_area": 1.512,
+        "buffer_num": 2,
+        "clock_path_max_buffer": 2,
+        "clock_path_min_buffer": 2,
+        "clocks_timing": [
+            {
+                "clock_name": "core_clock",
+                "hold_tns": 0.0,
+                "hold_wns": 0.109917,
+                "setup_tns": 0.0,
+                "setup_wns": 1.586251,
+                "suggest_freq": 1094.3924425635487
+            }
+        ],
+        "max_clock_wirelength": 38,
+        "max_level_of_clock_tree": 2,
+        "total_clock_wirelength": 93.5465
+    }
+}

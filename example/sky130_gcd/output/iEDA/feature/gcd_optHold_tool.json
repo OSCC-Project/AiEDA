@@ -1,0 +1,20 @@
+{
+    "optHold": {
+        "HPWL": 6.90974083125173e-310,
+        "STWL": 4.68328175181917e-310,
+        "clocks_timing": [
+            {
+                "clock_name": "core_clock",
+                "delta_suggest_freq": -247.73773392811609,
+                "delta_tns": 0.0,
+                "delta_wns": -0.40789200000000003,
+                "opt_suggest_freq": 665.2474720596061,
+                "opt_tns": 0.0,
+                "opt_wns": 0.9968,
+                "origin_suggest_freq": 912.9852059877222,
+                "origin_tns": 0.0,
+                "origin_wns": 1.404692
+            }
+        ]
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "power": {
+        "file_path": "/data2/project_share/dataset_baseline/gcd/workspace/output/iEDA/rpt/CTS/gcd_postCTS.power.rpt",
+        "internal_power": 0.13,
+        "switch_power": 0.04,
+        "leakage_power": 0.0,
+        "total_power": 0.17
+    }
+}

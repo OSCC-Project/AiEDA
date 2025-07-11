@@ -1,0 +1,24 @@
+Log file created at: 2025/01/13 12:14:24
+Running on machine: 167-ai-eda
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+E0113 12:14:24.443940 1665076 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:24.443964 1665068 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:24.444103 1665077 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:24.444633 1665076 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:24.444762 1665069 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:24.444857 1665079 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:27.420993 1665083 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:27.492107 1665073 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:27.524997 1665081 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:27.545626 1665096 Lib.cc:174] Warning: val outside table ranges:  val = 0; min_val = 0.0025; max_val = 0.671
+E0113 12:14:31.032116 1661160 StaAnalyze.cc:324] The output port req_rdy is not constrained
+E0113 12:14:31.032167 1661160 StaAnalyze.cc:324] The output port req_rdy is not constrained
+E0113 12:14:31.032183 1661160 StaAnalyze.cc:324] The output port resp_msg[15] is not constrained
+E0113 12:14:31.032199 1661160 StaAnalyze.cc:324] The output port resp_msg[15] is not constrained
+E0113 12:14:31.032213 1661160 StaAnalyze.cc:324] The output port resp_msg[14] is not constrained
+E0113 12:14:31.032228 1661160 StaAnalyze.cc:324] The output port resp_msg[14] is not constrained
+E0113 12:14:31.032243 1661160 StaAnalyze.cc:324] The output port resp_msg[13] is not constrained
+E0113 12:14:31.032258 1661160 StaAnalyze.cc:324] The output port resp_msg[13] is not constrained
+E0113 12:14:31.032272 1661160 StaAnalyze.cc:324] The output port resp_msg[12] is not constrained
+E0113 12:14:31.032286 1661160 StaAnalyze.cc:324] The output port resp_msg[12] is not constrained
+E0113 12:14:36.463233 1661160 PwrCalcInternalPower.cc:203] CTS_ccl_a_buf_00004:I input slew is not exist.

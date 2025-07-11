@@ -1,0 +1,45 @@
+{
+    "task": "run_eda",
+    "flow": [
+        {
+            "eda_tool": "iEDA",
+            "step": "fixFanout",
+            "state": "unstart"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "place",
+            "state": "unstart"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "CTS",
+            "state": "unstart"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "optDrv",
+            "state": "unstart"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "optHold",
+            "state": "unstart"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "legalization",
+            "state": "unstart"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "route",
+            "state": "unstart"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "filler",
+            "state": "unstart"
+        }
+    ]
+}

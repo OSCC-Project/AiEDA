@@ -1,0 +1,9 @@
+{
+    "power": {
+        "file_path": "/data2/project_share/dataset_baseline/gcd/workspace/output/iEDA/rpt/route/gcd_postRoute.power.rpt",
+        "internal_power": 0.13,
+        "switch_power": 0.05,
+        "leakage_power": 0.0,
+        "total_power": 0.18
+    }
+}

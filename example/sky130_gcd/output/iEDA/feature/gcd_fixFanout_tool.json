@@ -1,0 +1,24 @@
+{
+    "fixFanout": {
+        "clocks_timing": [
+            {
+                "clock_name": "core_clock",
+                "delta_hold_tns": 0.0,
+                "delta_hold_wns": 0.0,
+                "delta_setup_tns": 0.0,
+                "delta_setup_wns": 0.0,
+                "delta_suggest_freq": 0.0,
+                "opt_hold_tns": 0.0,
+                "opt_hold_wns": 0.107866,
+                "opt_setup_tns": 0.0,
+                "opt_setup_wns": 1.587837,
+                "opt_suggest_freq": 1096.295289328771,
+                "origin_hold_tns": 0.0,
+                "origin_hold_wns": 0.107866,
+                "origin_setup_tns": 0.0,
+                "origin_setup_wns": 1.587837,
+                "origin_suggest_freq": 1096.295289328771
+            }
+        ]
+    }
+}

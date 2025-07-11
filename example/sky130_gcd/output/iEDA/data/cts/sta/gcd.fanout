@@ -1,0 +1,25 @@
+Generate the report at 2024-10-16T03:24:03, GitVersion: aa25008b3778a76ae1975c839d4cc459f7f7b3b7.
++--------------------+-----------+--------+-------------+---------------------+------+
+| Net / Pin          | MaxFanout | Fanout | FanoutSlack | LibCellPort         | Note |
++--------------------+-----------+--------+-------------+---------------------+------+
+| req_msg[4]         |           |        |             |                     |      |
+| req_msg[4]         | NA        | 1      | NA          |                     |      |
+| dpath/a_reg/n2     |           |        |             |                     |      |
+| dpath/a_reg/U19:Z  | NA        | 1      | NA          | AO22D1BWP40P140/Z   |      |
+| req_msg[28]        |           |        |             |                     |      |
+| req_msg[28]        | NA        | 1      | NA          |                     |      |
+| dpath/a_mux/n4     |           |        |             |                     |      |
+| dpath/a_mux/U9:ZN  | NA        | 1      | NA          | AOI22D1BWP40P140/ZN |      |
+| dpath/a_reg/n6     |           |        |             |                     |      |
+| dpath/a_reg/U15:Z  | NA        | 1      | NA          | AO22D1BWP40P140/Z   |      |
+| dpath/b_reg/n6     |           |        |             |                     |      |
+| dpath/b_reg/U14:Z  | NA        | 1      | NA          | AO22D1BWP40P140/Z   |      |
+| ctrl/state/n1      |           |        |             |                     |      |
+| ctrl/state/U3:ZN   | NA        | 2      | NA          | INVD1BWP40P140/ZN   |      |
+| dpath/a_mux_out[1] |           |        |             |                     |      |
+| dpath/a_mux/U8:ZN  | NA        | 1      | NA          | IOA21D1BWP40P140/ZN |      |
+| dpath/a_mux/n3     |           |        |             |                     |      |
+| dpath/a_mux/U7:ZN  | NA        | 1      | NA          | AOI22D1BWP40P140/ZN |      |
+| dpath/b_reg/n10    |           |        |             |                     |      |
+| dpath/b_reg/U10:Z  | NA        | 1      | NA          | AO22D1BWP40P140/Z   |      |
++--------------------+-----------+--------+-------------+---------------------+------+

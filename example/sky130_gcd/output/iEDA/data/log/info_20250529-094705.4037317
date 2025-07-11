@@ -1,0 +1,55 @@
+Log file created at: 2025/05/29 09:47:05
+Running on machine: f4fe40bd74a1
+Log line format: [IWEF]mmdd hh:mm:ss.uuuuuu threadid file:line] msg
+I0529 09:47:05.239116 4037317 lm_layout_init.cpp:65] Via number : 465
+I0529 09:47:05.240124 4037317 lm_layout_init.cpp:134] Layer number : 20
+I0529 09:47:05.240166 4037317 lm_layout_init.cpp:155] LM init tracks start...
+I0529 09:47:05.240173 4037317 lm_layout_init.cpp:193] LM layer order : 19, row = 420, col = 419
+I0529 09:47:05.240180 4037317 lm_layout_init.cpp:193] LM layer order : 18, row = 420, col = 419
+I0529 09:47:05.240183 4037317 lm_layout_init.cpp:193] LM layer order : 17, row = 420, col = 419
+I0529 09:47:05.240187 4037317 lm_layout_init.cpp:193] LM layer order : 16, row = 420, col = 419
+I0529 09:47:05.240190 4037317 lm_layout_init.cpp:193] LM layer order : 15, row = 420, col = 419
+I0529 09:47:05.240195 4037317 lm_layout_init.cpp:193] LM layer order : 14, row = 420, col = 419
+I0529 09:47:05.240199 4037317 lm_layout_init.cpp:193] LM layer order : 13, row = 420, col = 419
+I0529 09:47:05.240202 4037317 lm_layout_init.cpp:193] LM layer order : 0, row = 420, col = 419
+I0529 09:47:05.240206 4037317 lm_layout_init.cpp:193] LM layer order : 1, row = 420, col = 419
+I0529 09:47:05.240213 4037317 lm_layout_init.cpp:193] LM layer order : 2, row = 420, col = 419
+I0529 09:47:05.240217 4037317 lm_layout_init.cpp:193] LM layer order : 3, row = 420, col = 419
+I0529 09:47:05.240221 4037317 lm_layout_init.cpp:193] LM layer order : 4, row = 420, col = 419
+I0529 09:47:05.240226 4037317 lm_layout_init.cpp:193] LM layer order : 5, row = 420, col = 419
+I0529 09:47:05.240231 4037317 lm_layout_init.cpp:193] LM layer order : 6, row = 420, col = 419
+I0529 09:47:05.240233 4037317 lm_layout_init.cpp:193] LM layer order : 7, row = 420, col = 419
+I0529 09:47:05.240237 4037317 lm_layout_init.cpp:193] LM layer order : 8, row = 420, col = 419
+I0529 09:47:05.240242 4037317 lm_layout_init.cpp:193] LM layer order : 9, row = 420, col = 419
+I0529 09:47:05.240247 4037317 lm_layout_init.cpp:193] LM layer order : 10, row = 420, col = 419
+I0529 09:47:05.240252 4037317 lm_layout_init.cpp:193] LM layer order : 11, row = 420, col = 419
+I0529 09:47:05.240257 4037317 lm_layout_init.cpp:193] LM layer order : 12, row = 420, col = 419
+I0529 09:47:05.240262 4037317 lm_layout_init.cpp:172] LM memory usage 0 MB
+I0529 09:47:05.240278 4037317 lm_layout_init.cpp:173] LM elapsed time 0.000113 s
+I0529 09:47:05.240286 4037317 lm_layout_init.cpp:175] LM init tracks end...
+I0529 09:47:05.240299 4037317 lm_layout_init.cpp:633] LM init nets start...
+I0529 09:47:05.304456 4037499 lm_layout_init.cpp:761] Read nets : 0 / 270
+I0529 09:47:05.315464 4037317 lm_layout_init.cpp:766] Read nets : 270 / 270
+I0529 09:47:05.315486 4037317 lm_layout_init.cpp:767] LM memory usage 11670.6 MB
+I0529 09:47:05.315546 4037317 lm_layout_init.cpp:768] LM elapsed time 0.075248 s
+I0529 09:47:05.315553 4037317 lm_layout_init.cpp:770] LM init nets end...
+I0529 09:47:05.316103 4037317 lm_net_graph_gen.cc:58] Layer number : 19
+I0529 09:47:05.344208 4037582 lm_graph_dm.cpp:193] Read nets : 0 / 270
+I0529 09:47:05.385577 4037317 lm_graph_dm.cpp:204] Read nets : 270 / 270
+I0529 09:47:05.385620 4037317 lm_graph_dm.cpp:207] LM memory usage 0 MB
+I0529 09:47:05.385738 4037317 lm_graph_dm.cpp:208] LM elapsed time 0.069703 s
+I0529 09:47:05.385767 4037317 lm_graph_dm.cpp:209] LM save json net end...
+I0529 09:47:05.388940 4037317 lm_patch_init.cpp:87] LM patch grid init start...
+I0529 09:47:05.389227 4037317 lm_patch_init.cpp:107] Init patch : 0
+I0529 09:47:05.390605 4037317 lm_patch_init.cpp:112] Init patch : 16
+I0529 09:47:05.390671 4037317 lm_patch_init.cpp:114] LM memory usage 0 MB
+I0529 09:47:05.390749 4037317 lm_patch_init.cpp:115] LM elapsed time 0.001814 s
+I0529 09:47:05.390796 4037317 lm_patch_init.cpp:116] LM patch grid init end...
+I0529 09:47:05.390865 4037317 lm_patch_init.cpp:123] LM patch init subnet start...
+I0529 09:47:05.409387 4037494 lm_patch_init.cpp:189] Init net : 0 / 270
+I0529 09:47:05.411922 4037317 lm_patch_init.cpp:192] Init net : 270 / 270
+I0529 09:47:05.411938 4037317 lm_patch_init.cpp:196] LM memory usage 0 MB
+I0529 09:47:05.411978 4037317 lm_patch_init.cpp:197] LM elapsed time 0.021117 s
+I0529 09:47:05.412055 4037317 lm_patch_init.cpp:198] LM patch init subnet end...
+I0529 09:47:05.480969 4037317 lm_graph_check.cc:459] Net connected succuss ratio : 270 / 270
+I0529 09:47:05.482964 4037317 lm_feature_statis.cpp:47] LM build statis feature start...
