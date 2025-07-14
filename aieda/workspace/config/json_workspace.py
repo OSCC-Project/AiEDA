@@ -8,7 +8,7 @@
 from dataclasses import dataclass
 from dataclasses import field
 
-from ..utility import JsonParser
+from ...utility import JsonParser
 
 @dataclass
 class ConfigWorkspace(object):

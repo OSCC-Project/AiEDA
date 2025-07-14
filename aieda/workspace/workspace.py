@@ -91,12 +91,53 @@ class Workspace:
             return report
         
         @property
-        def ieda_feature(self):
-            feature = {
-                'drc' : "{}/{}_route_drc.json".format(self.ieda_output['feature'], self.design)
+        def ieda_feature_json(self):
+            feature_json = {
+                'data_summary'    : "{}/{}_summary.json".format(self.ieda_output['feature'], self.design),
+                
+                # feature for pr stage
+                'floorplan_summary'    : "{}/{}_floorplan_summary.json".format(self.ieda_output['feature'], self.design),
+                'floorplan_tool'       : "{}/{}_floorplan_tool.json".format(self.ieda_output['feature'], self.design),
+                'place_summary'        : "{}/{}_place_summary.json".format(self.ieda_output['feature'], self.design),
+                'place_tool'           : "{}/{}_place_tool.json".format(self.ieda_output['feature'], self.design),
+                'CTS_summary'          : "{}/{}_CTS_summary.json".format(self.ieda_output['feature'], self.design),
+                'CTS_tool'             : "{}/{}_CTS_tool.json".format(self.ieda_output['feature'], self.design),
+                'fixFanout_summary'    : "{}/{}_fixFanout_summary.json".format(self.ieda_output['feature'], self.design),
+                'fixFanout_tool'       : "{}/{}_fixFanout_tool.json".format(self.ieda_output['feature'], self.design),
+                'optDrv_summary'       : "{}/{}_optDrv_summary.json".format(self.ieda_output['feature'], self.design),
+                'optDrv_tool'          : "{}/{}_optDrv_tool.json".format(self.ieda_output['feature'], self.design),
+                'optHold_summary'      : "{}/{}_optHold_summary.json".format(self.ieda_output['feature'], self.design),
+                'optHold_tool'         : "{}/{}_optHold_tool.json".format(self.ieda_output['feature'], self.design),
+                'optSetup_summary'     : "{}/{}_optSetup_summary.json".format(self.ieda_output['feature'], self.design),
+                'optSetup_tool'        : "{}/{}_optSetup_tool.json".format(self.ieda_output['feature'], self.design),
+                'legalization_summary' : "{}/{}_legalization_summary.json".format(self.ieda_output['feature'], self.design),
+                'legalization_tool'    : "{}/{}_legalization_tool.json".format(self.ieda_output['feature'], self.design),
+                'filler_summary'       : "{}/{}_filler_summary.json".format(self.ieda_output['feature'], self.design),
+                'filler_tool'          : "{}/{}_filler_tool.json".format(self.ieda_output['feature'], self.design),
+                'route_summary'        : "{}/{}_route_summary.json".format(self.ieda_output['feature'], self.design),
+                'route_tool'           : "{}/{}_route_tool.json".format(self.ieda_output['feature'], self.design),      
+                'route_drc'            : "{}/{}_route_drc.json".format(self.ieda_output['feature'], self.design)
             }
             
-            return feature
+            return feature_json
+        
+        @property
+        def ieda_feature_jsonl(self):
+            feature_jsonl = {
+                'CTS_eval' : "{}/{}CTS_eval.jsonl".format(self.ieda_output['feature'], self.design),
+                'place_eval' : "{}/{}place_eval.jsonl".format(self.ieda_output['feature'], self.design)                
+            }
+            
+            return feature_jsonl
+        
+        @property
+        def ieda_feature_csv(self):
+            feature_csv = {
+                'CTS_eval' : "{}/{}CTS_eval.csv".format(self.ieda_output['feature'], self.design),
+                'place_eval' : "{}/{}place_eval.csv".format(self.ieda_output['feature'], self.design)                
+            }
+            
+            return feature_csv
         
         @property
         def scripts(self):

@@ -49,5 +49,24 @@ class IEDARouting(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
+        self.run_feature()
+        
     def close_routing(self):
         self.ieda.destroy_rt()
+        
+    def run_feature(self):
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['route_summary'])
+        
+        # generate feature CTS data
+        self.ieda.feature_tool(ieda_feature_json['route_tool'], DbFlow.FlowStep.route.value)
+        
+    # read route json file to iEDA route data
+    def feature_route_read(self, json_path: str):
+        self.ieda.feature_route_read(path=json_path)
+
+    # read route def and save route data to json
+    def feature_route(self, json_path: str):
+        self.ieda.feature_route(path=json_path)

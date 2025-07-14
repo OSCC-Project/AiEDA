@@ -17,7 +17,7 @@ class IEDADrc(IEDAIO):
     def build_config(self):
         self.ieda_config = self.workspace.paths_table.ieda_config['drc']
         self.report_path = self.workspace.paths_table.ieda_report['drc']
-        self.feature_path = self.workspace.paths_table.ieda_feature['drc']
+        self.feature_path = self.workspace.paths_table.ieda_feature_json['route_drc']
         
     def run_drc(self):
         self.read_def()
