@@ -222,7 +222,7 @@ class FeatureParserJson(JsonParser):
             step='optHold')
         feature_tools.opt_setup_summary = self.get_tools_timing_opt(
             step='optSetup')
-        feature_tools.legalization_summary = self.get_tools_place(
+        feature_tools.legalization_summary = self.get_tools_legalization(
             step='legalization')
         feature_tools.routing_summary = self.get_tools_route()
 
@@ -316,6 +316,7 @@ class FeatureParserJson(JsonParser):
             return None
 
         key = step
+
         dict_pl = self.json_data[key]
 
         pl_summary = PlaceSummary()
@@ -348,6 +349,30 @@ class FeatureParserJson(JsonParser):
             lg_summary = LGSummary()
             lg_summary.lg_total_movement = dict_legalization['lg_total_movement']
             lg_summary.lg_max_movement = dict_legalization['lg_max_movement']
+
+            pl_common_summary = PLCommonSummary()
+            pl_common_summary.place_density = dict_legalization['place_density']
+            lg_summary.pl_common_summary = pl_common_summary
+
+            pl_summary.lg_summary = lg_summary
+
+        return pl_summary
+    
+    def get_tools_legalization(self, step):
+        if step not in self.json_data or self.json_data[step] == None:
+            return None
+
+        key = step
+
+        dict_pl = self.json_data[key]
+
+        pl_summary = PlaceSummary()
+
+        if 'legalization' in dict_pl:
+            dict_legalization = dict_pl['legalization']
+            lg_summary = LGSummary()
+            lg_summary.lg_total_movement = dict_legalization['total_movement']
+            lg_summary.lg_max_movement = dict_legalization['max_movement']
 
             pl_common_summary = PLCommonSummary()
             pl_common_summary.place_density = dict_legalization['place_density']

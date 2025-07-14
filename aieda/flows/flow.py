@@ -46,11 +46,12 @@ class DbFlow(object):
         Success = "success"
         Ongoing = "ongoing"
         Imcomplete = "incomplete"
+        Ignored = "ignored"
     
     def __init__(self, 
                  eda_tool, 
                  step : FlowStep, 
-                 state : FlowState,
+                 state : FlowState=FlowState.Ignored,
                  input_def=None, 
                  input_verilog=None):    
         self.eda_tool = eda_tool

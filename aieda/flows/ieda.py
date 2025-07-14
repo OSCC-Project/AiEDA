@@ -72,7 +72,78 @@ class RunIEDA:
         return True
             
     def run_flow(self, flow : DbFlow):
-        """run flow"""    
+        """run flow"""            
+        def __run_eda__(flow : DbFlow):
+            """run eda tool""" 
+            match flow.step:
+                case DbFlow.FlowStep.floorplan:
+                    from ..eda import IEDAFloorplan
+                    ieda_flow = IEDAFloorplan(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_floorplan()
+                    
+                case DbFlow.FlowStep.fixFanout:
+                    from ..eda import IEDANetOpt
+                    ieda_flow = IEDANetOpt(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_fix_fanout()
+                    
+                case DbFlow.FlowStep.place:
+                    from ..eda import IEDAPlacement
+                    ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_placement()
+                
+                case DbFlow.FlowStep.cts:
+                    from ..eda import IEDACts
+                    ieda_flow = IEDACts(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_cts()
+                    
+                case DbFlow.FlowStep.optDrv:
+                    from ..eda import IEDATimingOpt
+                    ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_to_drv()
+                    
+                case DbFlow.FlowStep.optHold:
+                    from ..eda import IEDATimingOpt
+                    ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_to_hold()
+                    
+                case DbFlow.FlowStep.optSetup:
+                    from ..eda import IEDATimingOpt
+                    ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_to_setup()
+                    
+                case DbFlow.FlowStep.legalization:
+                    from ..eda import IEDAPlacement
+                    ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_legalization()
+                    
+                case DbFlow.FlowStep.route:
+                    from ..eda import IEDARouting
+                    ieda_flow = IEDARouting(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_routing()
+                
+                case DbFlow.FlowStep.filler:
+                    from ..eda import IEDAPlacement
+                    ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_filler()
+        
+        def check_flow_state( flow : DbFlow):
+            """check state"""
+            #check flow success if output def & verilog file exist
+            output_def = self.workspace.configs.get_output_def(flow=flow, compressed=True)
+            output_verilog = self.workspace.configs.get_output_verilog(flow=flow, compressed=True)
+            
+            return (os.path.exists(output_def) and os.path.exists(output_verilog))
+        
         if flow.is_finish() is True:
             return True
         
@@ -81,13 +152,13 @@ class RunIEDA:
         self.workspace.configs.save_flow_state(flow)
              
         #run eda tool
-        p = Process(target=self.__run_eda__, args=(flow,))
+        p = Process(target=__run_eda__, args=(flow,))
         p.start()
         p.join()
         
         #save flow state
         is_success = False
-        if self.check_flow_state(flow) is True:
+        if check_flow_state(flow) is True:
             flow.set_state_finished()
             is_success = True
         else:
@@ -96,74 +167,18 @@ class RunIEDA:
             
         self.workspace.configs.save_flow_state(flow)
         return is_success
-            
-    def __run_eda__(self, flow : DbFlow):
-        """run eda tool""" 
-        match flow.step:
-            case DbFlow.FlowStep.floorplan:
-                from ..eda import IEDAFloorplan
-                ieda_flow = IEDAFloorplan(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_floorplan()
-                
-            case DbFlow.FlowStep.fixFanout:
-                from ..eda import IEDANetOpt
-                ieda_flow = IEDANetOpt(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_fix_fanout()
-                
-            case DbFlow.FlowStep.place:
-                from ..eda import IEDAPlacement
-                ieda_flow = IEDAPlacement(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_placement()
-            
-            case DbFlow.FlowStep.cts:
-                from ..eda import IEDACts
-                ieda_flow = IEDACts(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_cts()
-                
-            case DbFlow.FlowStep.optDrv:
-                from ..eda import IEDATimingOpt
-                ieda_flow = IEDATimingOpt(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_to_drv()
-                
-            case DbFlow.FlowStep.optHold:
-                from ..eda import IEDATimingOpt
-                ieda_flow = IEDATimingOpt(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_to_hold()
-                
-            case DbFlow.FlowStep.optSetup:
-                from ..eda import IEDATimingOpt
-                ieda_flow = IEDATimingOpt(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_to_setup()
-                
-            case DbFlow.FlowStep.legalization:
-                from ..eda import IEDAPlacement
-                ieda_flow = IEDAPlacement(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_legalization()
-                
-            case DbFlow.FlowStep.route:
-                from ..eda import IEDARouting
-                ieda_flow = IEDARouting(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_routing()
-            
-            case DbFlow.FlowStep.filler:
-                from ..eda import IEDAPlacement
-                ieda_flow = IEDAPlacement(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_filler()
     
-    def check_flow_state(self, flow : DbFlow):
-        """check state"""
-        #check flow success if output def & verilog file exist
-        output_def = self.workspace.configs.get_output_def(flow=flow, compressed=True)
-        output_verilog = self.workspace.configs.get_output_verilog(flow=flow, compressed=True)
+    def run_fixFanout(self, input_def, 
+                      input_verilog=None,
+                      output_def=None,
+                      output_verilog=None):
+        if output_def is None:
+            output_def = self.workspace
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.fixFanout,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
         
-        return (os.path.exists(output_def) and os.path.exists(output_verilog))
+        return self.run_flow(flow)
