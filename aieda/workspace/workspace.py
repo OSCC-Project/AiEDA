@@ -138,6 +138,9 @@ class Workspace:
             from .config import FlowParser
             parser = FlowParser(self.paths_table.flow)
             parser.reset_flow_state()
+            
+            #reset flows data
+            self.flows = self.__init_flow_json__()
         
         def save_flow_state(self, db_flow):
             """save flow state"""

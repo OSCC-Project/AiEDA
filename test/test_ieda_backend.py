@@ -31,7 +31,7 @@ if __name__ == "__main__":
     
     # step 2 : create flow
     flows = RunIEDA(ws)
-    flows.run_flows()
+    flows.run_flows(reset=True)
 
     exit(0)
 
