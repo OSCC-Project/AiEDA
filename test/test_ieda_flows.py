@@ -29,9 +29,11 @@ if __name__ == "__main__":
     workspace_dir = "/data2/huangzengrong/test_aieda/workspace"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
-    # step 2 : create flow
-    flows = RunIEDA(workspace)
-    flows.run_flows(reset=True)
+    # step 2 : init iEDA by workspace
+    run_ieda = RunIEDA(workspace)
+    
+    # step 3 : run physical backend flows that config in workspace/config/flow.json
+    run_ieda.run_flows(reset=True)
 
     exit(0)
 

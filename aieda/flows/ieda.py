@@ -14,20 +14,25 @@ class RunIEDA:
     '''run eda backend flow
     '''
     
-    def __init__(self, workspace : Workspace):        
+    def __init__(self, workspace : Workspace):  
+        """workspace : use workspace to manage all the data, inlcuding configs, 
+                       process modes, input and output path, feature data and so on
+        """     
         self.workspace = workspace
         
-        self.default_flows = {
-            "floorplan" : None,
-            "fixFanout" : None,
-            "place" : None,
-            "CTS" : None,
-            "optDrv" : None,
-            "optHold" : None,
-            "legalization" : None,
-            "route" : None,
-            "filler" : None,
-        }
+        # physical design flow order for iEDA
+        self.default_flows = [
+            "floorplan",
+            "fixFanout",
+            "place",
+            "CTS",
+            "optDrv",
+            "optHold",
+            "optSetup",
+            "legalization",
+            "route",
+            "filler"
+        ]
     
     def __get_workspace_flows__(self):
         flows = self.workspace.configs.flows
@@ -48,7 +53,7 @@ class RunIEDA:
             flows[i].output_def = self.workspace.configs.get_output_def(flows[i])
             flows[i].output_verilog = self.workspace.configs.get_output_verilog(flows[i])
         
-        return flows
+        return flows  
     
     def run_flows(self, flows=None, reset=False):
         if flows is None:
@@ -168,17 +173,245 @@ class RunIEDA:
         self.workspace.configs.save_flow_state(flow)
         return is_success
     
-    def run_fixFanout(self, input_def, 
-                      input_verilog=None,
-                      output_def=None,
-                      output_verilog=None):
-        if output_def is None:
-            output_def = self.workspace
+    def run_fixFanout(self, 
+                      input_def:str, 
+                      input_verilog:str=None,
+                      output_def:str=None,
+                      output_verilog:str=None):   
+        """ run fix fanout flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
         flow = DbFlow(eda_tool="iEDA",
                       step=DbFlow.FlowStep.fixFanout,
                       input_def=input_def,
                       input_verilog=input_verilog,
                       output_def=output_def,
                       output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_placement(self, 
+                      input_def:str, 
+                      input_verilog:str=None,
+                      output_def:str=None,
+                      output_verilog:str=None):   
+        """ run placement flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.place,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_CTS(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run CTS flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.cts,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_optimizing_drv(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run timing optimization drv flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.optDrv,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_optimizing_hold(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run timing optimization hold flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.optHold,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_optimizing_setup(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run timing optimization setup flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.cts,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_legalization(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run legalization flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.legalization,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_routing(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run routing flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.route,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_filler(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run instances filling flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.filler,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
         
         return self.run_flow(flow)
