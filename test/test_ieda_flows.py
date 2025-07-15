@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : test_ieda_backend.py
+@File : test_ieda_flows.py
 @Author : yell
-@Desc : test physical design flow for iEDA
+@Desc : test physical design flows for iEDA
 '''
 
 ######################################################################################
