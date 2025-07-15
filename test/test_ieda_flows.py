@@ -7,21 +7,15 @@
 '''
 
 ######################################################################################
-# import ai-eda as root
-
+# import aieda
+from import_aieda import import_aieda
+import_aieda()
 ######################################################################################
-import sys
-import os
-# set EDA tools working environment
-# option : iEDA
-os.environ['iEDA'] = "on"
 
-current_dir = os.path.split(os.path.abspath(__file__))[0]
-root = current_dir.rsplit('/', 1)[0]
-sys.path.append(root)
-
-from aieda.workspace import workspace_create
-from aieda.flows import RunIEDA
+from aieda import (
+    workspace_create,
+    RunIEDA
+)
 
 if __name__ == "__main__":  
     # step 1 : create workspace
