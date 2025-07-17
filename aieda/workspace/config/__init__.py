@@ -13,6 +13,18 @@ from .json_workspace import (
     ConfigWorkspace
 )
 
-from .config_ieda import (
-     ConfigIEDA
+from .json_parameters import (
+    ParametersParser
+)
+
+from .json_ieda_config import (
+    ConfigIEDAFlowParser,
+    ConfigIEDADbParser,
+    ConfigIEDACTSParser,
+    ConfigIEDAFixFanoutParser,
+    ConfigIEDAPlacementParser,
+    ConfigIEDARouterParser,
+    ConfigIEDATimingOptParser,
+    ConfigIEDAFloorplanParser,
+    ConfigIEDADrcParser
 )

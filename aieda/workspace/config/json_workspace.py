@@ -21,6 +21,21 @@ class ConfigWorkspace(object):
     
 class WorkspaceParser(JsonParser):
     """workspace parser"""
+    def create_json(self, workspace_config:ConfigWorkspace=None):
+        # create json
+        if self.read_create():
+            if workspace_config is None:
+                # create default flow of iEDA
+                workspace_config = ConfigWorkspace()
+            workspace_json = {}      
+            workspace_json['process_node'] = workspace_config.process_node
+            workspace_json['version'] = workspace_config.version
+            workspace_json['project'] = workspace_config.project
+            workspace_json['design'] = workspace_config.design
+            workspace_json['task'] = workspace_config.task
+            
+            self.json_data['workspace'] = workspace_json
+        return self.write()
      
     def get_db(self):
         ''' get data '''
@@ -32,17 +47,50 @@ class WorkspaceParser(JsonParser):
             db_workspcae.version = node_workspace['version']
             db_workspcae.project = node_workspace['project']
             db_workspcae.design = node_workspace['design']
-            db_workspcae.task = node_workspace['task']
             
         return db_workspcae
     
-    def reset_value(self, reset_value : dict):
-        """save data to json"""
-        
-        if self.read() is True:
-            self.json_data['workspace']['project'] = reset_value['project']
-            self.json_data['workspace']['design'] = reset_value['design']
+    def set_process_node(self, process_node : str):
+        if self.read():
+            self.json_data['workspace']['process_node'] = process_node
+
+            #save file
+            return self.write()
             
+        return False
+    
+    def set_version(self, version : str):
+        if self.read():
+            self.json_data['workspace']['version'] = version
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_project(self, project : str):
+        if self.read():
+            self.json_data['workspace']['project'] = project
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_design(self, design : str):
+        if self.read():
+            self.json_data['workspace']['design'] = design
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_task(self, task : str):
+        if self.read():
+            self.json_data['workspace']['task'] = task
+
+            #save file
             return self.write()
             
         return False

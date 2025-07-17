@@ -115,3 +115,71 @@ class DbFlow(object):
     def is_first_flow(self):
         """if 1st flow in flowlist"""
         return self.is_first    
+
+
+class RunFlowBase:
+    '''run eda backend flow
+    '''
+    from ..workspace import Workspace
+    def __init__(self, workspace : Workspace):  
+        """workspace : use workspace to manage all the data, inlcuding configs, 
+                       process modes, input and output path, feature data and so on
+        """     
+        self.workspace = workspace
+        
+        # physical design flow order
+        self.default_flows = None
+    
+    def __get_workspace_flows__(self):
+        flows = self.workspace.configs.flows
+        for i in range(0, len(flows)):
+            if i == 0:
+                # using data in path.json 
+                if flows[i].input_def is None:
+                    flows[i].input_def = self.workspace.configs.paths.def_input_path
+                if flows[i].input_verilog is None:
+                    flows[i].input_verilog = self.workspace.configs.paths.verilog_input_path
+            else:
+                #use pre flow output
+                if flows[i].input_def is None:
+                    flows[i].input_def = flows[i-1].output_def
+                if flows[i].input_verilog is None:
+                    flows[i].input_verilog = flows[i-1].output_verilog
+            
+            flows[i].output_def = self.workspace.configs.get_output_def(flows[i])
+            flows[i].output_verilog = self.workspace.configs.get_output_verilog(flows[i])
+        
+        return flows  
+    
+    def run_flows(self, flows=None, reset=False):
+        if flows is None:
+            if reset:
+                #reset flow state to unstart
+                self.workspace.configs.reset_flow_states()
+            flows = self.__get_workspace_flows__()
+        else:
+            if reset:
+                for flow in flows:
+                    flow.set_state_unstart()
+        
+        for flow in flows:
+            self.run_flow(flow)
+            
+        #check all flow success  
+        for flow in flows:
+            if not flow.is_finish():
+                return False
+        
+        return True
+            
+    def run_flow(self, flow : DbFlow):
+        pass
+    
+    def check_flow_state(self, flow : DbFlow):
+        """check state"""
+        #check flow success if output def & verilog file exist
+        import os
+        output_def = self.workspace.configs.get_output_def(flow=flow, compressed=True)
+        output_verilog = self.workspace.configs.get_output_verilog(flow=flow, compressed=True)
+        
+        return (os.path.exists(output_def) and os.path.exists(output_verilog))

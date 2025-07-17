@@ -20,14 +20,14 @@ from aieda import (
 if __name__ == "__main__":  
     # step 1 : create workspace
     # workspace_dir = "{}/example/backend_flow".format(root)
-    workspace_dir = "/data2/huangzengrong/test_aieda/workspace"
+    workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : init iEDA by workspace
     run_ieda = RunIEDA(workspace)
     
     # step 3 : run physical backend flows that config in workspace/config/flow.json
-    run_ieda.run_flows(reset=True)
+    run_ieda.run_flows()
 
     exit(0)
 

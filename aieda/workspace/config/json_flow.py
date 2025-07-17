@@ -10,7 +10,51 @@ from ...flows import DbFlow
    
 class FlowParser(JsonParser):
     """flow json parser"""
-    
+    @property
+    def ieda_default_flows(self):
+        default_steps = [
+            # DbFlow.FlowStep.floorplan,
+            DbFlow.FlowStep.fixFanout,
+            DbFlow.FlowStep.place,
+            DbFlow.FlowStep.cts,
+            DbFlow.FlowStep.optDrv,
+            DbFlow.FlowStep.optHold,
+            # DbFlow.FlowStep.optSetup,
+            DbFlow.FlowStep.legalization,
+            DbFlow.FlowStep.route,
+            DbFlow.FlowStep.filler
+        ]
+        
+        flow_db_list = []
+        for step in default_steps:
+            flow = DbFlow(eda_tool="iEDA", 
+                          step=step, 
+                          state=DbFlow.FlowState.Unstart)
+
+            flow_db_list.append(flow) 
+            
+        return flow_db_list     
+        
+    def create_json(self, flows : list[DbFlow]=None):
+        # create json
+        if self.read_create():
+            if flows is None:
+                # create default flow of iEDA
+                flows = self.ieda_default_flows
+                     
+            self.json_data['task'] = "run_eda"
+            self.json_data['flow'] = []
+            for flow in flows:
+                self.json_data['flow'].append(
+                    {
+                        "eda_tool": flow.eda_tool,
+                        "step": flow.step.value,
+                        "state": flow.state.value
+                    }
+                )
+        
+        return self.write()
+        
     def get_db(self):
         """get data"""
         if self.read() is True:

@@ -65,10 +65,6 @@ class JsonParser:
             self.json_data = {}
             self.write()
 
-        # with open(self.json_path, 'r', encoding='utf-8') as f_reader:
-        #     self.json_data = json.load(f_reader)
-
-        # logging.info("info : parsing file sucess")
         return self.read()
 
     def write(self, dict_value: dict = None):
