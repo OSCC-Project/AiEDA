@@ -425,7 +425,20 @@ class Workspace:
                         'rt' : "{}/output/iEDA/data/rt".format(self.directory),   
                     'rt_sta' : "{}/output/iEDA/data/rt/sta".format(self.directory),
                        'rpt' : "{}/output/iEDA/rpt".format(self.directory),
-                   'feature' : "{}/output/iEDA/feature".format(self.directory)
+                   'feature' : "{}/output/iEDA/feature".format(self.directory),
+                   'vectorization' : "{}/output/iEDA/vectorization".format(self.directory),
+                }
+            return output
+        
+        @property
+        def innovus_output(self):
+            output = {
+                    'result' : "{}/output/innovus/result".format(self.directory),
+                      'data' : "{}/output/innovus/data".format(self.directory),
+                       'rpt' : "{}/output/innovus/rpt".format(self.directory),
+                       'log' : "{}/output/innovus/log".format(self.directory),
+                   'feature' : "{}/output/innovus/feature".format(self.directory),
+                   'vectorization' : "{}/output/innovus/vectorization".format(self.directory),
                 }
             return output
         

@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File : base.py
+@Author : yhqiu
+@Desc : abstract base class for analyzers
+'''
+
+from abc import ABC, abstractmethod
+from typing import Dict, List, Any, Optional, Union
+from pathlib import Path
+
+
+class BaseAnalyzer(ABC):
+    """
+    Base class for all analyzers.
+    
+    This abstract base class defines the interface that all analyzer classes must implement.
+    It enforces a consistent structure for data loading, analysis, and visualization across
+    different analysis processes.
+    """
+    
+    def __init__(self):
+        """
+        Initialize the base analyzer.
+        
+        Subclasses should call super().__init__() and initialize their own
+        data structures for storing analysis results and tracking missing files.
+        """
+        self.missing_files = []
+    
+    @abstractmethod
+    def load(self, 
+             base_dirs: List[Union[str, Path]], 
+             dir_to_display_name: Optional[Dict[str, str]] = None,
+             verbose: bool = True) -> Optional[Dict[str, Any]]:
+        """
+        Load data from multiple directories.
+        
+        This method should be implemented by subclasses to load and parse
+        data from the specified directories. It should handle file discovery,
+        data parsing, and error handling for missing or corrupted files.
+        
+        Args:
+            base_dirs: List of base directories to process
+            dir_to_display_name: Optional mapping from directory name to display name
+            verbose: Whether to print progress information
+            
+        Returns:
+            Dictionary mapping design names to loaded data, or None if no specific
+            return value is needed (data can be stored in instance variables)
+            
+        Raises:
+            NotImplementedError: If not implemented by subclass
+        """
+        pass
+    
+    @abstractmethod
+    def analyze(self) -> Optional[Any]:
+        """
+        Analyze the loaded data.
+        
+        This method should perform statistical analysis on the loaded data
+        and provide insights such as summary statistics, distributions,
+        and other relevant metrics.
+
+        Returns:
+            Analysis results (format depends on specific analyzer), or None
+            if results are printed directly
+            
+        Raises:
+            NotImplementedError: If not implemented by subclass
+        """
+        pass
+    
+    @abstractmethod
+    def visualize(self, save_path: Optional[str] = None) -> None:
+        """
+        Create visualizations for the analyzed data.
+        
+        This method should generate appropriate plots and charts to visualize
+        the analysis results. Visualizations should be saved to files if
+        save_path is provided.
+        
+        Args:
+            save_path: Optional path where visualization files should be saved.
+                      If None, visualizations may be displayed directly or
+                      saved to a default location.
+                      
+        Raises:
+            NotImplementedError: If not implemented by subclass
+        """
+        pass
+    
