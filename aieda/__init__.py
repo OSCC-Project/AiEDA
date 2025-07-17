@@ -10,3 +10,4 @@ from .data import *
 from .eda import *
 from .flows import *
 from .workspace import *
+from .analysis import *
