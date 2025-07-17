@@ -196,6 +196,22 @@ class Workspace:
         json_path = self.paths_table.ieda_config['initDB']
         parser = ConfigIEDADbParser(json_path)
         parser.set_sdc(sdc_path=sdc_path)
+        
+    def set_spef(self, spef_path : str):
+        # update data
+        self.configs.paths.spef_path = spef_path
+        
+        # update sdc in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path)
+        parser.set_spef(spef_path)
+        
+        # update sdc in iEDA_config/db_default_config.json 
+        from .config import ConfigIEDADbParser
+        json_path = self.paths_table.ieda_config['initDB']
+        parser = ConfigIEDADbParser(json_path)
+        parser.set_spef(spef_path=spef_path)
     
     def set_def_input(self, def_input : str):
         # update data

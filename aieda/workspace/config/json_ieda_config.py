@@ -139,6 +139,15 @@ class ConfigIEDADbParser(JsonParser):
             
         return False
     
+    def set_spef(self, spef_path : str):
+        if self.read():
+            self.json_data['INPUT']['spef_path'] = spef_path
+
+            #save file
+            return self.write()
+            
+        return False
+    
     def set_output_dir(self, output_dir : str):
         if self.read():
             self.json_data['OUTPUT']['output_dir_path'] = output_dir
