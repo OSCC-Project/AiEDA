@@ -33,6 +33,7 @@ class BaseAnalyzer(ABC):
     def load(self, 
              base_dirs: List[Union[str, Path]], 
              dir_to_display_name: Optional[Dict[str, str]] = None,
+             pattern: Optional[str] = None,
              verbose: bool = True) -> Optional[Dict[str, Any]]:
         """
         Load data from multiple directories.
@@ -44,6 +45,7 @@ class BaseAnalyzer(ABC):
         Args:
             base_dirs: List of base directories to process
             dir_to_display_name: Optional mapping from directory name to display name
+            pattern: File pattern to search for
             verbose: Whether to print progress information
             
         Returns:

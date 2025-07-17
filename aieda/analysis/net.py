@@ -100,21 +100,22 @@ def process_single_file(filepath: str) -> Optional[Dict[str, Any]]:
         return None
     
     
-def process_single_directory(directory: str, verbose : bool) -> Optional[Dict[str, Any]]:
+def process_single_directory(directory: str, pattern: str, verbose : bool) -> Optional[Dict[str, Any]]:
     """
     Process all net files in a single directory.
     
     Args:
         directory: Path to the directory containing net files
+        pattern: File pattern to match net files
         verbose : Whether to show progress information
         
     Returns:
         Dictionary containing processed data for the directory
     """
-    net_files_pattern = os.path.join(
-        directory, 
-        "workspace/output/innovus/feature/large_model/nets/net_*.json"
-    )
+    if pattern is None:
+        raise ValueError("Pattern must be specified to find net files.")
+    
+    net_files_pattern = os.path.join(directory, pattern)
     net_files = glob.glob(net_files_pattern)
     
     if not net_files:
@@ -177,6 +178,7 @@ class WireDistributionAnalyzer(BaseAnalyzer):
     def load(self,
              base_dirs: List[str],
              dir_to_display_name: Optional[Dict[str, str]] = None,
+             pattern: Optional[str] = None,
              max_workers: Optional[int] = None,
              verbose: bool = True) -> None:
         """
@@ -185,6 +187,7 @@ class WireDistributionAnalyzer(BaseAnalyzer):
         Args:
             base_dirs: List of base directories containing net data
             dir_to_display_name: Optional mapping from directory names to display names
+            pattern: File pattern to search for
             max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
             verbose: Whether to show progress information
         """        
@@ -195,7 +198,7 @@ class WireDistributionAnalyzer(BaseAnalyzer):
                 
         # Process directories in parallel
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory, directory, verbose) 
+            futures = [executor.submit(process_single_directory, directory, pattern, verbose) 
                       for directory in base_dirs]
             
             future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 
@@ -294,6 +297,7 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
     def load(self,
              base_dirs: List[str],
              dir_to_display_name: Optional[Dict[str, str]] = None,
+             pattern: Optional[str] = None,
              max_workers: Optional[int] = None,
              verbose: bool = True) -> None:
         """
@@ -302,6 +306,7 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
         Args:
             base_dirs: List of base directories containing net data
             dir_to_display_name: Optional mapping from directory names to display names
+            pattern: File pattern to search for
             max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
             verbose: Whether to show progress information
         """      
@@ -312,7 +317,7 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
                 
         # Process directories in parallel
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory, directory, verbose) 
+            futures = [executor.submit(process_single_directory, directory, pattern, verbose) 
                       for directory in base_dirs]
             
             future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 

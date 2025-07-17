@@ -6,13 +6,11 @@
 @Desc : test design_level data ananlysis
 '''
 
-import sys
-import os
-
-# when install as package, the following code must be commented
-current_dir = os.path.split(os.path.abspath(__file__))[0]
-root = current_dir.rsplit('/', 1)[0]
-sys.path.append(root)
+######################################################################################
+# import aieda
+from import_aieda import import_aieda
+import_aieda()
+######################################################################################
 
 from aieda.analysis import CellTypeAnalyzer,CoreUsageAnalyzer,PinDistributionAnalyzer
     
@@ -129,15 +127,18 @@ def main():
     cell_analyzer.load(
         base_dirs=BASE_DIRS,
         dir_to_display_name=DISPLAY_NAME,
+        pattern = "workspace/output/innovus/feature/*route_summary.json",
         verbose=True
     )
     cell_analyzer.analyze()
     cell_analyzer.visualize(save_path="./")
     
+    
     # 2. test core usage analysis: load, analyze, visualize
     core_analyzer = CoreUsageAnalyzer()
     core_analyzer.load(
         base_dirs=BASE_DIRS,
+        pattern = "workspace/output/innovus/feature/*route_summary.json",
         verbose=True
     )
     core_analyzer.analyze()
@@ -148,6 +149,7 @@ def main():
     pin_analyzer = PinDistributionAnalyzer()
     pin_analyzer.load(
         base_dirs=BASE_DIRS,
+        pattern = "workspace/output/innovus/feature/*route_summary.json",
         verbose=True
     )
     pin_analyzer.analyze()

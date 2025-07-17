@@ -431,18 +431,6 @@ class Workspace:
             return output
         
         @property
-        def innovus_output(self):
-            output = {
-                    'result' : "{}/output/innovus/result".format(self.directory),
-                      'data' : "{}/output/innovus/data".format(self.directory),
-                       'rpt' : "{}/output/innovus/rpt".format(self.directory),
-                       'log' : "{}/output/innovus/log".format(self.directory),
-                   'feature' : "{}/output/innovus/feature".format(self.directory),
-                   'vectorization' : "{}/output/innovus/vectorization".format(self.directory),
-                }
-            return output
-        
-        @property
         def ieda_report(self):
             report = {
                 'drc' : "{}/{}_drc.rpt".format(self.ieda_output['rpt'], self.design)

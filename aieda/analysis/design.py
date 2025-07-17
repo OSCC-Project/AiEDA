@@ -29,6 +29,7 @@ class CellTypeAnalyzer(BaseAnalyzer):
     def load(self, 
             base_dirs: List[Union[str, Path]], 
             dir_to_display_name: Optional[Dict[str, str]] = None,
+            pattern : Optional[str] = None,
             verbose: bool = True):
         """
         Load data from multiple directories.
@@ -36,15 +37,17 @@ class CellTypeAnalyzer(BaseAnalyzer):
         Args:
             base_dirs: List of base directories to process
             dir_to_display_name: Optional mapping from directory name to display name
+            pattern: File pattern to search for
             verbose: Whether to print progress information
         """        
+        if pattern is None:
+            raise ValueError("Pattern must be specified for cell type analysis")
+        
         for base_dir in base_dirs:
             design_name = os.path.basename(base_dir)
             display_name = dir_to_display_name.get(design_name, design_name) 
             
-            pattern = "workspace/output/innovus/feature/*route_summary.json"
             json_path = os.path.join(base_dir, pattern)
-            
             matching_files = glob.glob(json_path)
             
             if not matching_files:
@@ -177,7 +180,7 @@ class CellTypeAnalyzer(BaseAnalyzer):
         print("- 'instance_count_top20.png' (Top 20 designs)")
         print("- 'instance_count_bottom20.png' (Bottom 20 designs)")
         
-    def _custom_format(val):
+    def _custom_format(self, val):
         if val == 0:
             return '0'
         else:
@@ -193,20 +196,25 @@ class CoreUsageAnalyzer(BaseAnalyzer):
     
     def load(self, 
             base_dirs: List[Union[str, Path]], 
+            dir_to_display_name: Optional[Dict[str, str]] = None,
+            pattern: Optional[str] = None,
             verbose: bool = True):
         """
         Load data from multiple directories.
         
         Args:
             base_dirs: List of base directories to process
+            dir_to_display_name: Optional mapping from directory name to display name
+            pattern: File pattern to search for
             verbose: Whether to print progress information
-        """        
+        """     
+        if pattern is None:
+            raise ValueError("Pattern must be specified for core usage analysis")   
+        
         for base_dir in base_dirs:
             design_name = os.path.basename(base_dir)
             
-            pattern = "workspace/output/innovus/feature/*route_summary.json"
             json_path = os.path.join(base_dir, pattern)
-            
             matching_files = glob.glob(json_path)
             
             if not matching_files:
@@ -299,22 +307,26 @@ class PinDistributionAnalyzer(BaseAnalyzer):
     
     def load(self, 
             base_dirs: List[Union[str, Path]], 
+            dir_to_display_name: Optional[Dict[str, str]] = None,
+            pattern: Optional[str] = None,
             verbose: bool = True):
         """
         Load data from multiple directories.
         
         Args:
             base_dirs: List of base directories to process
+            dir_to_display_name: Optional mapping from directory name to display name
+            pattern: File pattern to search for
             verbose: Whether to print progress information
 
         """        
-        
+        if pattern is None:
+            raise ValueError("Pattern must be specified for pin distribution analysis")
+
         for base_dir in base_dirs:
             design_name = os.path.basename(base_dir)
             
-            pattern = "workspace/output/innovus/feature/*route_summary.json"
             json_path = os.path.join(base_dir, pattern)
-            
             matching_files = glob.glob(json_path)
             
             if not matching_files:
@@ -438,7 +450,7 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         print("Saved pin_vs_net_ratio.png")
         plt.close()  
         
-    def _parse_pin_num(pin_num_str):
+    def _parse_pin_num(self, pin_num_str):
         if isinstance(pin_num_str, (int, float)):
             return int(pin_num_str)
         

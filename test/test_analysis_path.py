@@ -6,13 +6,11 @@
 @Desc : test path_level data ananlysis
 '''
 
-import sys
-import os
-
-# when install as package, the following code must be commented
-current_dir = os.path.split(os.path.abspath(__file__))[0]
-root = current_dir.rsplit('/', 1)[0]
-sys.path.append(root)
+######################################################################################
+# import aieda
+from import_aieda import import_aieda
+import_aieda()
+######################################################################################
 
 from aieda.analysis import DelayAnalyzer, StageAnalyzer
 
@@ -48,6 +46,7 @@ def main():
     delay_analyzer.load(
         base_dirs=BASE_DIRS,
         dir_to_display_name=DISPLAY_NAME,
+        pattern = "workspace/output/innovus/feature/large_model/wire_paths/wire_path_*.yml"
     )
     delay_analyzer.analyze()
     delay_analyzer.visualize(save_path = '.')
@@ -57,6 +56,7 @@ def main():
     stage_analyzer.load(
         base_dirs=BASE_DIRS,
         dir_to_display_name=DISPLAY_NAME,
+        pattern = "workspace/output/innovus/feature/large_model/wire_paths/wire_path_*.yml"
     )
     stage_analyzer.analyze()
     stage_analyzer.visualize(save_path = '.')

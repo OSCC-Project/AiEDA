@@ -70,22 +70,23 @@ def extract_delays_and_stage_from_file(file_path: str) -> Optional[tuple]:
         return None
 
 
-def process_single_directory_for_delay(directory: str, verbose: bool = False) -> Optional[Dict[str, Any]]:
+def process_single_directory_for_delay(directory: str, pattern : Optional[str] = None, verbose: bool = False) -> Optional[Dict[str, Any]]:
     """
     process delay data from a single directory
     
     Args:
         directory: directory path
+        pattern : file pattern to search for wire path files
         verbose: whther to show detailed information
         
     Returns:
         dict
     """
+    if pattern is None:
+        raise ValueError("Pattern must be specified to find wire path files.")
+    
     design_name = os.path.basename(directory)
-    wire_path_pattern = os.path.join(
-        directory, 
-        "workspace/output/innovus/feature/large_model/wire_paths/wire_path_*.yml"
-    )
+    wire_path_pattern = os.path.join(directory, pattern)
     
     files = glob.glob(wire_path_pattern)
     
@@ -131,19 +132,20 @@ def process_single_directory_for_delay(directory: str, verbose: bool = False) ->
     }
 
 
-def process_single_directory_for_stage(directory: str, verbose: bool = False) -> Optional[Dict[str, Any]]:
+def process_single_directory_for_stage(directory: str, pattern : Optional[str] = None, verbose: bool = False) -> Optional[Dict[str, Any]]:
     """
     process stage data from a single directory
     
     Args:
         directory: directory path
+        pattern : file pattern to search for wire path files
         verbose: whether to show detailed information
         
     Returns:
         dict
     """
     # reuse process_single_directory_for_delay
-    result = process_single_directory_for_delay(directory, verbose)
+    result = process_single_directory_for_delay(directory, pattern, verbose)
     
     if result is None:
         return None
@@ -176,6 +178,7 @@ class DelayAnalyzer(BaseAnalyzer):
     def load(self,
              base_dirs: List[str],
              dir_to_display_name: Optional[Dict[str, str]] = None,
+             pattern : Optional[str] = None,
              max_workers: Optional[int] = None,
              verbose: bool = True) -> None:
         """
@@ -184,6 +187,7 @@ class DelayAnalyzer(BaseAnalyzer):
         Args:
             base_dirs: List of base directories containing net data
             dir_to_display_name: Optional mapping from directory names to display names
+            pattern : File pattern to search for wire path files
             max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
             verbose: Whether to show progress information
         """        
@@ -194,7 +198,7 @@ class DelayAnalyzer(BaseAnalyzer):
                 
         # Process directories in parallel
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory_for_delay, directory, verbose) 
+            futures = [executor.submit(process_single_directory_for_delay, directory, pattern, verbose) 
                       for directory in base_dirs]
             
             future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 
@@ -387,6 +391,7 @@ class StageAnalyzer(BaseAnalyzer):
     def load(self,
              base_dirs: List[str],
              dir_to_display_name: Optional[Dict[str, str]] = None,
+             pattern : Optional[str] = None,
              max_workers: Optional[int] = None,
              verbose: bool = True) -> None:
         """
@@ -395,6 +400,7 @@ class StageAnalyzer(BaseAnalyzer):
         Args:
             base_dirs: List of base directories containing stage data
             dir_to_display_name: map directory names to display names
+            pattern : File pattern to search for wire path files
             max_workers:  (default: min(8, cpu_count()))
             verbose: whether to show progress information
         """
@@ -404,7 +410,7 @@ class StageAnalyzer(BaseAnalyzer):
             max_workers = min(8, os.cpu_count() or 4)
         
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory_for_stage, directory, verbose) 
+            futures = [executor.submit(process_single_directory_for_stage, directory, pattern, verbose) 
                       for directory in base_dirs]
             
             future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 

@@ -6,13 +6,11 @@
 @Desc : test net_level data ananlysis
 '''
 
-import sys
-import os
-
-# when install as package, the following code must be commented
-current_dir = os.path.split(os.path.abspath(__file__))[0]
-root = current_dir.rsplit('/', 1)[0]
-sys.path.append(root)
+######################################################################################
+# import aieda
+from import_aieda import import_aieda
+import_aieda()
+######################################################################################
 
 from aieda.analysis import WireDistributionAnalyzer, MetricsCorrelationAnalyzer
 
@@ -44,11 +42,13 @@ DISPLAY_NAME = {
 
 
 def main():
+    
     # 1. Wire Distribution Analysis
     wire_analyzer = WireDistributionAnalyzer()
     wire_analyzer.load(
         base_dirs=BASE_DIRS,
         dir_to_display_name=DISPLAY_NAME,
+        pattern = "workspace/output/innovus/feature/large_model/nets/net_*.json",
         verbose=True
     )
     wire_analyzer.analyze()
@@ -59,6 +59,7 @@ def main():
     metric_analyzer.load(
         base_dirs=BASE_DIRS,
         dir_to_display_name=DISPLAY_NAME,
+        pattern = "workspace/output/innovus/feature/large_model/nets/net_*.json",
         verbose=True
     )
     metric_analyzer.analyze()

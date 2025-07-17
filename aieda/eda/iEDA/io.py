@@ -22,7 +22,6 @@ class IEDAIO(IEDABase):
         self.ieda.flow_init(flow_config=self.workspace.paths_table.ieda_config['initFlow'])
         
         self.ieda.db_init(config_path = self.workspace.paths_table.ieda_config['initDB'],
-                        #   output_path=self.workspace.get_path_output_innovus("DB")
                           output_path=self.workspace.paths_table.ieda_output['data']
                           )
                         #   lib_paths = self.workspace.json_path.lib_paths, 

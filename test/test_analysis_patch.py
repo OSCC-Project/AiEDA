@@ -6,13 +6,11 @@
 @Desc : test patch_level data ananlysis
 '''
 
-import sys
-import os
-
-# when install as package, the following code must be commented
-current_dir = os.path.split(os.path.abspath(__file__))[0]
-root = current_dir.rsplit('/', 1)[0]
-sys.path.append(root)
+######################################################################################
+# import aieda
+from import_aieda import import_aieda
+import_aieda()
+######################################################################################
 
 from aieda.analysis import WireDensityAnalyzer, FeatureCorrelationAnalyzer, MapAnalyzer
 
@@ -42,12 +40,14 @@ DISPLAY_NAME = {
     "apb4_timer": "D10",
 }
 
+
 def main():
     # 1. Wire Density Analysis
     wire_analyzer = WireDensityAnalyzer()
     wire_analyzer.load(
         base_dirs=BASE_DIRS,
         dir_to_display_name=DISPLAY_NAME,
+        pattern = "workspace/output/innovus/feature/large_model/patchs/patch_*.json"
     )
     wire_analyzer.analyze()
     wire_analyzer.visualize(save_path = '.')
@@ -57,6 +57,8 @@ def main():
     feature_analyzer.load(
         base_dirs=BASE_DIRS,
         dir_to_display_name=DISPLAY_NAME,
+        pattern = "workspace/output/innovus/feature/large_model/patchs/patch_*.json"
+        
     )
     feature_analyzer.analyze()
     feature_analyzer.visualize(save_path = '.')
@@ -66,6 +68,7 @@ def main():
     map_analyzer.load(
         base_dirs=["/data2/project_share/dataset_baseline/aes"],
         dir_to_display_name={"aes": "AES"},
+        pattern = "workspace/output/innovus/feature/large_model/patchs/patch_*.json"
     )
     map_analyzer.analyze()
     map_analyzer.visualize(save_path = '.')

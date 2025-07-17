@@ -126,22 +126,23 @@ def process_patch_file_with_position(filepath: str) -> Optional[Dict]:
         return None
 
 
-def process_single_directory_for_patches(directory: str, verbose: bool = False) -> Optional[Dict[str, Any]]:
+def process_single_directory_for_patches(directory: str, pattern: str, verbose: bool = False) -> Optional[Dict[str, Any]]:
     """
     Process all patch files in a single directory
     
     Args:
         directory: Directory path containing patch files
+        pattern : Pattern to match patch files
         verbose: Whether to show detailed progress
         
     Returns:
         Dictionary containing processed results, or None if error
     """
+    if pattern is None:
+        raise ValueError("Pattern must be specified to find patch files.")
+    
     design_name = os.path.basename(directory)
-    patch_files_pattern = os.path.join(
-        directory, 
-        "workspace/output/innovus/feature/large_model/patchs/patch_*.json"
-    )
+    patch_files_pattern = os.path.join(directory, pattern)
     
     patch_files = glob.glob(patch_files_pattern)
     
@@ -206,6 +207,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
     def load(self,
              base_dirs: List[str],
              dir_to_display_name: Optional[Dict[str, str]] = None,
+             pattern: Optional[str] = None,
              max_workers: Optional[int] = None,
              verbose: bool = True) -> None:
         """
@@ -214,6 +216,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
         Args:
             base_dirs: List of base directories containing patch data
             dir_to_display_name: Optional mapping from directory names to display names
+            pattern : Pattern to match patch files
             max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
             verbose: Whether to show progress information
         """
@@ -224,7 +227,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
         
         # Process directories in parallel
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory_for_patches, directory, verbose) 
+            futures = [executor.submit(process_single_directory_for_patches, directory, pattern, verbose) 
                       for directory in base_dirs]
             
             future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 
@@ -442,6 +445,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
     def load(self,
              base_dirs: List[str],
              dir_to_display_name: Optional[Dict[str, str]] = None,
+             pattern : Optional[str] = None,
              max_workers: Optional[int] = None,
              verbose: bool = True) -> None:
         """
@@ -450,6 +454,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         Args:
             base_dirs: List of base directories containing patch data
             dir_to_display_name: Optional mapping from directory names to display names
+            pattern : Pattern to match patch files
             max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
             verbose: Whether to show progress information
         """
@@ -460,7 +465,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         
         # Process directories in parallel
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory_for_patches, directory, verbose) 
+            futures = [executor.submit(process_single_directory_for_patches, directory, pattern, verbose) 
                       for directory in base_dirs]
             
             future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 
@@ -630,7 +635,7 @@ class MapAnalyzer(BaseAnalyzer):
         self.features = ['Cell Density', 'Pin Density', 'Congestion', 
                         'Timing', 'Power', 'IR Drop', 'net density', 'RUDY']
     
-    def load(self, base_dirs: List[str], dir_to_display_name: Dict[str, str]) -> None:
+    def load(self, base_dirs: List[str], dir_to_display_name: Dict[str, str], pattern : Optional[str]) -> None:
         """
         Load patch data with spatial position information from multiple directories.
         
@@ -641,6 +646,9 @@ class MapAnalyzer(BaseAnalyzer):
         """
         print("Loading patch data with spatial positions...")
         
+        if pattern is None:
+            raise ValueError("Pattern must be specified to find patch files.")
+        
         all_patches_data = []
         
         for base_dir in base_dirs:
@@ -649,7 +657,7 @@ class MapAnalyzer(BaseAnalyzer):
                 continue
             
             # Find patch files in the directory
-            patch_files_pattern = os.path.join(base_dir, "workspace/output/innovus/feature/large_model/patchs/patch_*.json")
+            patch_files_pattern = os.path.join(base_dir, pattern)
             patch_files = glob.glob(patch_files_pattern)
             
             if not patch_files:
