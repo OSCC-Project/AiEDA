@@ -17,7 +17,7 @@ from aieda import (
     RunIEDA
 )
 
-if __name__ == "__main__":  
+def create_workspace_28nm_gcd():
     # step 1 : create workspace
     # workspace_dir = "{}/example/backend_flow".format(root)
     workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
@@ -194,6 +194,137 @@ if __name__ == "__main__":
         ]
     )
     workspace.set_ieda_router_layer(bottom_layer="M2", top_layer="M7")
+    
+def create_workspace_sky130_gcd():
+    # step 1 : create workspace
+    # workspace_dir = "{}/example/backend_flow".format(root)
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130"
+    workspace = workspace_create(directory=workspace_dir, design="gcd")
+    
+    import sys
+    import os
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    root = current_dir.rsplit('/', 1)[0]
+    foundry_dir = "{}/aieda/third_party/iEDA/scripts/foundry/sky130".format(root)
+    
+    # step 2 : set workspace parameters
+    # set def input 
+    example_sky130_dir = "{}/example/sky130_gcd".format(root)
+    workspace.set_def_input("{}/output/iEDA/result/gcd_floorplan.def".format(example_sky130_dir))
+    
+    # set verilog input
+    workspace.set_verilog_input("{}/output/iEDA/result/gcd_floorplan.v".format(example_sky130_dir))
+    
+    # set tech lef
+    workspace.set_tech_lef("{}/lef/sky130_fd_sc_hs.tlef".format(foundry_dir))
+    
+    # set lefs
+    lefs = [
+            "{}/lef/sky130_fd_sc_hs_merged.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__com_bus_slice_10um.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__com_bus_slice_1um.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__com_bus_slice_20um.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__com_bus_slice_5um.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__connect_vcchib_vccd_and_vswitch_vddio_slice_20um.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__corner_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__disconnect_vccd_slice_5um.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__disconnect_vdda_slice_5um.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__gpiov2_pad_wrapped.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vccd_hvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vccd_lvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vdda_hvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vdda_lvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vddio_hvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vddio_lvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vssa_hvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vssa_lvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vssd_hvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vssd_lvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vssio_hvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_ef_io__vssio_lvc_pad.lef".format(foundry_dir),
+            "{}/lef/sky130_fd_io__top_xres4v2.lef".format(foundry_dir),
+            "{}/lef/sky130io_fill.lef".format(foundry_dir),
+            "{}/lef/sky130_sram_1rw1r_128x256_8.lef".format(foundry_dir),
+            "{}/lef/sky130_sram_1rw1r_44x64_8.lef".format(foundry_dir),
+            "{}/lef/sky130_sram_1rw1r_64x256_8.lef".format(foundry_dir),
+            "{}/lef/sky130_sram_1rw1r_80x64_8.lef".format(foundry_dir)
+        ]
+    workspace.set_lefs(lefs)
+    
+    # set libs
+    libs = [
+        "{}/lib/sky130_fd_sc_hs__tt_025C_1v80.lib".format(foundry_dir),
+        "{}/lib/sky130_dummy_io.lib".format(foundry_dir),
+        "{}/lib/sky130_sram_1rw1r_128x256_8_TT_1p8V_25C.lib".format(foundry_dir),
+        "{}/lib/sky130_sram_1rw1r_44x64_8_TT_1p8V_25C.lib".format(foundry_dir),
+        "{}/lib/sky130_sram_1rw1r_64x256_8_TT_1p8V_25C.lib".format(foundry_dir),
+        "{}/lib/sky130_sram_1rw1r_80x64_8_TT_1p8V_25C.lib".format(foundry_dir)
+        ]
+    workspace.set_libs(libs)
+    
+    # set sdc
+    workspace.set_sdc("{}/sdc/gcd.sdc".format(foundry_dir))
+    
+    # set spef
+    workspace.set_spef("{}/spef/gcd.spef".format(foundry_dir))
+    
+    # set workspace info
+    workspace.set_process_node("sky130")
+    workspace.set_project("gcd")
+    workspace.set_design("gcd")
+    workspace.set_version("V1")
+    workspace.set_task("run_eda")
+    
+    # config iEDA config
+    workspace.set_first_routing_layer("met1")
+    workspace.set_ieda_fixfanout_buffer("sky130_fd_sc_hs__buf_8")
+    workspace.set_ieda_cts_buffers(
+        [
+        "sky130_fd_sc_hs__buf_1"
+        ]
+    )
+    workspace.set_ieda_cts_root_buffer("sky130_fd_sc_hs__buf_1")
+    workspace.set_ieda_placement_buffers(
+        [
+            "sky130_fd_sc_hs__buf_1"
+        ]
+    )
+    workspace.set_ieda_filler_cells_for_first_iteration(
+        [
+           "sky130_fd_sc_hs__fill_8",
+            "sky130_fd_sc_hs__fill_4",
+            "sky130_fd_sc_hs__fill_2",
+            "sky130_fd_sc_hs__fill_1"
+        ]
+    )
+    workspace.set_ieda_filler_cells_for_second_iteration(
+        [
+            "sky130_fd_sc_hs__fill_8",
+            "sky130_fd_sc_hs__fill_4",
+            "sky130_fd_sc_hs__fill_2",
+            "sky130_fd_sc_hs__fill_1"
+        ]
+    )
+    workspace.set_ieda_optdrv_buffers(
+        [
+        "sky130_fd_sc_hs__buf_8"
+        ]
+    )
+    workspace.set_ieda_opthold_buffers(
+        [
+        "sky130_fd_sc_hs__buf_8"
+        ]
+    )
+    workspace.set_ieda_optsetup_buffers(
+        [
+        "sky130_fd_sc_hs__buf_8"
+        ]
+    )
+    workspace.set_ieda_router_layer(bottom_layer="met1", top_layer="met4")
+
+if __name__ == "__main__":  
+    # create_workspace_28nm_gcd()
+    create_workspace_sky130_gcd()
 
     exit(0)
 

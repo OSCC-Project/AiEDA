@@ -1,6 +1,6 @@
 {
     "def_input_path": "./gcd_floorplan.def",
-    "verilog_input_path": "./sky130_gcd/gcd.v",
+    "verilog_input_path": "./gcd_floorplan.v",
     "tech_lef_path": "./sky130_fd_sc_hs.tlef",
     "lef_paths": [
         "./sky130_fd_sc_hs_merged.lef",

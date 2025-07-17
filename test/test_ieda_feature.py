@@ -21,7 +21,7 @@ from aieda import (
 if __name__ == "__main__":  
     # step 1 : create workspace
     # workspace_dir = "{}/example/backend_flow".format(root)
-    workspace_dir = "/data2/huangzengrong/test_aieda/workspace"
+    workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : test get feature summary db from iEDA flow
