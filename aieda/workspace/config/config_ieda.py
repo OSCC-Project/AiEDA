@@ -6,7 +6,7 @@
 @Desc : set iEDA config
 '''
 
-from ..utility.json_parser import JsonParser
+from ...utility.json_parser import JsonParser
     
 class ConfigIEDA():
     def __init__(self):

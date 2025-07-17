@@ -24,3 +24,14 @@ class IEDANetOpt(IEDAIO):
         
         self.def_save()
         self.verilog_save(self.cell_names)
+        
+        self.run_feature()
+    
+    def run_feature(self):
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['fixFanout_summary'])
+        
+        # generate feature CTS data
+        self.ieda.feature_tool(ieda_feature_json['fixFanout_tool'], DbFlow.FlowStep.fixFanout.value)

@@ -24,6 +24,17 @@ class IEDATimingOpt(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
+        self.run_opt_drv_feature()
+    
+    def run_opt_drv_feature(self):
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['optDrv_summary'])
+        
+        # generate feature CTS data
+        self.ieda.feature_tool(ieda_feature_json['optDrv_tool'], DbFlow.FlowStep.optDrv.value)
+        
     def run_to_hold(self):
         self.ieda_config = self.workspace.paths_table.ieda_config['optHold']
         
@@ -34,6 +45,17 @@ class IEDATimingOpt(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
+        self.run_opt_hold_feature()
+    
+    def run_opt_hold_feature(self):
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['optHold_summary'])
+        
+        # generate feature CTS data
+        self.ieda.feature_tool(ieda_feature_json['optHold_tool'], DbFlow.FlowStep.optHold.value)
+        
     def run_to_setup(self):
         self.ieda_config = self.workspace.paths_table.ieda_config['optSetup']
         
@@ -43,3 +65,14 @@ class IEDATimingOpt(IEDAIO):
         
         self.def_save()
         self.verilog_save(self.cell_names)
+        
+        self.run_opt_setup_feature()
+    
+    def run_opt_setup_feature(self):
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['optSetup_summary'])
+        
+        # generate feature CTS data
+        self.ieda.feature_tool(ieda_feature_json['optSetup_tool'], DbFlow.FlowStep.optSetup.value)

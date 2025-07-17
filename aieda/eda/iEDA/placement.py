@@ -25,6 +25,17 @@ class IEDAPlacement(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
+        self.run_placement_feature()
+    
+    def run_placement_feature(self):
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['place_summary'])
+        
+        # generate feature CTS data
+        self.ieda.feature_tool(ieda_feature_json['place_tool'], DbFlow.FlowStep.place.value)
+        
     def run_legalization(self):
         self.read_def()
         
@@ -32,6 +43,17 @@ class IEDAPlacement(IEDAIO):
         
         self.def_save()
         self.verilog_save(self.cell_names)
+        
+        self.run_legalization_feature()
+    
+    def run_legalization_feature(self):
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['legalization_summary'])
+        
+        # generate feature CTS data
+        self.ieda.feature_tool(ieda_feature_json['legalization_tool'], DbFlow.FlowStep.legalization.value)
         
     def run_filler(self):
         self.read_def()
@@ -41,8 +63,23 @@ class IEDAPlacement(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
+        self.run_filler_feature()
+    
+    def run_filler_feature(self):
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['filler_summary'])
+        
+        # generate feature CTS data
+        self.ieda.feature_tool(ieda_feature_json['filler_tool'], DbFlow.FlowStep.filler.value)
+        
     def run_mp(self, config : str, tcl_path=""):
         self.ieda.runMP(config, tcl_path)
     
     def run_refinement(self, tcl_path=""):
         self.ieda.runRef(tcl_path)
+        
+    # build macro drc distribution
+    def feature_macro_drc_distribution(self, path: str, drc_path: str):
+        self.ieda.feature_macro_drc(path=path, drc_path=drc_path)

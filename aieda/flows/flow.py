@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : json_flow.py
+@File : flow.py
 @Author : yell
-@Desc : flow json parser 
+@Desc : flow data structure
 '''
-
 from enum import Enum
 
-class DbFlow(object):
+class DbFlow(object): 
     class FlowStep(Enum):
         """PR step
         """
@@ -46,21 +45,24 @@ class DbFlow(object):
         Success = "success"
         Ongoing = "ongoing"
         Imcomplete = "incomplete"
+        Ignored = "ignored"
     
     def __init__(self, 
                  eda_tool, 
                  step : FlowStep, 
-                 state : FlowState,
+                 state : FlowState=FlowState.Ignored,
                  input_def=None, 
-                 input_verilog=None):    
+                 input_verilog=None,
+                 output_def=None,
+                 output_verilog=None):    
         self.eda_tool = eda_tool
         self.step : self.FlowStep = step
         self.state : self.FlowState = state
         
         self.input_def = input_def
         self.input_verilog = input_verilog
-        self.output_def = None
-        self.output_verilog = None
+        self.output_def = output_def
+        self.output_verilog = output_verilog
 
     def set_state_unstart(self):
         """set_state_unstart"""

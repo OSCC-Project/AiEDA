@@ -14,20 +14,25 @@ class RunIEDA:
     '''run eda backend flow
     '''
     
-    def __init__(self, workspace : Workspace):        
+    def __init__(self, workspace : Workspace):  
+        """workspace : use workspace to manage all the data, inlcuding configs, 
+                       process modes, input and output path, feature data and so on
+        """     
         self.workspace = workspace
         
-        self.default_flows = {
-            "floorplan" : None,
-            "fixFanout" : None,
-            "place" : None,
-            "CTS" : None,
-            "optDrv" : None,
-            "optHold" : None,
-            "legalization" : None,
-            "route" : None,
-            "filler" : None,
-        }
+        # physical design flow order for iEDA
+        self.default_flows = [
+            "floorplan",
+            "fixFanout",
+            "place",
+            "CTS",
+            "optDrv",
+            "optHold",
+            "optSetup",
+            "legalization",
+            "route",
+            "filler"
+        ]
     
     def __get_workspace_flows__(self):
         flows = self.workspace.configs.flows
@@ -48,7 +53,7 @@ class RunIEDA:
             flows[i].output_def = self.workspace.configs.get_output_def(flows[i])
             flows[i].output_verilog = self.workspace.configs.get_output_verilog(flows[i])
         
-        return flows
+        return flows  
     
     def run_flows(self, flows=None, reset=False):
         if flows is None:
@@ -72,7 +77,78 @@ class RunIEDA:
         return True
             
     def run_flow(self, flow : DbFlow):
-        """run flow"""    
+        """run flow"""            
+        def __run_eda__(flow : DbFlow):
+            """run eda tool""" 
+            match flow.step:
+                case DbFlow.FlowStep.floorplan:
+                    from ..eda import IEDAFloorplan
+                    ieda_flow = IEDAFloorplan(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_floorplan()
+                    
+                case DbFlow.FlowStep.fixFanout:
+                    from ..eda import IEDANetOpt
+                    ieda_flow = IEDANetOpt(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_fix_fanout()
+                    
+                case DbFlow.FlowStep.place:
+                    from ..eda import IEDAPlacement
+                    ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_placement()
+                
+                case DbFlow.FlowStep.cts:
+                    from ..eda import IEDACts
+                    ieda_flow = IEDACts(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_cts()
+                    
+                case DbFlow.FlowStep.optDrv:
+                    from ..eda import IEDATimingOpt
+                    ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_to_drv()
+                    
+                case DbFlow.FlowStep.optHold:
+                    from ..eda import IEDATimingOpt
+                    ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_to_hold()
+                    
+                case DbFlow.FlowStep.optSetup:
+                    from ..eda import IEDATimingOpt
+                    ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_to_setup()
+                    
+                case DbFlow.FlowStep.legalization:
+                    from ..eda import IEDAPlacement
+                    ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_legalization()
+                    
+                case DbFlow.FlowStep.route:
+                    from ..eda import IEDARouting
+                    ieda_flow = IEDARouting(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_routing()
+                
+                case DbFlow.FlowStep.filler:
+                    from ..eda import IEDAPlacement
+                    ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_filler()
+        
+        def check_flow_state( flow : DbFlow):
+            """check state"""
+            #check flow success if output def & verilog file exist
+            output_def = self.workspace.configs.get_output_def(flow=flow, compressed=True)
+            output_verilog = self.workspace.configs.get_output_verilog(flow=flow, compressed=True)
+            
+            return (os.path.exists(output_def) and os.path.exists(output_verilog))
+        
         if flow.is_finish() is True:
             return True
         
@@ -81,13 +157,13 @@ class RunIEDA:
         self.workspace.configs.save_flow_state(flow)
              
         #run eda tool
-        p = Process(target=self.__run_eda__, args=(flow,))
+        p = Process(target=__run_eda__, args=(flow,))
         p.start()
         p.join()
         
         #save flow state
         is_success = False
-        if self.check_flow_state(flow) is True:
+        if check_flow_state(flow) is True:
             flow.set_state_finished()
             is_success = True
         else:
@@ -96,74 +172,246 @@ class RunIEDA:
             
         self.workspace.configs.save_flow_state(flow)
         return is_success
-            
-    def __run_eda__(self, flow : DbFlow):
-        """run eda tool""" 
-        match flow.step:
-            case DbFlow.FlowStep.floorplan:
-                from ..eda import IEDAFloorplan
-                ieda_flow = IEDAFloorplan(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_floorplan()
-                
-            case DbFlow.FlowStep.fixFanout:
-                from ..eda import IEDANetOpt
-                ieda_flow = IEDANetOpt(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_fix_fanout()
-                
-            case DbFlow.FlowStep.place:
-                from ..eda import IEDAPlacement
-                ieda_flow = IEDAPlacement(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_placement()
-            
-            case DbFlow.FlowStep.cts:
-                from ..eda import IEDACts
-                ieda_flow = IEDACts(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_cts()
-                
-            case DbFlow.FlowStep.optDrv:
-                from ..eda import IEDATimingOpt
-                ieda_flow = IEDATimingOpt(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_to_drv()
-                
-            case DbFlow.FlowStep.optHold:
-                from ..eda import IEDATimingOpt
-                ieda_flow = IEDATimingOpt(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_to_hold()
-                
-            case DbFlow.FlowStep.optSetup:
-                from ..eda import IEDATimingOpt
-                ieda_flow = IEDATimingOpt(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_to_setup()
-                
-            case DbFlow.FlowStep.legalization:
-                from ..eda import IEDAPlacement
-                ieda_flow = IEDAPlacement(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_legalization()
-                
-            case DbFlow.FlowStep.route:
-                from ..eda import IEDARouting
-                ieda_flow = IEDARouting(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_routing()
-            
-            case DbFlow.FlowStep.filler:
-                from ..eda import IEDAPlacement
-                ieda_flow = IEDAPlacement(workspace=self.workspace,
-                                          flow=flow)
-                ieda_flow.run_filler()
     
-    def check_flow_state(self, flow : DbFlow):
-        """check state"""
-        #check flow success if output def & verilog file exist
-        output_def = self.workspace.configs.get_output_def(flow=flow, compressed=True)
-        output_verilog = self.workspace.configs.get_output_verilog(flow=flow, compressed=True)
+    def run_fixFanout(self, 
+                      input_def:str, 
+                      input_verilog:str=None,
+                      output_def:str=None,
+                      output_verilog:str=None):   
+        """ run fix fanout flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.fixFanout,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
         
-        return (os.path.exists(output_def) and os.path.exists(output_verilog))
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_placement(self, 
+                      input_def:str, 
+                      input_verilog:str=None,
+                      output_def:str=None,
+                      output_verilog:str=None):   
+        """ run placement flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.place,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_CTS(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run CTS flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.cts,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_optimizing_drv(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run timing optimization drv flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.optDrv,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_optimizing_hold(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run timing optimization hold flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.optHold,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_optimizing_setup(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run timing optimization setup flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.cts,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_legalization(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run legalization flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.legalization,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_routing(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run routing flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.route,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_filler(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                output_def:str=None,
+                output_verilog:str=None):   
+        """ run instances filling flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : output def path, optional variable, if not set, use default path in workspace
+        output_verilog : output verilog path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.filler,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
