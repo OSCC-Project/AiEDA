@@ -9,14 +9,14 @@
 import json
 import gzip
 import os
-import logging
-
+from .log import Logger
 
 class JsonParser:
     """basic json parser"""
 
-    def __init__(self, json_path: str):
+    def __init__(self, json_path: str, logger : Logger):
         self.json_path = json_path
+        self.logger : Logger= logger
         self.json_data = None
 
     def set_json_data(self, value: dict):
@@ -35,11 +35,8 @@ class JsonParser:
     def read(self):
         ''' Json reader '''
         if not os.path.exists(self.json_path):
-            logging.info("error : json file not exist. path = %s",
-                         self.json_path)
+            self.logger.error("json file not exist. path = %s", self.json_path)
             return False
-        else:
-            logging.info("info : start parsing file : %s", self.json_path)
 
         try:
             # compressed
@@ -47,16 +44,14 @@ class JsonParser:
                 with gzip.open(self.json_path, 'r') as f:
                     unzip_data = f.read().decode('utf-8')
                     self.json_data = json.loads(unzip_data)
-                    logging.info("info : parsing file sucess")
-                    return True
             else:
                 with open(self.json_path, 'r', encoding='utf-8') as f_reader:
                     self.json_data = json.load(f_reader)
-                    logging.info("info : parsing file sucess")
-                    return True
+
+            return True
         except json.JSONDecodeError:
-            logging.info(
-                "error : json file format error. path = %s", self.json_path)
+            self.logger.error(
+                "json file format error. path = %s", self.json_path)
             return False
 
     def read_create(self):
@@ -76,13 +71,9 @@ class JsonParser:
             with gzip.open(self.json_path, 'wb') as f:
                 zip_data = json.dumps(self.json_data, indent=4)
                 f.write(zip_data.encode('utf-8'))
-                logging.info("info : write file sucess")
         else:
             with open(self.json_path, 'w', encoding='utf-8') as f_writer:
                 json.dump(self.json_data, f_writer, indent=4)
-                # json.dump(self.json_data, f_writer)
-                # print(self.json_data)
-                logging.info("info : write file sucess")
 
         return True
 
@@ -101,3 +92,15 @@ class JsonParser:
             return dict_word
 
         return None
+    
+    def print_json(self):
+        if self.read() is True:
+            self.logger.info("########################################################")
+            self.logger.info("#                   parameters start                   #")
+            self.logger.info("########################################################")
+            self.logger.info("\n%s", json.dumps(self.json_data, indent=4))
+            self.logger.info("########################################################")
+            self.logger.info("#                   parameters end                     #")
+            self.logger.info("########################################################\n")
+        else:
+            self.logger.error("json data error : %s", self.json_path)

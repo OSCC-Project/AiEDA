@@ -9,14 +9,15 @@
 import json
 import gzip
 import os
-import logging
+from .log import Logger
 
 
 class JsonlParser:
     """basic jsonl parser"""
 
-    def __init__(self, jsonl_path: str):
+    def __init__(self, jsonl_path: str, logger : Logger):
         self.jsonl_path = jsonl_path
+        self.logger = logger
         self.jsonl_data = []
 
     def set_jsonl_data(self, value: list):
@@ -35,11 +36,8 @@ class JsonlParser:
     def read(self):
         ''' Jsonl reader '''
         if not os.path.exists(self.jsonl_path):
-            logging.info("error : jsonl file not exist. path = %s",
-                         self.jsonl_path)
+            self.logger.error("jsonl file not exist. path = %s", self.jsonl_path)
             return False
-        else:
-            logging.info("info : start parsing file : %s", self.jsonl_path)
 
         try:
             # compressed
@@ -49,12 +47,9 @@ class JsonlParser:
             else:
                 with open(self.jsonl_path, 'r', encoding='utf-8') as f_reader:
                     self.jsonl_data = [json.loads(line.strip()) for line in f_reader if line.strip()]
-            
-            logging.info("info : parsing file success")
             return True
         except json.JSONDecodeError:
-            logging.info(
-                "error : jsonl file format error. path = %s", self.jsonl_path)
+            self.logger.error("jsonl file format error. path = %s", self.jsonl_path)
             return False
 
     def read_create(self):
@@ -78,8 +73,6 @@ class JsonlParser:
             with open(self.jsonl_path, 'w', encoding='utf-8') as f_writer:
                 for item in self.jsonl_data:
                     f_writer.write(json.dumps(item) + '\n')
-
-        logging.info("info : write file success")
         return True
 
     def get_value(self, dict_node, key):

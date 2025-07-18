@@ -11,8 +11,8 @@ from ...utility.json_parser import JsonParser
 
 class ConfigIEDAFlowParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
     
     @property    
     def default_json(self):
@@ -53,8 +53,8 @@ class ConfigIEDAFlowParser(JsonParser):
         
 class ConfigIEDADbParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
     
     @property    
     def default_json(self):
@@ -168,8 +168,8 @@ class ConfigIEDADbParser(JsonParser):
     
 class ConfigIEDACTSParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
         
     @property    
     def default_json(self):
@@ -252,8 +252,8 @@ class ConfigIEDACTSParser(JsonParser):
 
 class ConfigIEDAFixFanoutParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
     
     @property    
     def default_json(self):
@@ -298,8 +298,8 @@ class ConfigIEDAFixFanoutParser(JsonParser):
     
 class ConfigIEDAPlacementParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
     
     @property    
     def default_json(self):
@@ -392,11 +392,20 @@ class ConfigIEDAPlacementParser(JsonParser):
             return self.write()
             
         return False
+    
+    def set_target_density(self, target_density):
+        if self.read():
+            self.json_data['PL']['GP']['Density']['target_density'] = target_density
+
+            #save file
+            return self.write()
+            
+        return False
 
 class ConfigIEDARouterParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
     
     @property    
     def default_json(self):
@@ -465,8 +474,8 @@ class ConfigIEDARouterParser(JsonParser):
 
 class ConfigIEDATimingOptParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
     
     @property    
     def default_json(self):
@@ -574,8 +583,8 @@ class ConfigIEDATimingOptParser(JsonParser):
 
 class ConfigIEDAFloorplanParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
     
     @property    
     def default_json(self):
@@ -592,8 +601,8 @@ class ConfigIEDAFloorplanParser(JsonParser):
     
 class ConfigIEDADrcParser(JsonParser):
     """config iEDA json"""
-    def __init__(self, json_path: str):
-        super().__init__(json_path)
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
     
     @property    
     def default_json(self):

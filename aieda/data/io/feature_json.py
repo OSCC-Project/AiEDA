@@ -10,8 +10,7 @@ from ...utility.json_parser import JsonParser
 from ..database import *
 
 class FeatureParserJson(JsonParser):
-    """feature parser"""
-
+    """feature parser"""    
     def get_summary(self):
         ''' get design data '''
         if self.read() is False:

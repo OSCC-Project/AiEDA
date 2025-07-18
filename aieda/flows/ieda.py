@@ -6,13 +6,12 @@
 @Desc : run iEDA flow api
 '''
 from multiprocessing import Process
-from ..workspace import Workspace
 from .flow import DbFlow, RunFlowBase
 
 class RunIEDA(RunFlowBase):
     '''run eda backend flow
     '''
-    
+    from ..workspace import Workspace
     def __init__(self, workspace : Workspace):  
         """workspace : use workspace to manage all the data, inlcuding configs, 
                        process modes, input and output path, feature data and so on

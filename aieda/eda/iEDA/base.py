@@ -18,7 +18,7 @@ class IEDABase():
     """Manage flow"""  
     def __init__(self, workspace : Workspace, flow : DbFlow):
         if(ieda == None):
-            print("Error, iEDA library is not load.")
+            workspace.logger.error("Error, iEDA library is not load.")
             exit(0)
         self.ieda = ieda #iEDA 
         self.workspace = workspace

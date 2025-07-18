@@ -6,7 +6,7 @@
 @Desc : flow json parser 
 '''
 from ...utility.json_parser import JsonParser
-from ...flows import DbFlow
+from ...flows.flow import DbFlow
    
 class FlowParser(JsonParser):
     """flow json parser"""
