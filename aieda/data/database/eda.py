@@ -185,6 +185,8 @@ class CTSSummary(object):
 @dataclass
 class PLCommonSummary(object):
     place_density: float = None
+    HPWL : int = None
+    STWL : int = None
 
 
 @dataclass

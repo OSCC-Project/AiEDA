@@ -335,12 +335,16 @@ class FeatureParserJson(JsonParser):
             dict_dplace = dict_pl['dplace']
             dplace = PLCommonSummary()
             dplace.place_density = dict_dplace['place_density']
+            dplace.HPWL = dict_dplace['HPWL']
+            dplace.STWL = dict_dplace['STWL']
             pl_summary.dplace = dplace
 
         if 'gplace' in dict_pl:
             dict_gplace = dict_pl['gplace']
             gplace = PLCommonSummary()
             gplace.place_density = dict_gplace['place_density']
+            gplace.HPWL = dict_gplace['HPWL']
+            gplace.STWL = dict_gplace['STWL']
 
             pl_summary.gplace = gplace
 
@@ -352,6 +356,8 @@ class FeatureParserJson(JsonParser):
 
             pl_common_summary = PLCommonSummary()
             pl_common_summary.place_density = dict_legalization['place_density']
+            pl_common_summary.HPWL = dict_legalization['HPWL']
+            pl_common_summary.STWL = dict_legalization['STWL']
             lg_summary.pl_common_summary = pl_common_summary
 
             pl_summary.lg_summary = lg_summary
@@ -366,21 +372,17 @@ class FeatureParserJson(JsonParser):
 
         dict_pl = self.json_data[key]
 
-        pl_summary = PlaceSummary()
+        lg_summary = LGSummary()
+        lg_summary.lg_total_movement = dict_pl['total_movement']
+        lg_summary.lg_max_movement = dict_pl['max_movement']
 
-        if 'legalization' in dict_pl:
-            dict_legalization = dict_pl['legalization']
-            lg_summary = LGSummary()
-            lg_summary.lg_total_movement = dict_legalization['total_movement']
-            lg_summary.lg_max_movement = dict_legalization['max_movement']
+        pl_common_summary = PLCommonSummary()
+        pl_common_summary.HPWL = dict_pl['HPWL']
+        pl_common_summary.STWL = dict_pl['STWL']
+        lg_summary.pl_common_summary = pl_common_summary
 
-            pl_common_summary = PLCommonSummary()
-            pl_common_summary.place_density = dict_legalization['place_density']
-            lg_summary.pl_common_summary = pl_common_summary
 
-            pl_summary.lg_summary = lg_summary
-
-        return pl_summary
+        return lg_summary
 
     def get_tools_route(self):
         if 'route' in self.json_data:
