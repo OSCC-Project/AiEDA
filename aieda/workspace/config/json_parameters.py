@@ -18,7 +18,6 @@ class ParametersParser(JsonParser):
                 parameters = EDAParameters()
                 
             self.json_data['placement_target_density'] = parameters.placement_target_density
-            self.json_data['222'] = 11
         
         return self.write()
         
