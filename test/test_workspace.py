@@ -17,10 +17,8 @@ from aieda import (
     RunIEDA
 )
 
-def create_workspace_28nm_gcd():
+def create_workspace_28nm_gcd(workspace_dir):
     # step 1 : create workspace
-    # workspace_dir = "{}/example/backend_flow".format(root)
-    workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : set workspace parameters
@@ -195,10 +193,11 @@ def create_workspace_28nm_gcd():
     )
     workspace.set_ieda_router_layer(bottom_layer="M2", top_layer="M7")
     
-def create_workspace_sky130_gcd():
+    return workspace
+    
+def create_workspace_sky130_gcd(workspace_dir):
     # step 1 : create workspace
     # workspace_dir = "{}/example/backend_flow".format(root)
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     import sys
@@ -321,10 +320,14 @@ def create_workspace_sky130_gcd():
         ]
     )
     workspace.set_ieda_router_layer(bottom_layer="met1", top_layer="met4")
+    
+    return workspace
 
 if __name__ == "__main__":  
-    # create_workspace_28nm_gcd()
-    create_workspace_sky130_gcd()
+    # workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
+    # workspace = create_workspace_28nm_gcd(workspace_dir)     
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130"
+    workspace = create_workspace_sky130_gcd(workspace_dir)
 
     exit(0)
 

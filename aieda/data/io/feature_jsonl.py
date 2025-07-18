@@ -5,7 +5,7 @@
 @Author : yell
 @Desc : jsonl parser for feature
 '''
-from ...utility.jsonl_parser import JsonlParser
+from ...utility.jsonl_parser import JsonlParser, aieda_logging
 from ..database import *
 
 from typing import Dict, Any
@@ -143,7 +143,7 @@ class FeatureParserJsonl(JsonlParser):
                 method_timing = MethodTimingIEDA(clock_timings=clock_timings)
                 setattr(timing, method, method_timing)
             else:
-                print(f"No data for {method} in timing data")
+                aieda_logging.warning(f"No data for {method} in timing data")
         return timing
 
     def add_power_to_timing(self, timing: FeatureTimingIEDA, data: Dict[str, Any]) -> FeatureTimingIEDA:
@@ -152,7 +152,7 @@ class FeatureParserJsonl(JsonlParser):
             if method in dict_power:
                 method_timing = getattr(timing, method, None)
                 if method_timing is None:
-                    print(f"Creating new MethodTiming for {method}")
+                    aieda_logging.info(f"Creating new MethodTiming for {method}")
                     method_timing = MethodTimingIEDA(clock_timings=[])
                     setattr(timing, method, method_timing)
                 method_timing.static_power = dict_power[method].get(
@@ -160,5 +160,5 @@ class FeatureParserJsonl(JsonlParser):
                 method_timing.dynamic_power = dict_power[method].get(
                     'dynamic_power')
             else:
-                print(f"No power data for {method}")
+                aieda_logging.warning(f"No power data for {method}")
         return timing

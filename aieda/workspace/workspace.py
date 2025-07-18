@@ -2,6 +2,8 @@
 
 
 """
+from ..utility import aieda_logging
+
 def workspace_create(directory : str, design : str):
     ws = Workspace(directory=directory, design=design)
     
@@ -10,6 +12,8 @@ def workspace_create(directory : str, design : str):
     return ws
     
 class Workspace:
+    from ..data.database.parameters import EDAParameters
+    
     def __init__(self, directory : str, design : str):
         self.directory = directory
         self.design = design
@@ -23,8 +27,11 @@ class Workspace:
         # step 1, ensure workspace dir exist
         #########################################################################
         import os
+    
         if os.path.exists(self.directory):
+            aieda_logging.info("workspace exist : {}".format(self.directory))
             return True
+        
         os.makedirs(self.directory)
         
         #########################################################################
@@ -132,6 +139,8 @@ class Workspace:
         # step 8 : update config
         #########################################################################
         self.configs.update()
+        
+        aieda_logging.info("create workspace success : {}".format(self.directory))
 
     def set_tech_lef(self, tech_lef : str):
         # update data
@@ -361,6 +370,34 @@ class Workspace:
         from .config import ConfigIEDARouterParser
         parser = ConfigIEDARouterParser(self.paths_table.ieda_config['route'])
         parser.set_enable_timing(enable_timing)
+        
+    def update_parameters(self, parameters : EDAParameters):
+        """update parameters and save to parameters.json
+        """
+        # update data in configs
+        self.configs.parameters = parameters
+        
+        # update parameters.json
+        from .config import ParametersParser
+        parser = ParametersParser(self.paths_table.parameters)
+        parser.create_json(parameters)
+        
+        # update iEDA_config/pl_default_config.json
+        from .config import ConfigIEDAPlacementParser
+        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'])
+        parser.set_target_density(parameters.placement_target_density)
+        
+    def load_parameters(self, parameters_json : str):
+        """load parameters data from json
+        """
+        from .config import ParametersParser
+        parser = ParametersParser(parameters_json)
+        self.configs.parameters = parser.get_db()
+        
+    def print_paramters(self):
+        from .config import ParametersParser
+        parser = ParametersParser(self.paths_table.parameters)
+        parser.print_json()
             
     class PathsTable:
         def __init__(self, directory : str, design : str):
@@ -525,11 +562,6 @@ class Workspace:
             self.paths = self.__init_path_json__()
             self.workspace = self.__init_workspace_json__()
             self.parameters = self.__init_parameters__()
-            
-        @property
-        def config_ieda(self):
-            from .config import ConfigIEDA
-            return ConfigIEDA()
         
         def __init_flow_json__(self):
             from .config import FlowParser

@@ -9,7 +9,7 @@
 import json
 import gzip
 import os
-import logging
+from .log import aieda_logging
 
 
 class JsonlParser:
@@ -35,11 +35,8 @@ class JsonlParser:
     def read(self):
         ''' Jsonl reader '''
         if not os.path.exists(self.jsonl_path):
-            logging.info("error : jsonl file not exist. path = %s",
-                         self.jsonl_path)
+            aieda_logging.error("jsonl file not exist. path = %s", self.jsonl_path)
             return False
-        else:
-            logging.info("info : start parsing file : %s", self.jsonl_path)
 
         try:
             # compressed
@@ -50,11 +47,10 @@ class JsonlParser:
                 with open(self.jsonl_path, 'r', encoding='utf-8') as f_reader:
                     self.jsonl_data = [json.loads(line.strip()) for line in f_reader if line.strip()]
             
-            logging.info("info : parsing file success")
+            aieda_logging.info("read file sucess : %s", self.jsonl_path)
             return True
         except json.JSONDecodeError:
-            logging.info(
-                "error : jsonl file format error. path = %s", self.jsonl_path)
+            aieda_logging.error("jsonl file format error. path = %s", self.jsonl_path)
             return False
 
     def read_create(self):
@@ -79,7 +75,7 @@ class JsonlParser:
                 for item in self.jsonl_data:
                     f_writer.write(json.dumps(item) + '\n')
 
-        logging.info("info : write file success")
+        aieda_logging.info("info : write file success")
         return True
 
     def get_value(self, dict_node, key):

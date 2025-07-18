@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : test_ieda_flows.py
+@File : test_parameters.py
 @Author : yell
-@Desc : test physical design flows for iEDA
+@Desc : test all parameters in AiEDA
 '''
 
 ######################################################################################
@@ -14,20 +14,24 @@ import_aieda()
 
 from aieda import (
     workspace_create,
-    RunIEDA
+    EDAParameters
 )
 
 if __name__ == "__main__":  
     # step 1 : create workspace
+    # workspace_dir = "{}/example/backend_flow".format(root)
     # workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
     workspace_dir = "/data2/huangzengrong/test_aieda/sky130"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
+    workspace.print_paramters()
     
-    # step 2 : init iEDA by workspace
-    run_ieda = RunIEDA(workspace)
+    # step test parameters config
+    parameters = EDAParameters()
+    parameters.placement_target_density = 0.8
     
-    # step 3 : run physical backend flows configured in workspace/config/flow.json
-    run_ieda.run_flows()
+    workspace.update_parameters(parameters=parameters)
+    
+    workspace.print_paramters()
 
     exit(0)
 

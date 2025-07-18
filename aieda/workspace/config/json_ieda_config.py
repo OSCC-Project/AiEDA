@@ -392,6 +392,15 @@ class ConfigIEDAPlacementParser(JsonParser):
             return self.write()
             
         return False
+    
+    def set_target_density(self, target_density):
+        if self.read():
+            self.json_data['PL']['GP']['Density']['target_density'] = target_density
+
+            #save file
+            return self.write()
+            
+        return False
 
 class ConfigIEDARouterParser(JsonParser):
     """config iEDA json"""

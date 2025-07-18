@@ -17,8 +17,6 @@ from numpy import double, uint, uint64
     begin
 """
 ##########################################################################################
-from ...flows import DbFlow
-    
 @dataclass     
 class SummaryInfo(object):
     """infomation structure"""
@@ -133,8 +131,8 @@ class SummaryPin(object):
 
 @dataclass     
 class FeatureSummary(object):
-     """basic feature package"""
-     flow : DbFlow = None
+     """basic feature package"""  
+     flow = None
      info : SummaryInfo = None
      statis : SummaryStatis = None
      layout : SummaryLayout = None

@@ -5,11 +5,6 @@
 @Author : yell
 @Desc : change folder authorization
 '''
-
-######################################################################################
-# import ai-eda as root
-
-######################################################################################
 import os
 
 class FolderPermissionManager():

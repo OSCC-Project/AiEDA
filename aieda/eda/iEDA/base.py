@@ -13,12 +13,13 @@ else:
 
 from ...workspace import Workspace
 from ...flows import DbFlow
+from ...utility import aieda_logging
 
 class IEDABase():
     """Manage flow"""  
     def __init__(self, workspace : Workspace, flow : DbFlow):
         if(ieda == None):
-            print("Error, iEDA library is not load.")
+            aieda_logging.error("Error, iEDA library is not load.")
             exit(0)
         self.ieda = ieda #iEDA 
         self.workspace = workspace

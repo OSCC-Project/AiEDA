@@ -75,3 +75,7 @@ from .eda import (
     FeatureTimingIEDA,
     FeatureEval
 )
+
+from .parameters import (
+    EDAParameters
+)

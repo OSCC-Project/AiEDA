@@ -120,7 +120,7 @@ class DbFlow(object):
 class RunFlowBase:
     '''run eda backend flow
     '''
-    from ..workspace import Workspace
+    from ..workspace.workspace import Workspace
     def __init__(self, workspace : Workspace):  
         """workspace : use workspace to manage all the data, inlcuding configs, 
                        process modes, input and output path, feature data and so on
