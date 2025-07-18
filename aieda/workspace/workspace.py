@@ -2,7 +2,8 @@
 
 
 """
-from ..utility import aieda_logging
+import os
+from ..utility import create_logger
 
 def workspace_create(directory : str, design : str):
     ws = Workspace(directory=directory, design=design)
@@ -18,7 +19,12 @@ class Workspace:
         self.directory = directory
         self.design = design
         self.paths_table = self.PathsTable(directory, design)
-        self.configs = self.Configs(self.paths_table)
+        if os.path.exists(self.directory):
+            self.logger = create_logger(name=design, log_file=self.paths_table.log)
+            self.configs = self.Configs(paths_table=self.paths_table, logger=self.logger)
+        else:
+            self.logger = None
+            self.configs = None
     
     def create_wrokspace(self):
         """check if workspace exist, if not exist, create workspace
@@ -26,10 +32,8 @@ class Workspace:
         #########################################################################
         # step 1, ensure workspace dir exist
         #########################################################################
-        import os
-    
         if os.path.exists(self.directory):
-            aieda_logging.info("workspace exist : {}".format(self.directory))
+            self.logger.info("the workspace is existed: {}".format(self.directory))
             return True
         
         os.makedirs(self.directory)
@@ -42,19 +46,26 @@ class Workspace:
         
         for dir in self.paths_table.ieda_output_dirs:
             os.makedirs(dir)
+            
+        # create log and update logger and init configs
+        os.makedirs(self.paths_table.log_dir)
+        with open(self.paths_table.log, 'a') as file:
+            file.write("\n start AiEDA logging for design {} ...".format(self.design))
+        self.logger = create_logger(name=self.design, log_file=self.paths_table.log)
+        self.configs = self.Configs(paths_table=self.paths_table, logger=self.logger)
         
         #########################################################################
         # step 3, create flow.json
         #########################################################################
         from .config import FlowParser
-        parser = FlowParser(self.paths_table.flow)
+        parser = FlowParser(self.paths_table.flow, self.logger)
         parser.create_json(self.configs.flows)
         
         #########################################################################
         # step 4, create path.json
         #########################################################################
         from .config import PathParser
-        parser = PathParser(self.paths_table.path)
+        parser = PathParser(self.paths_table.path, self.logger)
         parser.create_json(self.configs.paths)
         
         #########################################################################
@@ -64,14 +75,14 @@ class Workspace:
         if self.configs.workspace.design is None:
             self.configs.workspace.design = self.design
             
-        parser = WorkspaceParser(self.paths_table.workspace)
+        parser = WorkspaceParser(self.paths_table.workspace, self.logger)
         parser.create_json(self.configs.workspace)
         
         #########################################################################
         # step 6, create parameters.json
         #########################################################################
         from .config import ParametersParser
-        parser = ParametersParser(self.paths_table.parameters)
+        parser = ParametersParser(self.paths_table.parameters, self.logger)
         parser.create_json(self.configs.parameters)
         
         #########################################################################
@@ -82,57 +93,57 @@ class Workspace:
         
         # create flow_config.json
         from .config import ConfigIEDAFlowParser
-        parser = ConfigIEDAFlowParser(self.paths_table.ieda_config['initFlow'])
+        parser = ConfigIEDAFlowParser(self.paths_table.ieda_config['initFlow'], self.logger)
         parser.create_json_default()
         
         # create db_default_config.json
         from .config import ConfigIEDADbParser
-        parser = ConfigIEDADbParser(self.paths_table.ieda_config['initDB'])
+        parser = ConfigIEDADbParser(self.paths_table.ieda_config['initDB'], self.logger)
         parser.create_json_default(self.paths_table)
         
         # create fp_default_config.json
         from .config import ConfigIEDAFloorplanParser
-        parser = ConfigIEDAFloorplanParser(self.paths_table.ieda_config['floorplan'])
+        parser = ConfigIEDAFloorplanParser(self.paths_table.ieda_config['floorplan'], self.logger)
         parser.create_json_default()
         
         # create no_default_config_fixfanout.json
         from .config import ConfigIEDAFixFanoutParser
-        parser = ConfigIEDAFixFanoutParser(self.paths_table.ieda_config['fixFanout'])
+        parser = ConfigIEDAFixFanoutParser(self.paths_table.ieda_config['fixFanout'], self.logger)
         parser.create_json_default(self.paths_table)
         
         # create pl_default_config.json
         from .config import ConfigIEDAPlacementParser
-        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'])
+        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'], self.logger)
         parser.create_json_default()
         
         # create cts_default_config.json
         from .config import ConfigIEDACTSParser
-        parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'])
+        parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'], self.logger)
         parser.create_json_default()
         
         # create to_default_config_drv.json
         from .config import ConfigIEDATimingOptParser
-        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optDrv'])
+        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optDrv'], self.logger)
         parser.create_json_default(self.paths_table, "optimize_drv")
         
         # create to_default_config_hold.json
         from .config import ConfigIEDATimingOptParser
-        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optHold'])
+        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optHold'], self.logger)
         parser.create_json_default(self.paths_table, "optimize_hold")
         
         # create to_default_config_setup.json
         from .config import ConfigIEDATimingOptParser
-        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optSetup'])
+        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optSetup'], self.logger)
         parser.create_json_default(self.paths_table, "optimize_setup")
         
         # create rt_default_config.json
         from .config import ConfigIEDARouterParser
-        parser = ConfigIEDARouterParser(self.paths_table.ieda_config['route'])
+        parser = ConfigIEDARouterParser(self.paths_table.ieda_config['route'], self.logger)
         parser.create_json_default(self.paths_table)
         
         # create drc_default_config.json
         from .config import ConfigIEDADrcParser
-        parser = ConfigIEDADrcParser(self.paths_table.ieda_config['drc'])
+        parser = ConfigIEDADrcParser(self.paths_table.ieda_config['drc'], self.logger)
         parser.create_json_default()
         
         #########################################################################
@@ -140,7 +151,7 @@ class Workspace:
         #########################################################################
         self.configs.update()
         
-        aieda_logging.info("create workspace success : {}".format(self.directory))
+        self.logger.info("create workspace success : {}".format(self.directory))
 
     def set_tech_lef(self, tech_lef : str):
         # update data
@@ -149,13 +160,13 @@ class Workspace:
         # update tech lef in path.json 
         from .config import PathParser
         json_path = self.paths_table.path
-        parser = PathParser(json_path)
+        parser = PathParser(json_path, self.logger)
         parser.set_tech_lef(tech_lef)
         
         # update tech lef in iEDA_config/db_default_config.json 
         from .config import ConfigIEDADbParser
         json_path = self.paths_table.ieda_config['initDB']
-        parser = ConfigIEDADbParser(json_path)
+        parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_tech_lef(tech_lef=tech_lef)
         
     def set_lefs(self, lefs : list[str]):
@@ -165,13 +176,13 @@ class Workspace:
         # update lefs in path.json 
         from .config import PathParser
         json_path = self.paths_table.path
-        parser = PathParser(json_path)
+        parser = PathParser(json_path, self.logger)
         parser.set_lefs(lefs)
         
         # update lefs in iEDA_config/db_default_config.json 
         from .config import ConfigIEDADbParser
         json_path = self.paths_table.ieda_config['initDB']
-        parser = ConfigIEDADbParser(json_path)
+        parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_lefs(lefs=lefs)
         
     def set_libs(self, libs : list[str]):
@@ -181,13 +192,13 @@ class Workspace:
         # update libs in path.json 
         from .config import PathParser
         json_path = self.paths_table.path
-        parser = PathParser(json_path)
+        parser = PathParser(json_path, self.logger)
         parser.set_libs(libs)
         
         # update libs in iEDA_config/db_default_config.json 
         from .config import ConfigIEDADbParser
         json_path = self.paths_table.ieda_config['initDB']
-        parser = ConfigIEDADbParser(json_path)
+        parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_libs(libs=libs)
         
     def set_sdc(self, sdc_path : str):
@@ -197,13 +208,13 @@ class Workspace:
         # update sdc in path.json 
         from .config import PathParser
         json_path = self.paths_table.path
-        parser = PathParser(json_path)
+        parser = PathParser(json_path, self.logger)
         parser.set_sdc(sdc_path)
         
         # update sdc in iEDA_config/db_default_config.json 
         from .config import ConfigIEDADbParser
         json_path = self.paths_table.ieda_config['initDB']
-        parser = ConfigIEDADbParser(json_path)
+        parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_sdc(sdc_path=sdc_path)
         
     def set_spef(self, spef_path : str):
@@ -213,13 +224,13 @@ class Workspace:
         # update sdc in path.json 
         from .config import PathParser
         json_path = self.paths_table.path
-        parser = PathParser(json_path)
+        parser = PathParser(json_path, self.logger)
         parser.set_spef(spef_path)
         
         # update sdc in iEDA_config/db_default_config.json 
         from .config import ConfigIEDADbParser
         json_path = self.paths_table.ieda_config['initDB']
-        parser = ConfigIEDADbParser(json_path)
+        parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_spef(spef_path=spef_path)
     
     def set_def_input(self, def_input : str):
@@ -229,13 +240,13 @@ class Workspace:
         # update def input in path.json 
         from .config import PathParser
         json_path = self.paths_table.path
-        parser = PathParser(json_path)
+        parser = PathParser(json_path, self.logger)
         parser.set_def_input(def_input)
         
         # update def input in iEDA_config/db_default_config.json 
         from .config import ConfigIEDADbParser
         json_path = self.paths_table.ieda_config['initDB']
-        parser = ConfigIEDADbParser(json_path)
+        parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_def_input(def_path=def_input)
     
     def set_verilog_input(self, verilog_input : str):
@@ -245,13 +256,13 @@ class Workspace:
         # update verilog input in path.json 
         from .config import PathParser
         json_path = self.paths_table.path
-        parser = PathParser(json_path)
+        parser = PathParser(json_path, self.logger)
         parser.set_verilog_input(verilog_input)
         
         # update verilog input in iEDA_config/db_default_config.json 
         from .config import ConfigIEDADbParser
         json_path = self.paths_table.ieda_config['initDB']
-        parser = ConfigIEDADbParser(json_path)
+        parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_verilog_input(verilog_path=verilog_input)
         
     def set_flows(self, flows):
@@ -260,7 +271,7 @@ class Workspace:
         
         # update flows in flow.json
         from .config import FlowParser
-        parser = FlowParser(self.paths_table.flow)
+        parser = FlowParser(self.paths_table.flow, self.logger)
         parser.create_json(self.configs.flows)
     
     def set_process_node(self, process_node :str):
@@ -269,7 +280,7 @@ class Workspace:
         
         # udpate process_node in workspace.json
         from .config import WorkspaceParser
-        parser = WorkspaceParser(self.paths_table.workspace)
+        parser = WorkspaceParser(self.paths_table.workspace, self.logger)
         parser.set_process_node(process_node)
     
     def set_design(self, design :str):
@@ -279,7 +290,7 @@ class Workspace:
         
         # udpate design in workspace.json
         from .config import WorkspaceParser
-        parser = WorkspaceParser(self.paths_table.workspace)
+        parser = WorkspaceParser(self.paths_table.workspace, self.logger)
         parser.set_design(design)
     
     def set_version(self, version :str):
@@ -288,7 +299,7 @@ class Workspace:
         
         # udpate version in workspace.json
         from .config import WorkspaceParser
-        parser = WorkspaceParser(self.paths_table.workspace)
+        parser = WorkspaceParser(self.paths_table.workspace, self.logger)
         parser.set_version(version)
     
     def set_project(self, project :str):
@@ -297,7 +308,7 @@ class Workspace:
         
         # udpate project in workspace.json
         from .config import WorkspaceParser
-        parser = WorkspaceParser(self.paths_table.workspace)
+        parser = WorkspaceParser(self.paths_table.workspace, self.logger)
         parser.set_project(project)
     
     def set_task(self, task :str):
@@ -306,69 +317,69 @@ class Workspace:
         
         # udpate project in workspace.json
         from .config import WorkspaceParser
-        parser = WorkspaceParser(self.paths_table.workspace)
+        parser = WorkspaceParser(self.paths_table.workspace, self.logger)
         parser.set_task(task)
     
     def set_first_routing_layer(self, layer : str):
         from .config import ConfigIEDADbParser
         json_path = self.paths_table.ieda_config['initDB']
-        parser = ConfigIEDADbParser(json_path)
+        parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_first_routing_layer(layer=layer)
         
     def set_ieda_fixfanout_buffer(self, buffer : str):
         from .config import ConfigIEDAFixFanoutParser
-        parser = ConfigIEDAFixFanoutParser(self.paths_table.ieda_config['fixFanout'])
+        parser = ConfigIEDAFixFanoutParser(self.paths_table.ieda_config['fixFanout'], self.logger)
         parser.set_insert_buffer(buffer)
     
     def set_ieda_cts_buffers(self, buffers : list[str]):
         from .config import ConfigIEDACTSParser
-        parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'])
+        parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'], self.logger)
         parser.set_buffer_type(buffers)
     
     def set_ieda_cts_root_buffer(self, buffer : str):
         from .config import ConfigIEDACTSParser
-        parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'])
+        parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'], self.logger)
         parser.set_root_buffer_type(buffer)
     
     def set_ieda_placement_buffers(self, buffers : list[str]):
         from .config import ConfigIEDAPlacementParser
-        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'])
+        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'], self.logger)
         parser.set_buffer_type(buffers)
     
     def set_ieda_filler_cells_for_first_iteration(self, cells : list[str]):
         from .config import ConfigIEDAPlacementParser
-        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['filler'])
+        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['filler'], self.logger)
         parser.set_filler_first_iter(cells)
     
     def set_ieda_filler_cells_for_second_iteration(self, cells : list[str]):
         from .config import ConfigIEDAPlacementParser
-        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['filler'])
+        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['filler'], self.logger)
         parser.set_filler_second_iter(cells)
         
     def set_ieda_optdrv_buffers(self, buffers : list[str]):
         from .config import ConfigIEDATimingOptParser
-        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optDrv'])
+        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optDrv'], self.logger)
         parser.set_drv_insert_buffers(buffers)
         
     def set_ieda_opthold_buffers(self, buffers : list[str]):
         from .config import ConfigIEDATimingOptParser
-        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optHold'])
+        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optHold'], self.logger)
         parser.set_hold_insert_buffers(buffers)
         
     def set_ieda_optsetup_buffers(self, buffers : list[str]):
         from .config import ConfigIEDATimingOptParser
-        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optSetup'])
+        parser = ConfigIEDATimingOptParser(self.paths_table.ieda_config['optSetup'], self.logger)
         parser.set_setup_insert_buffers(buffers)
     
     def set_ieda_router_layer(self, bottom_layer : str, top_layer : str):
         from .config import ConfigIEDARouterParser
-        parser = ConfigIEDARouterParser(self.paths_table.ieda_config['route'])
+        parser = ConfigIEDARouterParser(self.paths_table.ieda_config['route'], self.logger)
         parser.set_bottom_routing_layer(bottom_layer)
         parser.set_top_routing_layer(top_layer)
     
     def set_ieda_router_timing(self, enable_timing : bool):
         from .config import ConfigIEDARouterParser
-        parser = ConfigIEDARouterParser(self.paths_table.ieda_config['route'])
+        parser = ConfigIEDARouterParser(self.paths_table.ieda_config['route'], self.logger)
         parser.set_enable_timing(enable_timing)
         
     def update_parameters(self, parameters : EDAParameters):
@@ -379,24 +390,24 @@ class Workspace:
         
         # update parameters.json
         from .config import ParametersParser
-        parser = ParametersParser(self.paths_table.parameters)
+        parser = ParametersParser(self.paths_table.parameters, self.logger)
         parser.create_json(parameters)
         
         # update iEDA_config/pl_default_config.json
         from .config import ConfigIEDAPlacementParser
-        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'])
+        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'], self.logger)
         parser.set_target_density(parameters.placement_target_density)
         
     def load_parameters(self, parameters_json : str):
         """load parameters data from json
         """
         from .config import ParametersParser
-        parser = ParametersParser(parameters_json)
+        parser = ParametersParser(parameters_json, self.logger)
         self.configs.parameters = parser.get_db()
         
     def print_paramters(self):
         from .config import ParametersParser
-        parser = ParametersParser(self.paths_table.parameters)
+        parser = ParametersParser(self.paths_table.parameters, self.logger)
         parser.print_json()
             
     class PathsTable:
@@ -430,6 +441,16 @@ class Workspace:
         def parameters(self):
             """path for parameters setting"""
             return "{}/config/parameters.json".format(self.directory)
+        
+        @property
+        def log_dir(self):
+            """directory for log file"""
+            return "{}/output/log".format(self.directory)
+        
+        @property
+        def log(self):
+            """path for log file"""
+            return "{}/{}.log".format(self.log_dir, self.design)
         
         @property
         def ieda_output_dirs(self):
@@ -550,8 +571,9 @@ class Workspace:
             
             
     class Configs:
-        def __init__(self, paths_table):
+        def __init__(self, paths_table, logger):
             self.paths_table = paths_table
+            self.logger = logger
             self.flows = self.__init_flow_json__()
             self.paths = self.__init_path_json__()
             self.workspace = self.__init_workspace_json__()
@@ -565,27 +587,27 @@ class Workspace:
         
         def __init_flow_json__(self):
             from .config import FlowParser
-            parser = FlowParser(self.paths_table.flow)
+            parser = FlowParser(self.paths_table.flow, self.logger)
             return parser.get_db()
         
         def __init_path_json__(self):
             from .config import PathParser
-            parser = PathParser(self.paths_table.path)
+            parser = PathParser(self.paths_table.path, self.logger)
             return parser.get_db()
         
         def __init_workspace_json__(self):
             from .config.json_workspace import WorkspaceParser
-            parser = WorkspaceParser(self.paths_table.workspace)
+            parser = WorkspaceParser(self.paths_table.workspace, self.logger)
             return parser.get_db()
         
         def __init_parameters__(self):
             from .config.json_parameters import ParametersParser
-            parser = ParametersParser(self.paths_table.parameters)
+            parser = ParametersParser(self.paths_table.parameters, self.logger)
             return parser.get_db()
         
         def reset_flow_states(self):
             from .config import FlowParser
-            parser = FlowParser(self.paths_table.flow)
+            parser = FlowParser(self.paths_table.flow, self.logger)
             parser.reset_flow_state()
             
             #reset flows data
@@ -594,7 +616,7 @@ class Workspace:
         def save_flow_state(self, db_flow):
             """save flow state"""
             from .config import FlowParser
-            parser = FlowParser(self.paths_table.flow)
+            parser = FlowParser(self.paths_table.flow, self.logger)
             parser.set_flow_state(db_flow)
         
         def get_output_def(self, flow, compressed : bool = True):

@@ -6,7 +6,7 @@
 @Desc : logging
 '''
 
-
+import os
 import logging
 from logging.handlers import RotatingFileHandler
 import sys
@@ -55,18 +55,23 @@ class Logger:
         self.logger.critical(msg, *args, **kwargs)
 
 
-def create_log(name: str = "aieda",
+def create_logger(name: str = "aieda",
                log_file: Optional[str] = None,
                max_bytes: int = 10 * 1024 * 1024,  # 10MB
                backup_count: int = 5,
                level: int = logging.INFO,
                fmt: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s") -> Logger:
-    return Logger(name=name,
+    if log_file is not None and os.path.exists(log_file):
+        return Logger(name=name,
                   log_file=log_file,
                   max_bytes=max_bytes,
                   backup_count=backup_count,
                   level=level,
                   fmt=fmt)
-    
-global aieda_logging
-aieda_logging = create_log()
+    else:    
+        return Logger(name=name,
+                  log_file=None,
+                  max_bytes=max_bytes,
+                  backup_count=backup_count,
+                  level=level,
+                  fmt=fmt)
