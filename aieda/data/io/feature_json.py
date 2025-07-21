@@ -7,9 +7,14 @@
 '''
 
 from ...utility.json_parser import JsonParser
+from ...utility.log import Logger
 from ..database import *
 
 class FeatureParserJson(JsonParser):
+    
+    def __init__(self, json_path: str, logger: Logger = None):
+        super().__init__(json_path, logger)
+        
     """feature parser"""    
     def get_summary(self):
         ''' get design data '''
@@ -236,7 +241,8 @@ class FeatureParserJson(JsonParser):
         feature_eval.wirelength = self.get_eval_wirelength()
         feature_eval.density = self.get_eval_density()
         feature_eval.congestion = self.get_eval_congestion()
-        feature_eval.timing = self.get_eval_timing()
+        feature_eval.timing = self.get_eval_timing() # include power
+        
 
         return feature_eval
 
@@ -762,3 +768,210 @@ class FeatureParserJson(JsonParser):
             to_summary.clock_timings.append(clock_timing_cmp)
 
         return to_summary
+    
+    def get_eval_wirelength(self):
+        if 'Wirelength' in self.json_data:
+            dict_wirelength = self.json_data['Wirelength']
+            
+            feature_wirelength = FeatureWirelength()
+            
+            feature_wirelength.FLUTE = dict_wirelength.get('FLUTE', None)
+            feature_wirelength.GRWL = dict_wirelength.get('GRWL', None)
+            feature_wirelength.HPWL = dict_wirelength.get('HPWL', None)
+            feature_wirelength.HTree = dict_wirelength.get('HTree', None)
+            feature_wirelength.VTree = dict_wirelength.get('VTree', None)
+            
+            return feature_wirelength
+        
+        return None
+    
+    def get_eval_density(self):
+        if 'Density' in self.json_data:
+            dict_density = self.json_data['Density']
+            
+            feature_density = FeatureDensity()
+            
+            if 'cell' in dict_density:
+                cell_data = dict_density['cell']
+                feature_density.cell = FeatureDensityCell(
+                    allcell_density=cell_data.get('allcell_density', None),
+                    macro_density=cell_data.get('macro_density', None),
+                    stdcell_density=cell_data.get('stdcell_density', None)
+                )
+            
+            if 'margin' in dict_density:
+                margin_data = dict_density['margin']
+                feature_density.margin = FeatureDensityMargin(
+                    horizontal=margin_data.get('horizontal', None),
+                    union=margin_data.get('union', None),
+                    vertical=margin_data.get('vertical', None)
+                )
+            
+            if 'net' in dict_density:
+                net_data = dict_density['net']
+                feature_density.net = FeatureDensityNet(
+                    allnet_density=net_data.get('allnet_density', None),
+                    global_net_density=net_data.get('global_net_density', None),
+                    local_net_density=net_data.get('local_net_density', None)
+                )
+            
+            if 'pin' in dict_density:
+                pin_data = dict_density['pin']
+                feature_density.pin = FeatureDensityPin(
+                    allcell_pin_density=pin_data.get('allcell_pin_density', None),
+                    macro_pin_density=pin_data.get('macro_pin_density', None),
+                    stdcell_pin_density=pin_data.get('stdcell_pin_density', None)
+                )
+            
+            return feature_density
+        
+        return None
+
+
+    def get_eval_congestion(self):
+        if 'Congestion' in self.json_data:
+            dict_congestion = self.json_data['Congestion']
+            
+            feature_congestion = FeatureCongestion()
+            
+            if 'map' in dict_congestion:
+                map_data = dict_congestion['map']
+                feature_congestion.map = FeatureCongestionMap()
+                
+                if 'egr' in map_data:
+                    egr_data = map_data['egr']
+                    feature_congestion.map.egr = FeatureCongestionMapBase(
+                        horizontal=egr_data.get('horizontal', None),
+                        union=egr_data.get('union', None),
+                        vertical=egr_data.get('vertical', None)
+                    )
+                
+                if 'lutrudy' in map_data:
+                    lutrudy_data = map_data['lutrudy']
+                    feature_congestion.map.lutrudy = FeatureCongestionMapBase(
+                        horizontal=lutrudy_data.get('horizontal', None),
+                        union=lutrudy_data.get('union', None),
+                        vertical=lutrudy_data.get('vertical', None)
+                    )
+                
+                if 'rudy' in map_data:
+                    rudy_data = map_data['rudy']
+                    feature_congestion.map.rudy = FeatureCongestionMapBase(
+                        horizontal=rudy_data.get('horizontal', None),
+                        union=rudy_data.get('union', None),
+                        vertical=rudy_data.get('vertical', None)
+                    )
+            
+            if 'overflow' in dict_congestion:
+                overflow_data = dict_congestion['overflow']
+                feature_congestion.overflow = FeatureCongestionOverflow()
+                
+                if 'max' in overflow_data:
+                    max_data = overflow_data['max']
+                    feature_congestion.overflow.max = FeatureCongestionOverflowBase(
+                        horizontal=max_data.get('horizontal', None),
+                        union=max_data.get('union', None),
+                        vertical=max_data.get('vertical', None)
+                    )
+                
+                if 'top_average' in overflow_data:
+                    top_avg_data = overflow_data.get('top_average')
+                    if top_avg_data:
+                        feature_congestion.overflow.top_average = FeatureCongestionOverflowBase(
+                            horizontal=top_avg_data.get('horizontal', None),
+                            union=top_avg_data.get('union', None),
+                            vertical=top_avg_data.get('vertical', None)
+                        )
+                
+                if 'total' in overflow_data:
+                    total_data = overflow_data['total']
+                    feature_congestion.overflow.total = FeatureCongestionOverflowBase(
+                        horizontal=total_data.get('horizontal', None),
+                        union=total_data.get('union', None),
+                        vertical=total_data.get('vertical', None)
+                    )
+            
+            if 'utilization' in dict_congestion:
+                utilization_data = dict_congestion['utilization']
+                feature_congestion.utilization = FeatureCongestionUtilization()
+                
+                if 'lutrudy' in utilization_data:
+                    lutrudy_data = utilization_data['lutrudy']
+                    feature_congestion.utilization.lutrudy = FeatureCongestionUtilizationStats()
+                    
+                    if 'max' in lutrudy_data:
+                        max_data = lutrudy_data['max']
+                        feature_congestion.utilization.lutrudy.max = FeatureCongestionUtilizationBase(
+                            horizontal=max_data.get('horizontal', None),
+                            union=max_data.get('union', None),
+                            vertical=max_data.get('vertical', None)
+                        )
+                    
+                    if 'top_average' in lutrudy_data:
+                        top_avg_data = lutrudy_data.get('top_average')
+                        if top_avg_data:
+                            feature_congestion.utilization.lutrudy.top_average = FeatureCongestionUtilizationBase(
+                                horizontal=top_avg_data.get('horizontal', None),
+                                union=top_avg_data.get('union', None),
+                                vertical=top_avg_data.get('vertical', None)
+                            )
+                
+                if 'rudy' in utilization_data:
+                    rudy_data = utilization_data['rudy']
+                    feature_congestion.utilization.rudy = FeatureCongestionUtilizationStats()
+                    
+                    if 'max' in rudy_data:
+                        max_data = rudy_data['max']
+                        feature_congestion.utilization.rudy.max = FeatureCongestionUtilizationBase(
+                            horizontal=max_data.get('horizontal', None),
+                            union=max_data.get('union', None),
+                            vertical=max_data.get('vertical', None)
+                        )
+                    
+                    if 'top_average' in rudy_data:
+                        top_avg_data = rudy_data.get('top_average')
+                        if top_avg_data:
+                            feature_congestion.utilization.rudy.top_average = FeatureCongestionUtilizationBase(
+                                horizontal=top_avg_data.get('horizontal', None),
+                                union=top_avg_data.get('union', None),
+                                vertical=top_avg_data.get('vertical', None)
+                            )
+            
+            return feature_congestion
+        
+        return None
+
+    def get_eval_timing(self): # include power
+        if 'Timing' in self.json_data:
+            dict_timing = self.json_data['Timing']
+            
+            feature_timing = FeatureTimingIEDA()
+            
+            for method in ['HPWL', 'FLUTE', 'SALT', 'EGR', 'DR']:
+                if method in dict_timing:
+                    method_data = dict_timing[method]
+                    
+                    clock_timings = None
+                    if 'clock_timings' in method_data and method_data['clock_timings']:
+                        clock_timings = []
+                        for clock_data in method_data['clock_timings']:
+                            clock_timing = ClockTiming()
+                            clock_timing.clock_name = clock_data.get('clock_name', None)
+                            clock_timing.setup_tns = clock_data.get('setup_tns', None)
+                            clock_timing.setup_wns = clock_data.get('setup_wns', None)
+                            clock_timing.hold_tns = clock_data.get('hold_tns', None)
+                            clock_timing.hold_wns = clock_data.get('hold_wns', None)
+                            clock_timing.suggest_freq = clock_data.get('suggest_freq', None)
+                            clock_timings.append(clock_timing)
+                    
+                    method_timing = MethodTimingIEDA(
+                        clock_timings=clock_timings,
+                        dynamic_power=method_data.get('dynamic_power', None),
+                        static_power=method_data.get('static_power', None)
+                    )
+                    
+                    setattr(feature_timing, method, method_timing)
+            
+            return feature_timing
+        
+        return None

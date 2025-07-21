@@ -69,6 +69,7 @@ from .eda import (
     FeatureCongestionOverflowBase,
     FeatureCongestionOverflow,
     FeatureCongestionUtilizationBase,
+    FeatureCongestionUtilizationStats,
     FeatureCongestionUtilization,
     FeatureCongestion,
     MethodTimingIEDA,

@@ -451,6 +451,7 @@ class FeatureTools(object):
 from enum import Enum
 from typing import List
 
+# wirelength
 @dataclass
 class FeatureWirelength(object):
     FLUTE: float = None
@@ -459,6 +460,7 @@ class FeatureWirelength(object):
     HTree: float = None
     VTree: float = None
 
+# density
 @dataclass
 class FeatureDensityCell(object):
     allcell_density: str = None
@@ -490,6 +492,7 @@ class FeatureDensity(object):
     net: FeatureDensityNet = None
     pin: FeatureDensityPin = None
 
+# congestion
 @dataclass
 class FeatureCongestionMapBase(object):
     horizontal: str = None
@@ -519,11 +522,16 @@ class FeatureCongestionUtilizationBase(object):
     horizontal: float = None
     union: float = None
     vertical: float = None
+    
+@dataclass
+class FeatureCongestionUtilizationStats(object):
+    max: FeatureCongestionUtilizationBase = None
+    top_average: FeatureCongestionUtilizationBase = None  
 
 @dataclass
 class FeatureCongestionUtilization(object):
-    lutrudy: FeatureCongestionUtilizationBase = None
-    rudy: FeatureCongestionUtilizationBase = None
+    lutrudy: FeatureCongestionUtilizationStats = None
+    rudy: FeatureCongestionUtilizationStats = None
 
 @dataclass
 class FeatureCongestion(object):
@@ -531,6 +539,7 @@ class FeatureCongestion(object):
     overflow: FeatureCongestionOverflow = None
     utilization: FeatureCongestionUtilization = None
 
+# timing
 @dataclass
 class MethodTimingIEDA(object):
     clock_timings: List[ClockTiming] = None

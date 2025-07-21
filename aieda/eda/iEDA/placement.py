@@ -36,6 +36,10 @@ class IEDAPlacement(IEDAIO):
         # generate feature CTS data
         self.ieda.feature_tool(ieda_feature_json['place_tool'], DbFlow.FlowStep.place.value)
         
+        # generate eval metrics. The default map_grid_size is 1X row_height.
+        map_grid_size = 1
+        self.ieda.feature_pl_eval(ieda_feature_json['place_eval'], map_grid_size)
+        
     def run_legalization(self):
         self.read_def()
         
