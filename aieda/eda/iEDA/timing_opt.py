@@ -76,3 +76,34 @@ class IEDATimingOpt(IEDAIO):
         
         # generate feature CTS data
         self.ieda.feature_tool(ieda_feature_json['optSetup_tool'], DbFlow.FlowStep.optSetup.value)
+        
+    def run_drv_eval(self):
+        self.read_def()
+        
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['optDrv_summary'])
+        
+        # TODO: more eval metrics
+        
+    def run_hold_eval(self):
+        self.read_def()
+        
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['optHold_summary'])
+        
+        # TODO: more eval metrics
+        
+    def run_setup_eval(self):
+        self.read_def()
+        
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['optSetup_summary'])
+        
+        # TODO: more eval metrics
+        

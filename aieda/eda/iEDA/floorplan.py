@@ -27,3 +27,14 @@ class IEDAFloorplan(IEDAIO):
         self.ieda.auto_place_pins(layer=layer, 
                                   width = width, 
                                   height=height)
+    
+    def run_eval(self):
+        self.read_def()
+        
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        self.ieda.feature_summary(ieda_feature_json['floorplan_summary'])
+                
+        
+        
+        
