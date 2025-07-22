@@ -15,13 +15,14 @@ from aieda import (
     workspace_create,
     DbFlow,
     load_feature_summary,
-    load_feature_tool
+    load_feature_tool,
+    load_feature_eval
 )
 
 if __name__ == "__main__":  
     # step 1 : create workspace
     # workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130"
+    workspace_dir = "/data/project_share/yhqiu/test_aieda/workspace_rerun"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : test get feature summary db from iEDA flow
@@ -53,6 +54,22 @@ if __name__ == "__main__":
                                   flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step))
                                   )
         print("feature tool db in step {}".format(step))
+        
+    # step 4 : test get feature eval db from iEDA flow
+    for step in ["fixFanout", 
+                 "place",
+                 "CTS",
+                 "optDrv",
+                 "optHold",
+                 "legalization",
+                 "route",
+                 "filler"
+                 ]:
+        if step == "place" or step == "CTS":
+            feature_db = load_feature_eval(workspace=workspace, 
+                                    flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step))
+                                    )
+            print("feature eval db in step {}".format(step))
 
     exit(0)
 

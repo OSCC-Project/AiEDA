@@ -397,6 +397,7 @@ class Workspace:
         from .config import ConfigIEDAPlacementParser
         parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'], self.logger)
         parser.set_target_density(parameters.placement_target_density)
+     
         
     def load_parameters(self, parameters_json : str):
         """load parameters data from json
@@ -538,29 +539,15 @@ class Workspace:
                 'filler_tool'          : "{}/{}_filler_tool.json".format(self.ieda_output['feature'], self.design),
                 'route_summary'        : "{}/{}_route_summary.json".format(self.ieda_output['feature'], self.design),
                 'route_tool'           : "{}/{}_route_tool.json".format(self.ieda_output['feature'], self.design),      
-                'route_drc'            : "{}/{}_route_drc.json".format(self.ieda_output['feature'], self.design)
+                'route_drc'            : "{}/{}_route_drc.json".format(self.ieda_output['feature'], self.design),
+                # eva metrics for the main pr stage   
+                'place_eval' : "{}/{}_place_eval.json".format(self.ieda_output['feature'], self.design),    
+                'CTS_eval' : "{}/{}_CTS_eval.json".format(self.ieda_output['feature'], self.design),
             }
             
             return feature_json
-        
-        @property
-        def ieda_feature_jsonl(self):
-            feature_jsonl = {
-                'CTS_eval' : "{}/{}CTS_eval.jsonl".format(self.ieda_output['feature'], self.design),
-                'place_eval' : "{}/{}place_eval.jsonl".format(self.ieda_output['feature'], self.design)                
-            }
-            
-            return feature_jsonl
-        
-        @property
-        def ieda_feature_csv(self):
-            feature_csv = {
-                'CTS_eval' : "{}/{}CTS_eval.csv".format(self.ieda_output['feature'], self.design),
-                'place_eval' : "{}/{}place_eval.csv".format(self.ieda_output['feature'], self.design)                
-            }
-            
-            return feature_csv
-        
+
+    
         @property
         def scripts(self):
             scirpt_paths = {

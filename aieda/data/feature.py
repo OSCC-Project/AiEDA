@@ -32,3 +32,16 @@ def load_feature_tool(workspace : Workspace, flow : DbFlow):
         
         parser = FeatureParserJson(feature_path)
         return parser.get_tools()
+
+def load_feature_eval(workspace : Workspace, flow : DbFlow):
+    """workspace : Workspace data
+       flow : DbFlow
+    """
+    from .io import FeatureParserJson   
+    eval_key = "{}_eval".format(flow.step.value)
+    
+    if flow.eda_tool == "iEDA":
+        feature_path = workspace.paths_table.ieda_feature_json[eval_key]
+        
+        parser = FeatureParserJson(feature_path)
+        return parser.get_eval()    

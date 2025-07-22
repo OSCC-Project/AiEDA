@@ -7,9 +7,14 @@
 '''
 
 from ...utility.json_parser import JsonParser
+from ...utility.log import Logger
 from ..database import *
 
 class FeatureParserJson(JsonParser):
+    
+    def __init__(self, json_path: str, logger: Logger = None):
+        super().__init__(json_path, logger)
+        
     """feature parser"""    
     def get_summary(self):
         ''' get design data '''
@@ -236,7 +241,8 @@ class FeatureParserJson(JsonParser):
         feature_eval.wirelength = self.get_eval_wirelength()
         feature_eval.density = self.get_eval_density()
         feature_eval.congestion = self.get_eval_congestion()
-        feature_eval.timing = self.get_eval_timing()
+        feature_eval.timing = self.get_eval_timing() # include power
+        
 
         return feature_eval
 
@@ -334,12 +340,16 @@ class FeatureParserJson(JsonParser):
             dict_dplace = dict_pl['dplace']
             dplace = PLCommonSummary()
             dplace.place_density = dict_dplace['place_density']
+            dplace.HPWL = dict_dplace['HPWL']
+            dplace.STWL = dict_dplace['STWL']
             pl_summary.dplace = dplace
 
         if 'gplace' in dict_pl:
             dict_gplace = dict_pl['gplace']
             gplace = PLCommonSummary()
             gplace.place_density = dict_gplace['place_density']
+            gplace.HPWL = dict_gplace['HPWL']
+            gplace.STWL = dict_gplace['STWL']
 
             pl_summary.gplace = gplace
 
@@ -351,6 +361,8 @@ class FeatureParserJson(JsonParser):
 
             pl_common_summary = PLCommonSummary()
             pl_common_summary.place_density = dict_legalization['place_density']
+            pl_common_summary.HPWL = dict_legalization['HPWL']
+            pl_common_summary.STWL = dict_legalization['STWL']
             lg_summary.pl_common_summary = pl_common_summary
 
             pl_summary.lg_summary = lg_summary
@@ -365,320 +377,358 @@ class FeatureParserJson(JsonParser):
 
         dict_pl = self.json_data[key]
 
-        pl_summary = PlaceSummary()
+        lg_summary = LGSummary()
+        lg_summary.lg_total_movement = dict_pl['total_movement']
+        lg_summary.lg_max_movement = dict_pl['max_movement']
 
-        if 'legalization' in dict_pl:
-            dict_legalization = dict_pl['legalization']
-            lg_summary = LGSummary()
-            lg_summary.lg_total_movement = dict_legalization['total_movement']
-            lg_summary.lg_max_movement = dict_legalization['max_movement']
+        pl_common_summary = PLCommonSummary()
+        pl_common_summary.HPWL = dict_pl['HPWL']
+        pl_common_summary.STWL = dict_pl['STWL']
+        lg_summary.pl_common_summary = pl_common_summary
 
-            pl_common_summary = PLCommonSummary()
-            pl_common_summary.place_density = dict_legalization['place_density']
-            lg_summary.pl_common_summary = pl_common_summary
 
-            pl_summary.lg_summary = lg_summary
-
-        return pl_summary
+        return lg_summary
 
     def get_tools_route(self):
-        if 'route' in self.json_data:
-            dict_route = self.json_data['route']
-            route_summary = RouteSummary()
+        if 'route' not in self.json_data:
+            return None
+        
+        dict_route = self.json_data['route']
+        rt_summary = RouteSummary()
 
-            if 'PA' in dict_route:
-                dict_pa = dict_route['PA']
-                pa_summary = PASummary()
-                pa_summary.total_access_point_num = dict_pa['total_access_point_num']
-                for key, value in dict_pa['routing_access_point_num_map'].items():
-                    item_value = (key, value)
-                    pa_summary.routing_access_point_num_map.append(item_value)
+        if 'PA' in dict_route:
+            dict_pa_list = dict_route['PA']
+            if isinstance(dict_pa_list, list):
+                for dict_pa in dict_pa_list:
+                    iter_num = dict_pa.get('iter', 0)
+                    pa_summary = PASummary()
+                    
+                    if 'routing_wire_length_map' in dict_pa:
+                        for key, value in dict_pa['routing_wire_length_map'].items():
+                            pa_summary.routing_wire_length_map[int(key)] = float(value)
+                    
+                    pa_summary.total_wire_length = dict_pa.get('total_wire_length', 0.0)
+                    
+                    if 'cut_via_num_map' in dict_pa:
+                        for key, value in dict_pa['cut_via_num_map'].items():
+                            pa_summary.cut_via_num_map[int(key)] = int(value)
+                    
+                    pa_summary.total_via_num = dict_pa.get('total_via_num', 0)
+                    
+                    if 'routing_patch_num_map' in dict_pa:
+                        for key, value in dict_pa['routing_patch_num_map'].items():
+                            pa_summary.routing_patch_num_map[int(key)] = int(value)
+                    
+                    pa_summary.total_patch_num = dict_pa.get('total_patch_num', 0)
+                    
+                    if 'routing_violation_num_map' in dict_pa:
+                        for key, value in dict_pa['routing_violation_num_map'].items():
+                            pa_summary.routing_violation_num_map[int(key)] = int(value)
+                    
+                    pa_summary.total_violation_num = dict_pa.get('total_violation_num', 0)
+                    
+                    rt_summary.iter_pa_summary_map[iter_num] = pa_summary
 
-                for key, value in dict_pa['type_access_point_num_map'].items():
-                    item_value = (key, value)
-                    pa_summary.type_access_point_num_map.append(item_value)
-
-                route_summary.pa_summary = pa_summary
-
-            if 'SA' in dict_route:
-                dict_sa = dict_route['SA']
-                sa_summary = SASummary()
-                sa_summary.total_supply = dict_sa['total_supply']
+        if 'SA' in dict_route:
+            dict_sa = dict_route['SA']
+            sa_summary = SASummary()
+            
+            if 'routing_supply_map' in dict_sa:
                 for key, value in dict_sa['routing_supply_map'].items():
-                    item_value = (key, value)
-                    sa_summary.routing_supply_map.append(item_value)
+                    sa_summary.routing_supply_map[int(key)] = int(value)
+            
+            sa_summary.total_supply = dict_sa.get('total_supply', 0)
+            rt_summary.sa_summary = sa_summary
 
-                route_summary.sa_summary = sa_summary
+        if 'TG' in dict_route:
+            dict_tg = dict_route['TG']
+            tg_summary = TGSummary()
+            
+            tg_summary.total_demand = dict_tg.get('total_demand', 0.0)
+            tg_summary.total_overflow = dict_tg.get('total_overflow', 0.0)
+            tg_summary.total_wire_length = dict_tg.get('total_wire_length', 0.0)
+            
+            if 'clock_timing_map' in dict_tg:
+                for clock_name, timing_data in dict_tg['clock_timing_map'].items():
+                    if isinstance(timing_data, dict):
+                        for timing_type, value in timing_data.items():
+                            if clock_name not in tg_summary.clock_timing_map:
+                                tg_summary.clock_timing_map[clock_name] = {}
+                            tg_summary.clock_timing_map[clock_name][timing_type] = float(value)
+            
+            if 'type_power_map' in dict_tg:
+                for power_type, value in dict_tg['type_power_map'].items():
+                    tg_summary.type_power_map[power_type] = float(value)
+            
+            rt_summary.tg_summary = tg_summary
 
-            if 'TG' in dict_route:
-                dict_tg = dict_route['TG']
-                tg_summary = TGSummary()
-                tg_summary.total_demand = dict_tg['total_demand']
-                tg_summary.total_overflow = dict_tg['total_overflow']
-                tg_summary.total_wire_length = dict_tg['total_wire_length']
-                if 'clocks_timing' in dict_tg:
-                    for dict_clock_timing in dict_tg['clocks_timing']:
-                        clock_timing = ClockTiming()
-
-                        clock_timing.clock_name = dict_clock_timing['clock_name']
-                        clock_timing.setup_tns = dict_clock_timing['setup_tns']
-                        clock_timing.setup_wns = dict_clock_timing['setup_wns']
-                        clock_timing.suggest_freq = dict_clock_timing['suggest_freq']
-
-                        tg_summary.clocks_timing.append(clock_timing)
-                tg_summary.static_power = dict_tg['static_power']
-                tg_summary.dynamic_power = dict_tg['dynamic_power']
-                route_summary.tg_summary = tg_summary
-
-            if 'TG' in dict_route:
-                dict_tg = dict_route['TG']
-                tg_summary = TGSummary()
-                tg_summary.total_demand = dict_tg['total_demand']
-                tg_summary.total_overflow = dict_tg['total_overflow']
-                tg_summary.total_wire_length = dict_tg['total_wire_length']
-                if 'clocks_timing' in dict_tg:
-                    for dict_clock_timing in dict_tg['clocks_timing']:
-                        clock_timing = ClockTiming()
-
-                        clock_timing.clock_name = dict_clock_timing['clock_name']
-                        clock_timing.setup_tns = dict_clock_timing['setup_tns']
-                        clock_timing.setup_wns = dict_clock_timing['setup_wns']
-                        clock_timing.suggest_freq = dict_clock_timing['suggest_freq']
-
-                        tg_summary.clocks_timing.append(clock_timing)
-                tg_summary.static_power = dict_tg['static_power']
-                tg_summary.dynamic_power = dict_tg['dynamic_power']
-                route_summary.tg_summary = tg_summary
-
-            if 'LA' in dict_route:
-                dict_la = dict_route['LA']
-                er_summary = RoutingBasicSummary()
-
-                er_summary.total_demand = dict_la['total_demand']
+        if 'LA' in dict_route:
+            dict_la = dict_route['LA']
+            la_summary = LASummary()
+            
+            if 'routing_demand_map' in dict_la:
                 for key, value in dict_la['routing_demand_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_demand_map.append(item_value)
-
-                er_summary.total_overflow = dict_la['total_overflow']
+                    la_summary.routing_demand_map[int(key)] = float(value)
+            
+            la_summary.total_demand = dict_la.get('total_demand', 0.0)
+            
+            if 'routing_overflow_map' in dict_la:
                 for key, value in dict_la['routing_overflow_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_overflow_map.append(item_value)
-
-                er_summary.total_wire_length = dict_la['total_wire_length']
+                    la_summary.routing_overflow_map[int(key)] = float(value)
+            
+            la_summary.total_overflow = dict_la.get('total_overflow', 0.0)
+            
+            if 'routing_wire_length_map' in dict_la:
                 for key, value in dict_la['routing_wire_length_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_wire_length_map.append(item_value)
-
-                er_summary.total_via_num = dict_la['total_via_num']
+                    la_summary.routing_wire_length_map[int(key)] = float(value)
+            
+            la_summary.total_wire_length = dict_la.get('total_wire_length', 0.0)
+            
+            if 'cut_via_num_map' in dict_la:
                 for key, value in dict_la['cut_via_num_map'].items():
-                    item_value = (key, value)
-                    er_summary.cut_via_num_map.append(item_value)
-
-                if 'clocks_timing' in dict_la:
-                    for dict_clock_timing in dict_la['clocks_timing']:
-                        clock_timing = ClockTiming()
-
-                        clock_timing.clock_name = dict_clock_timing['clock_name']
-                        clock_timing.setup_tns = dict_clock_timing['setup_tns']
-                        clock_timing.setup_wns = dict_clock_timing['setup_wns']
-                        clock_timing.suggest_freq = dict_clock_timing['suggest_freq']
-
-                        er_summary.clocks_timing.append(clock_timing)
-
-                route_summary.la_summary = er_summary
-
-            if 'LA' in dict_route:
-                dict_la = dict_route['LA']
-                er_summary = RoutingBasicSummary()
-
-                er_summary.total_demand = dict_la['total_demand']
-                for key, value in dict_la['routing_demand_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_demand_map.append(item_value)
-
-                er_summary.total_overflow = dict_la['total_overflow']
-                for key, value in dict_la['routing_overflow_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_overflow_map.append(item_value)
-
-                er_summary.total_wire_length = dict_la['total_wire_length']
-                for key, value in dict_la['routing_wire_length_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_wire_length_map.append(item_value)
-
-                er_summary.total_via_num = dict_la['total_via_num']
-                for key, value in dict_la['cut_via_num_map'].items():
-                    item_value = (key, value)
-                    er_summary.cut_via_num_map.append(item_value)
-
-                if 'clocks_timing' in dict_la:
-                    for dict_clock_timing in dict_la['clocks_timing']:
-                        clock_timing = ClockTiming()
-
-                        clock_timing.clock_name = dict_clock_timing['clock_name']
-                        clock_timing.setup_tns = dict_clock_timing['setup_tns']
-                        clock_timing.setup_wns = dict_clock_timing['setup_wns']
-                        clock_timing.suggest_freq = dict_clock_timing['suggest_freq']
-
-                        er_summary.clocks_timing.append(clock_timing)
-
-                route_summary.la_summary = er_summary
-
-            if 'EG' in dict_route:
-                dict_er = dict_route['EG']
-                er_summary = RoutingBasicSummary()
-
-                er_summary.total_demand = dict_er['total_demand']
-                for key, value in dict_er['routing_demand_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_demand_map.append(item_value)
-
-                er_summary.total_overflow = dict_er['total_overflow']
-                for key, value in dict_er['routing_overflow_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_overflow_map.append(item_value)
-
-                er_summary.total_wire_length = dict_er['total_wire_length']
-                for key, value in dict_er['routing_wire_length_map'].items():
-                    item_value = (key, value)
-                    er_summary.routing_wire_length_map.append(item_value)
-
-                er_summary.total_via_num = dict_er['total_via_num']
-                for key, value in dict_er['cut_via_num_map'].items():
-                    item_value = (key, value)
-                    er_summary.cut_via_num_map.append(item_value)
-
-                if 'clocks_timing' in dict_er:
-                    for dict_clock_timing in dict_er['clocks_timing']:
-                        clock_timing = ClockTiming()
-
-                        clock_timing.clock_name = dict_clock_timing['clock_name']
-                        clock_timing.setup_tns = dict_clock_timing['setup_tns']
-                        clock_timing.setup_wns = dict_clock_timing['setup_wns']
-                        clock_timing.suggest_freq = dict_clock_timing['suggest_freq']
-
-                        er_summary.clocks_timing.append(clock_timing)
-
-                route_summary.er_summary = er_summary
-
-            if 'GR' in dict_route and dict_route['GR'] != None:
-                dict_gr_list = dict_route['GR']
-                gr_summary = GRSummary()
-
-                for key_index, dict_gr in dict_gr_list:
-                    gr_basic_summary = RoutingBasicSummary()
-
-                    gr_basic_summary.total_demand = dict_gr['total_demand']
-                    if 'routing_demand_map' in dict_gr:
-                        for key, value in dict_gr['routing_demand_map'].items():
-                            item_value = (key, value)
-                            gr_basic_summary.routing_demand_map.append(
-                                item_value)
-
-                    gr_basic_summary.total_overflow = dict_gr['total_overflow']
-                    if 'routing_overflow_map' in dict_gr:
-                        for key, value in dict_gr['routing_overflow_map'].items():
-                            item_value = (key, value)
-                            gr_basic_summary.routing_overflow_map.append(
-                                item_value)
-
-                    gr_basic_summary.total_wire_length = dict_gr['total_wire_length']
-                    if 'routing_wire_length_map' in dict_gr:
-                        for key, value in dict_gr['routing_wire_length_map'].items():
-                            item_value = (key, value)
-                            gr_basic_summary.routing_wire_length_map.append(
-                                item_value)
-
-                    gr_basic_summary.total_via_num = dict_gr['total_via_num']
-                    if 'cut_via_num_map' in dict_gr:
-                        for key, value in dict_gr['cut_via_num_map'].items():
-                            item_value = (key, value)
-                            gr_basic_summary.cut_via_num_map.append(item_value)
-
-                    if 'clocks_timing' in dict_gr:
-                        for dict_clock_timing in dict_gr['clocks_timing']:
-                            clock_timing = ClockTiming()
-
-                            clock_timing.clock_name = dict_clock_timing['clock_name']
-                            clock_timing.setup_tns = dict_clock_timing['setup_tns']
-                            clock_timing.setup_wns = dict_clock_timing['setup_wns']
-                            clock_timing.suggest_freq = dict_clock_timing['suggest_freq']
-
-                            gr_basic_summary.clocks_timing.append(clock_timing)
-
-                    gr_summary.summary.append((key_index, gr_basic_summary))
-
-                route_summary.gr_summary = gr_summary
-
-            if 'TA' in dict_route:
-                dict_ta = dict_route['TA']
-                ta_summary = TASummary()
-                ta_summary.total_wire_length = dict_ta['total_wire_length']
-                if 'routing_wire_length_map' in dict_ta:
-                    for key, value in dict_ta['routing_wire_length_map'].items():
-                        item_value = (key, value)
-                        ta_summary.routing_wire_length_map.append(item_value)
-
-                ta_summary.total_violation_num = dict_ta['total_violation_num']
-                if 'routing_violation_num_map' in dict_ta:
-                    for key, value in dict_ta['routing_violation_num_map'].items():
-                        item_value = (key, value)
-                        ta_summary.routing_violation_num_map.append(item_value)
-
-                route_summary.ta_summary = ta_summary
-
-            if 'DR' in dict_route:
-                dict_dr_list = dict_route['DR']
-                dr_summary = DRSummary()
-
-                for key_index, dict_dr in dict_dr_list.items():
-                    basic_summary = DRBasicSummary()
-
-                    basic_summary.total_wire_length = dict_dr['total_wire_length']
+                    la_summary.cut_via_num_map[int(key)] = int(value)
+            
+            la_summary.total_via_num = dict_la.get('total_via_num', 0)
+            
+            if 'clock_timing_map' in dict_la:
+                for clock_name, timing_data in dict_la['clock_timing_map'].items():
+                    if isinstance(timing_data, dict):
+                        for timing_type, value in timing_data.items():
+                            if clock_name not in la_summary.clock_timing_map:
+                                la_summary.clock_timing_map[clock_name] = {}
+                            la_summary.clock_timing_map[clock_name][timing_type] = float(value)
+            
+            if 'type_power_map' in dict_la:
+                for power_type, value in dict_la['type_power_map'].items():
+                    la_summary.type_power_map[power_type] = float(value)
+            
+            rt_summary.la_summary = la_summary
+        
+        if 'SR' in dict_route:
+            dict_sr_list = dict_route['SR']
+            if isinstance(dict_sr_list, list):
+                for dict_sr in dict_sr_list:
+                    iter_num = dict_sr.get('iter', 0)
+                    sr_summary = SRSummary()
+                    
+                    if 'routing_demand_map' in dict_sr:
+                        for key, value in dict_sr['routing_demand_map'].items():
+                            sr_summary.routing_demand_map[int(key)] = float(value)
+                    
+                    sr_summary.total_demand = dict_sr.get('total_demand', 0.0)
+                    
+                    if 'routing_overflow_map' in dict_sr:
+                        for key, value in dict_sr['routing_overflow_map'].items():
+                            sr_summary.routing_overflow_map[int(key)] = float(value)
+                    
+                    sr_summary.total_overflow = dict_sr.get('total_overflow', 0.0)
+                    
+                    if 'routing_wire_length_map' in dict_sr:
+                        for key, value in dict_sr['routing_wire_length_map'].items():
+                            sr_summary.routing_wire_length_map[int(key)] = float(value)
+                    
+                    sr_summary.total_wire_length = dict_sr.get('total_wire_length', 0.0)
+                    
+                    if 'cut_via_num_map' in dict_sr:
+                        for key, value in dict_sr['cut_via_num_map'].items():
+                            sr_summary.cut_via_num_map[int(key)] = int(value)
+                    
+                    sr_summary.total_via_num = dict_sr.get('total_via_num', 0)
+                    
+                    if 'clock_timing_map' in dict_sr:
+                        for clock_name, timing_data in dict_sr['clock_timing_map'].items():
+                            if isinstance(timing_data, dict):
+                                for timing_type, value in timing_data.items():
+                                    if clock_name not in sr_summary.clock_timing_map:
+                                        sr_summary.clock_timing_map[clock_name] = {}
+                                    sr_summary.clock_timing_map[clock_name][timing_type] = float(value)
+                    
+                    if 'type_power_map' in dict_sr:
+                        for power_type, value in dict_sr['type_power_map'].items():
+                            sr_summary.type_power_map[power_type] = float(value)
+                    
+                    rt_summary.iter_sr_summary_map[iter_num] = sr_summary
+        
+        if 'TA' in dict_route:
+            dict_ta = dict_route['TA']
+            ta_summary = TASummary()
+            
+            if 'routing_wire_length_map' in dict_ta:
+                for key, value in dict_ta['routing_wire_length_map'].items():
+                    ta_summary.routing_wire_length_map[int(key)] = float(value)
+            
+            ta_summary.total_wire_length = dict_ta.get('total_wire_length', 0.0)
+            
+            if 'routing_violation_num_map' in dict_ta:
+                for key, value in dict_ta['routing_violation_num_map'].items():
+                    ta_summary.routing_violation_num_map[int(key)] = int(value)
+            
+            ta_summary.total_violation_num = dict_ta.get('total_violation_num', 0)
+            
+            rt_summary.ta_summary = ta_summary
+        
+        if 'DR' in dict_route:
+            dict_dr_list = dict_route['DR']
+            if isinstance(dict_dr_list, list):
+                for dict_dr in dict_dr_list:
+                    iter_num = dict_dr.get('iter', 0)
+                    dr_summary = DRSummary()
+                    
                     if 'routing_wire_length_map' in dict_dr:
                         for key, value in dict_dr['routing_wire_length_map'].items():
-                            item_value = (key, value)
-                            basic_summary.routing_wire_length_map.append(
-                                item_value)
-
-                    basic_summary.total_via_num = dict_dr['total_via_num']
+                            dr_summary.routing_wire_length_map[int(key)] = float(value)
+                    
+                    dr_summary.total_wire_length = dict_dr.get('total_wire_length', 0.0)
+                    
                     if 'cut_via_num_map' in dict_dr:
                         for key, value in dict_dr['cut_via_num_map'].items():
-                            item_value = (key, value)
-                            basic_summary.cut_via_num_map.append(item_value)
-
-                    basic_summary.total_patch_num = dict_dr['total_patch_num']
+                            dr_summary.cut_via_num_map[int(key)] = int(value)
+                    
+                    dr_summary.total_via_num = dict_dr.get('total_via_num', 0)
+                    
                     if 'routing_patch_num_map' in dict_dr:
                         for key, value in dict_dr['routing_patch_num_map'].items():
-                            item_value = (key, value)
-                            basic_summary.routing_patch_num_map.append(
-                                item_value)
-
-                    basic_summary.total_violation_num = dict_dr['total_violation_num']
+                            dr_summary.routing_patch_num_map[int(key)] = int(value)
+                    
+                    dr_summary.total_patch_num = dict_dr.get('total_patch_num', 0)
+                    
                     if 'routing_violation_num_map' in dict_dr:
                         for key, value in dict_dr['routing_violation_num_map'].items():
-                            item_value = (key, value)
-                            basic_summary.routing_violation_num_map.append(
-                                item_value)
-
-                    if 'clocks_timing' in dict_dr:
-                        for dict_clock_timing in dict_dr['clocks_timing']:
-                            clock_timing = ClockTiming()
-
-                            clock_timing.clock_name = dict_clock_timing['clock_name']
-                            clock_timing.setup_tns = dict_clock_timing['setup_tns']
-                            clock_timing.setup_wns = dict_clock_timing['setup_wns']
-                            clock_timing.suggest_freq = dict_clock_timing['suggest_freq']
-
-                            basic_summary.clocks_timing.append(clock_timing)
-
-                    dr_summary.summary.append((key_index, basic_summary))
-
-                route_summary.dr_summary = dr_summary
-
-            return route_summary
-
-        return None
+                            dr_summary.routing_violation_num_map[int(key)] = int(value)
+                    
+                    dr_summary.total_violation_num = dict_dr.get('total_violation_num', 0)
+                    
+                    if 'clock_timing_map' in dict_dr:
+                        for clock_name, timing_data in dict_dr['clock_timing_map'].items():
+                            if isinstance(timing_data, dict):
+                                for timing_type, value in timing_data.items():
+                                    if clock_name not in dr_summary.clock_timing_map:
+                                        dr_summary.clock_timing_map[clock_name] = {}
+                                    dr_summary.clock_timing_map[clock_name][timing_type] = float(value)
+                    
+                    if 'type_power_map' in dict_dr:
+                        for power_type, value in dict_dr['type_power_map'].items():
+                            dr_summary.type_power_map[power_type] = float(value)
+                    
+                    rt_summary.iter_dr_summary_map[iter_num] = dr_summary
+        
+        if 'VR' in dict_route:
+            dict_vr = dict_route['VR']
+            vr_summary = VRSummary()
+            
+            if 'routing_wire_length_map' in dict_vr:
+                for key, value in dict_vr['routing_wire_length_map'].items():
+                    vr_summary.routing_wire_length_map[int(key)] = float(value)
+            
+            vr_summary.total_wire_length = dict_vr.get('total_wire_length', 0.0)
+            
+            if 'cut_via_num_map' in dict_vr:
+                for key, value in dict_vr['cut_via_num_map'].items():
+                    vr_summary.cut_via_num_map[int(key)] = int(value)
+            
+            vr_summary.total_via_num = dict_vr.get('total_via_num', 0)
+            
+            if 'routing_patch_num_map' in dict_vr:
+                for key, value in dict_vr['routing_patch_num_map'].items():
+                    vr_summary.routing_patch_num_map[int(key)] = int(value)
+            
+            vr_summary.total_patch_num = dict_vr.get('total_patch_num', 0)
+            
+            if 'within_net_routing_violation_type_num_map' in dict_vr:
+                for layer_key, violation_types in dict_vr['within_net_routing_violation_type_num_map'].items():
+                    layer_num = int(layer_key)
+                    if isinstance(violation_types, dict):
+                        for violation_type, count in violation_types.items():
+                            if layer_num not in vr_summary.within_net_routing_violation_type_num_map:
+                                vr_summary.within_net_routing_violation_type_num_map[layer_num] = {}
+                            vr_summary.within_net_routing_violation_type_num_map[layer_num][violation_type] = int(count)
+            
+            if 'within_net_violation_type_num_map' in dict_vr:
+                for violation_type, count in dict_vr['within_net_violation_type_num_map'].items():
+                    vr_summary.within_net_violation_type_num_map[violation_type] = int(count)
+            
+            if 'within_net_routing_violation_num_map' in dict_vr:
+                for key, value in dict_vr['within_net_routing_violation_num_map'].items():
+                    vr_summary.within_net_routing_violation_num_map[int(key)] = int(value)
+            
+            vr_summary.within_net_total_violation_num = dict_vr.get('within_net_total_violation_num', 0)
+            
+            if 'among_net_routing_violation_type_num_map' in dict_vr:
+                for layer_key, violation_types in dict_vr['among_net_routing_violation_type_num_map'].items():
+                    layer_num = int(layer_key)
+                    if isinstance(violation_types, dict):
+                        for violation_type, count in violation_types.items():
+                            if layer_num not in vr_summary.among_net_routing_violation_type_num_map:
+                                vr_summary.among_net_routing_violation_type_num_map[layer_num] = {}
+                            vr_summary.among_net_routing_violation_type_num_map[layer_num][violation_type] = int(count)
+            
+            if 'among_net_violation_type_num_map' in dict_vr:
+                for violation_type, count in dict_vr['among_net_violation_type_num_map'].items():
+                    vr_summary.among_net_violation_type_num_map[violation_type] = int(count)
+            
+            if 'among_net_routing_violation_num_map' in dict_vr:
+                for key, value in dict_vr['among_net_routing_violation_num_map'].items():
+                    vr_summary.among_net_routing_violation_num_map[int(key)] = int(value)
+            
+            vr_summary.among_net_total_violation_num = dict_vr.get('among_net_total_violation_num', 0)
+            
+            if 'clock_timing_map' in dict_vr:
+                for clock_name, timing_data in dict_vr['clock_timing_map'].items():
+                    if isinstance(timing_data, dict):
+                        for timing_type, value in timing_data.items():
+                            if clock_name not in vr_summary.clock_timing_map:
+                                vr_summary.clock_timing_map[clock_name] = {}
+                            vr_summary.clock_timing_map[clock_name][timing_type] = float(value)
+            
+            if 'type_power_map' in dict_vr:
+                for power_type, value in dict_vr['type_power_map'].items():
+                    vr_summary.type_power_map[power_type] = float(value)
+            
+            rt_summary.vr_summary = vr_summary
+        
+        if 'ER' in dict_route:
+            dict_er = dict_route['ER']
+            er_summary = ERSummary()
+            
+            if 'routing_demand_map' in dict_er:
+                for key, value in dict_er['routing_demand_map'].items():
+                    er_summary.routing_demand_map[int(key)] = int(value)
+            
+            er_summary.total_demand = dict_er.get('total_demand', 0)
+            
+            if 'routing_overflow_map' in dict_er:
+                for key, value in dict_er['routing_overflow_map'].items():
+                    er_summary.routing_overflow_map[int(key)] = int(value)
+            
+            er_summary.total_overflow = dict_er.get('total_overflow', 0)
+            
+            if 'routing_wire_length_map' in dict_er:
+                for key, value in dict_er['routing_wire_length_map'].items():
+                    er_summary.routing_wire_length_map[int(key)] = float(value)
+            
+            er_summary.total_wire_length = dict_er.get('total_wire_length', 0.0)
+            
+            if 'cut_via_num_map' in dict_er:
+                for key, value in dict_er['cut_via_num_map'].items():
+                    er_summary.cut_via_num_map[int(key)] = int(value)
+            
+            er_summary.total_via_num = dict_er.get('total_via_num', 0)
+            
+            if 'clock_timing_map' in dict_er:
+                for clock_name, timing_data in dict_er['clock_timing_map'].items():
+                    if isinstance(timing_data, dict):
+                        for timing_type, value in timing_data.items():
+                            if clock_name not in er_summary.clock_timing_map:
+                                er_summary.clock_timing_map[clock_name] = {}
+                            er_summary.clock_timing_map[clock_name][timing_type] = float(value)
+            
+            if 'type_power_map' in dict_er:
+                for power_type, value in dict_er['type_power_map'].items():
+                    er_summary.type_power_map[power_type] = float(value)
+            
+            rt_summary.er_summary = er_summary
+        
+        return rt_summary
 
     def get_tools_timing_opt(self, step: str):
         """optDrv, optHold, optSetup"""
@@ -718,3 +768,210 @@ class FeatureParserJson(JsonParser):
             to_summary.clock_timings.append(clock_timing_cmp)
 
         return to_summary
+    
+    def get_eval_wirelength(self):
+        if 'Wirelength' in self.json_data:
+            dict_wirelength = self.json_data['Wirelength']
+            
+            feature_wirelength = FeatureWirelength()
+            
+            feature_wirelength.FLUTE = dict_wirelength.get('FLUTE', None)
+            feature_wirelength.GRWL = dict_wirelength.get('GRWL', None)
+            feature_wirelength.HPWL = dict_wirelength.get('HPWL', None)
+            feature_wirelength.HTree = dict_wirelength.get('HTree', None)
+            feature_wirelength.VTree = dict_wirelength.get('VTree', None)
+            
+            return feature_wirelength
+        
+        return None
+    
+    def get_eval_density(self):
+        if 'Density' in self.json_data:
+            dict_density = self.json_data['Density']
+            
+            feature_density = FeatureDensity()
+            
+            if 'cell' in dict_density:
+                cell_data = dict_density['cell']
+                feature_density.cell = FeatureDensityCell(
+                    allcell_density=cell_data.get('allcell_density', None),
+                    macro_density=cell_data.get('macro_density', None),
+                    stdcell_density=cell_data.get('stdcell_density', None)
+                )
+            
+            if 'margin' in dict_density:
+                margin_data = dict_density['margin']
+                feature_density.margin = FeatureDensityMargin(
+                    horizontal=margin_data.get('horizontal', None),
+                    union=margin_data.get('union', None),
+                    vertical=margin_data.get('vertical', None)
+                )
+            
+            if 'net' in dict_density:
+                net_data = dict_density['net']
+                feature_density.net = FeatureDensityNet(
+                    allnet_density=net_data.get('allnet_density', None),
+                    global_net_density=net_data.get('global_net_density', None),
+                    local_net_density=net_data.get('local_net_density', None)
+                )
+            
+            if 'pin' in dict_density:
+                pin_data = dict_density['pin']
+                feature_density.pin = FeatureDensityPin(
+                    allcell_pin_density=pin_data.get('allcell_pin_density', None),
+                    macro_pin_density=pin_data.get('macro_pin_density', None),
+                    stdcell_pin_density=pin_data.get('stdcell_pin_density', None)
+                )
+            
+            return feature_density
+        
+        return None
+
+
+    def get_eval_congestion(self):
+        if 'Congestion' in self.json_data:
+            dict_congestion = self.json_data['Congestion']
+            
+            feature_congestion = FeatureCongestion()
+            
+            if 'map' in dict_congestion:
+                map_data = dict_congestion['map']
+                feature_congestion.map = FeatureCongestionMap()
+                
+                if 'egr' in map_data:
+                    egr_data = map_data['egr']
+                    feature_congestion.map.egr = FeatureCongestionMapBase(
+                        horizontal=egr_data.get('horizontal', None),
+                        union=egr_data.get('union', None),
+                        vertical=egr_data.get('vertical', None)
+                    )
+                
+                if 'lutrudy' in map_data:
+                    lutrudy_data = map_data['lutrudy']
+                    feature_congestion.map.lutrudy = FeatureCongestionMapBase(
+                        horizontal=lutrudy_data.get('horizontal', None),
+                        union=lutrudy_data.get('union', None),
+                        vertical=lutrudy_data.get('vertical', None)
+                    )
+                
+                if 'rudy' in map_data:
+                    rudy_data = map_data['rudy']
+                    feature_congestion.map.rudy = FeatureCongestionMapBase(
+                        horizontal=rudy_data.get('horizontal', None),
+                        union=rudy_data.get('union', None),
+                        vertical=rudy_data.get('vertical', None)
+                    )
+            
+            if 'overflow' in dict_congestion:
+                overflow_data = dict_congestion['overflow']
+                feature_congestion.overflow = FeatureCongestionOverflow()
+                
+                if 'max' in overflow_data:
+                    max_data = overflow_data['max']
+                    feature_congestion.overflow.max = FeatureCongestionOverflowBase(
+                        horizontal=max_data.get('horizontal', None),
+                        union=max_data.get('union', None),
+                        vertical=max_data.get('vertical', None)
+                    )
+                
+                if 'top_average' in overflow_data:
+                    top_avg_data = overflow_data.get('top_average')
+                    if top_avg_data:
+                        feature_congestion.overflow.top_average = FeatureCongestionOverflowBase(
+                            horizontal=top_avg_data.get('horizontal', None),
+                            union=top_avg_data.get('union', None),
+                            vertical=top_avg_data.get('vertical', None)
+                        )
+                
+                if 'total' in overflow_data:
+                    total_data = overflow_data['total']
+                    feature_congestion.overflow.total = FeatureCongestionOverflowBase(
+                        horizontal=total_data.get('horizontal', None),
+                        union=total_data.get('union', None),
+                        vertical=total_data.get('vertical', None)
+                    )
+            
+            if 'utilization' in dict_congestion:
+                utilization_data = dict_congestion['utilization']
+                feature_congestion.utilization = FeatureCongestionUtilization()
+                
+                if 'lutrudy' in utilization_data:
+                    lutrudy_data = utilization_data['lutrudy']
+                    feature_congestion.utilization.lutrudy = FeatureCongestionUtilizationStats()
+                    
+                    if 'max' in lutrudy_data:
+                        max_data = lutrudy_data['max']
+                        feature_congestion.utilization.lutrudy.max = FeatureCongestionUtilizationBase(
+                            horizontal=max_data.get('horizontal', None),
+                            union=max_data.get('union', None),
+                            vertical=max_data.get('vertical', None)
+                        )
+                    
+                    if 'top_average' in lutrudy_data:
+                        top_avg_data = lutrudy_data.get('top_average')
+                        if top_avg_data:
+                            feature_congestion.utilization.lutrudy.top_average = FeatureCongestionUtilizationBase(
+                                horizontal=top_avg_data.get('horizontal', None),
+                                union=top_avg_data.get('union', None),
+                                vertical=top_avg_data.get('vertical', None)
+                            )
+                
+                if 'rudy' in utilization_data:
+                    rudy_data = utilization_data['rudy']
+                    feature_congestion.utilization.rudy = FeatureCongestionUtilizationStats()
+                    
+                    if 'max' in rudy_data:
+                        max_data = rudy_data['max']
+                        feature_congestion.utilization.rudy.max = FeatureCongestionUtilizationBase(
+                            horizontal=max_data.get('horizontal', None),
+                            union=max_data.get('union', None),
+                            vertical=max_data.get('vertical', None)
+                        )
+                    
+                    if 'top_average' in rudy_data:
+                        top_avg_data = rudy_data.get('top_average')
+                        if top_avg_data:
+                            feature_congestion.utilization.rudy.top_average = FeatureCongestionUtilizationBase(
+                                horizontal=top_avg_data.get('horizontal', None),
+                                union=top_avg_data.get('union', None),
+                                vertical=top_avg_data.get('vertical', None)
+                            )
+            
+            return feature_congestion
+        
+        return None
+
+    def get_eval_timing(self): # include power
+        if 'Timing' in self.json_data:
+            dict_timing = self.json_data['Timing']
+            
+            feature_timing = FeatureTimingIEDA()
+            
+            for method in ['HPWL', 'FLUTE', 'SALT', 'EGR', 'DR']:
+                if method in dict_timing:
+                    method_data = dict_timing[method]
+                    
+                    clock_timings = None
+                    if 'clock_timings' in method_data and method_data['clock_timings']:
+                        clock_timings = []
+                        for clock_data in method_data['clock_timings']:
+                            clock_timing = ClockTiming()
+                            clock_timing.clock_name = clock_data.get('clock_name', None)
+                            clock_timing.setup_tns = clock_data.get('setup_tns', None)
+                            clock_timing.setup_wns = clock_data.get('setup_wns', None)
+                            clock_timing.hold_tns = clock_data.get('hold_tns', None)
+                            clock_timing.hold_wns = clock_data.get('hold_wns', None)
+                            clock_timing.suggest_freq = clock_data.get('suggest_freq', None)
+                            clock_timings.append(clock_timing)
+                    
+                    method_timing = MethodTimingIEDA(
+                        clock_timings=clock_timings,
+                        dynamic_power=method_data.get('dynamic_power', None),
+                        static_power=method_data.get('static_power', None)
+                    )
+                    
+                    setattr(feature_timing, method, method_timing)
+            
+            return feature_timing
+        
+        return None

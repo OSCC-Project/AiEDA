@@ -40,3 +40,20 @@ class IEDACts(IEDAIO):
         
         # generate feature CTS data
         self.ieda.feature_tool(ieda_feature_json['CTS_tool'], DbFlow.FlowStep.cts.value)
+        
+        # generate eval metrics. The default map_grid_size is 1X row_height.
+        map_grid_size = 1
+        self.ieda.feature_cts_eval(ieda_feature_json['CTS_eval'], map_grid_size)
+    
+    def run_eval(self):
+        self.read_def()
+        
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['CTS_summary'])
+        
+        # TODO: more eval metrics
+        # generate eval metrics. The default map_grid_size is 1X row_height.
+        map_grid_size = 1
+        self.ieda.feature_cts_eval(ieda_feature_json['CTS_eval'], map_grid_size)

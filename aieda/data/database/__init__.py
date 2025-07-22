@@ -46,11 +46,12 @@ from .eda import (
     PASummary,
     SASummary,
     TGSummary,
-    RoutingBasicSummary,
+    LASummary,
+    SRSummary,
     TASummary,
-    DRBasicSummary,
-    GRSummary,
     DRSummary,
+    VRSummary,
+    ERSummary,
     RouteSummary,
     FeatureTools
 )
@@ -68,6 +69,7 @@ from .eda import (
     FeatureCongestionOverflowBase,
     FeatureCongestionOverflow,
     FeatureCongestionUtilizationBase,
+    FeatureCongestionUtilizationStats,
     FeatureCongestionUtilization,
     FeatureCongestion,
     MethodTimingIEDA,

@@ -60,7 +60,7 @@ class IEDARouting(IEDAIO):
         # generate feature summary data
         self.ieda.feature_summary(ieda_feature_json['route_summary'])
         
-        # generate feature CTS data
+        # generate feature route data
         self.ieda.feature_tool(ieda_feature_json['route_tool'], DbFlow.FlowStep.route.value)
         
     # read route json file to iEDA route data
@@ -70,3 +70,13 @@ class IEDARouting(IEDAIO):
     # read route def and save route data to json
     def feature_route(self, json_path: str):
         self.ieda.feature_route(path=json_path)
+    
+    def run_eval(self):
+        self.read_def()
+        
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['route_summary'])
+        
+        #TODO: more eval metrics

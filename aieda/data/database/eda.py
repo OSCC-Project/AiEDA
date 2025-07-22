@@ -6,9 +6,9 @@
 @Desc : eda database
 '''
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass,field
 from numpy import double, uint, uint64
+from typing import Dict, List, Optional
 
 ##########################################################################################
 ##########################################################################################
@@ -183,6 +183,8 @@ class CTSSummary(object):
 @dataclass
 class PLCommonSummary(object):
     place_density: float = None
+    HPWL : int = None
+    STWL : int = None
 
 
 @dataclass
@@ -246,86 +248,178 @@ class TimingOptSummary(object):
 
 @dataclass
 class PASummary(object):
-    total_access_point_num: int = None
-    routing_access_point_num_map: list = field(default_factory=list)
-    type_access_point_num_map: list = field(default_factory=list)
+    # std::map<int32_t, double> routing_wire_length_map
+    routing_wire_length_map: Dict[int, float] = field(default_factory=dict)
+    total_wire_length: float = 0.0
+    # std::map<int32_t, int32_t> cut_via_num_map
+    cut_via_num_map: Dict[int, int] = field(default_factory=dict)
+    total_via_num: int = 0
+    # std::map<int32_t, int32_t> routing_patch_num_map
+    routing_patch_num_map: Dict[int, int] = field(default_factory=dict)
+    total_patch_num: int = 0
+    # std::map<int32_t, int32_t> routing_violation_num_map
+    routing_violation_num_map: Dict[int, int] = field(default_factory=dict)
+    total_violation_num: int = 0
 
 
 @dataclass
 class SASummary(object):
-    total_supply: int = None
-    routing_supply_map: list = field(default_factory=list)
+    # std::map<int32_t, int32_t> routing_supply_map
+    routing_supply_map: Dict[int, int] = field(default_factory=dict)
+    total_supply: int = 0
 
 
 @dataclass
 class TGSummary(object):
-    total_demand: int = None
-    total_overflow: int = None
-    total_wire_length: int = None
-    clocks_timing: list = field(default_factory=list)
-    static_power: float = None
-    dynamic_power: float = None
-
+    total_demand: float = 0.0
+    total_overflow: float = 0.0
+    total_wire_length: float = 0.0
+    # std::map<std::string, std::map<std::string, double>> clock_timing_map
+    clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    # std::map<std::string, double> type_power_map
+    type_power_map: Dict[str, float] = field(default_factory=dict)
 
 @dataclass
-class RoutingBasicSummary(object):
-    total_demand: int = None
-    routing_demand_map: list = field(default_factory=list)
-    total_overflow: int = None
-    routing_overflow_map: list = field(default_factory=list)
-    total_wire_length: int = None
-    routing_wire_length_map: list = field(default_factory=list)
-    total_via_num: int = None
-    cut_via_num_map: list = field(default_factory=list)
-    clocks_timing: list = field(default_factory=list)
-    static_power: float = None
-    dynamic_power: float = None
+class LASummary(object):
+    # std::map<int32_t, double> routing_demand_map
+    routing_demand_map: Dict[int, float] = field(default_factory=dict)
+    total_demand: float = 0.0
+    # std::map<int32_t, double> routing_overflow_map
+    routing_overflow_map: Dict[int, float] = field(default_factory=dict)
+    total_overflow: float = 0.0
+    # std::map<int32_t, double> routing_wire_length_map
+    routing_wire_length_map: Dict[int, float] = field(default_factory=dict)
+    total_wire_length: float = 0.0
+    # std::map<int32_t, int32_t> cut_via_num_map
+    cut_via_num_map: Dict[int, int] = field(default_factory=dict)
+    total_via_num: int = 0
+    # std::map<std::string, std::map<std::string, double>> clock_timing_map
+    clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    # std::map<std::string, double> type_power_map
+    type_power_map: Dict[str, float] = field(default_factory=dict)
+
+@dataclass
+class SRSummary(object):
+    # std::map<int32_t, double> routing_demand_map
+    routing_demand_map: Dict[int, float] = field(default_factory=dict)
+    total_demand: float = 0.0
+    # std::map<int32_t, double> routing_overflow_map
+    routing_overflow_map: Dict[int, float] = field(default_factory=dict)
+    total_overflow: float = 0.0
+    # std::map<int32_t, double> routing_wire_length_map
+    routing_wire_length_map: Dict[int, float] = field(default_factory=dict)
+    total_wire_length: float = 0.0
+    # std::map<int32_t, int32_t> cut_via_num_map
+    cut_via_num_map: Dict[int, int] = field(default_factory=dict)
+    total_via_num: int = 0
+    # std::map<std::string, std::map<std::string, double>> clock_timing_map
+    clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    # std::map<std::string, double> type_power_map
+    type_power_map: Dict[str, float] = field(default_factory=dict)
+
 
 
 @dataclass
 class TASummary(object):
-    total_wire_length: int = None
-    routing_wire_length_map: list = field(default_factory=list)
-    total_violation_num: int = None
-    routing_violation_num_map: list = field(default_factory=list)
-
-
-@dataclass
-class DRBasicSummary(object):
-    total_wire_length: int = None
-    routing_wire_length_map: list = field(default_factory=list)
-    total_via_num: int = None
-    cut_via_num_map: list = field(default_factory=list)
-    total_patch_num: int = None
-    routing_patch_num_map: list = field(default_factory=list)
-    total_violation_num: int = None
-    routing_violation_num_map: list = field(default_factory=list)
-    clocks_timing: list = field(default_factory=list)
-    static_power: float = None
-    dynamic_power: float = None
-
-
-@dataclass
-class GRSummary(object):
-    summary: list = field(default_factory=list)
+    # std::map<int32_t, double> routing_wire_length_map
+    routing_wire_length_map: Dict[int, float] = field(default_factory=dict)
+    total_wire_length: float = 0.0
+    # std::map<int32_t, int32_t> routing_violation_num_map
+    routing_violation_num_map: Dict[int, int] = field(default_factory=dict)
+    total_violation_num: int = 0
 
 
 @dataclass
 class DRSummary(object):
-    summary: list = field(default_factory=list)
+    # std::map<int32_t, double> routing_wire_length_map
+    routing_wire_length_map: Dict[int, float] = field(default_factory=dict)
+    total_wire_length: float = 0.0
+    # std::map<int32_t, int32_t> cut_via_num_map
+    cut_via_num_map: Dict[int, int] = field(default_factory=dict)
+    total_via_num: int = 0
+    # std::map<int32_t, int32_t> routing_patch_num_map
+    routing_patch_num_map: Dict[int, int] = field(default_factory=dict)
+    total_patch_num: int = 0
+    # std::map<int32_t, int32_t> routing_violation_num_map
+    routing_violation_num_map: Dict[int, int] = field(default_factory=dict)
+    total_violation_num: int = 0
+    # std::map<std::string, std::map<std::string, double>> clock_timing_map
+    clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    # std::map<std::string, double> type_power_map
+    type_power_map: Dict[str, float] = field(default_factory=dict)
+
+
+@dataclass
+class VRSummary(object):
+    # std::map<int32_t, double> routing_wire_length_map
+    routing_wire_length_map: Dict[int, float] = field(default_factory=dict)
+    total_wire_length: float = 0.0
+    # std::map<int32_t, int32_t> cut_via_num_map
+    cut_via_num_map: Dict[int, int] = field(default_factory=dict)
+    total_via_num: int = 0
+    # std::map<int32_t, int32_t> routing_patch_num_map
+    routing_patch_num_map: Dict[int, int] = field(default_factory=dict)
+    total_patch_num: int = 0
+    # std::map<int32_t, std::map<std::string, int32_t>> within_net_routing_violation_type_num_map
+    within_net_routing_violation_type_num_map: Dict[int, Dict[str, int]] = field(default_factory=dict)
+    # std::map<std::string, int32_t> within_net_violation_type_num_map
+    within_net_violation_type_num_map: Dict[str, int] = field(default_factory=dict)
+    # std::map<int32_t, int32_t> within_net_routing_violation_num_map
+    within_net_routing_violation_num_map: Dict[int, int] = field(default_factory=dict)
+    within_net_total_violation_num: int = 0
+    # std::map<int32_t, std::map<std::string, int32_t>> among_net_routing_violation_type_num_map
+    among_net_routing_violation_type_num_map: Dict[int, Dict[str, int]] = field(default_factory=dict)
+    # std::map<std::string, int32_t> among_net_violation_type_num_map
+    among_net_violation_type_num_map: Dict[str, int] = field(default_factory=dict)
+    # std::map<int32_t, int32_t> among_net_routing_violation_num_map
+    among_net_routing_violation_num_map: Dict[int, int] = field(default_factory=dict)
+    among_net_total_violation_num: int = 0
+    # std::map<std::string, std::map<std::string, double>> clock_timing_map
+    clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    # std::map<std::string, double> type_power_map
+    type_power_map: Dict[str, float] = field(default_factory=dict)
+
+@dataclass
+class ERSummary(object):
+    # std::map<int32_t, int32_t> routing_demand_map
+    routing_demand_map: Dict[int, int] = field(default_factory=dict)
+    total_demand: int = 0
+    # std::map<int32_t, int32_t> routing_overflow_map
+    routing_overflow_map: Dict[int, int] = field(default_factory=dict)
+    total_overflow: int = 0
+    # std::map<int32_t, double> routing_wire_length_map
+    routing_wire_length_map: Dict[int, float] = field(default_factory=dict)
+    total_wire_length: float = 0.0
+    # std::map<int32_t, int32_t> cut_via_num_map
+    cut_via_num_map: Dict[int, int] = field(default_factory=dict)
+    total_via_num: int = 0
+    # std::map<std::string, std::map<std::string, double>> clock_timing_map
+    clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    # std::map<std::string, double> type_power_map
+    type_power_map: Dict[str, float] = field(default_factory=dict)
+
 
 
 @dataclass
 class RouteSummary(object):
-    pa_summary: PASummary = None
-    sa_summary: SASummary = None
-    tg_summary: TGSummary = None
-    la_summary: RoutingBasicSummary = None
-    er_summary: RoutingBasicSummary = None
-    gr_summary: GRSummary = None
-    ta_summary: TASummary = None
-    dr_summary: DRSummary = None
-
+    # std::map<int32_t, PASummary> iter_pa_summary_map
+    iter_pa_summary_map: Dict[int, PASummary] = field(default_factory=dict)
+    # SASummary sa_summary
+    sa_summary: Optional[SASummary] = None
+    # TGSummary tg_summary
+    tg_summary: Optional[TGSummary] = None
+    # LASummary la_summary
+    la_summary: Optional[LASummary] = None
+    # std::map<int32_t, SRSummary> iter_sr_summary_map
+    iter_sr_summary_map: Dict[int, SRSummary] = field(default_factory=dict)
+    # TASummary ta_summary
+    ta_summary: Optional[TASummary] = None
+    # std::map<int32_t, DRSummary> iter_dr_summary_map
+    iter_dr_summary_map: Dict[int, DRSummary] = field(default_factory=dict)
+    # VRSummary vr_summary
+    vr_summary: Optional[VRSummary] = None
+    # ERSummary er_summary
+    er_summary: Optional[ERSummary] = None
 
 @dataclass
 class FeatureTools(object):
@@ -357,6 +451,7 @@ class FeatureTools(object):
 from enum import Enum
 from typing import List
 
+# wirelength
 @dataclass
 class FeatureWirelength(object):
     FLUTE: float = None
@@ -365,6 +460,7 @@ class FeatureWirelength(object):
     HTree: float = None
     VTree: float = None
 
+# density
 @dataclass
 class FeatureDensityCell(object):
     allcell_density: str = None
@@ -396,6 +492,7 @@ class FeatureDensity(object):
     net: FeatureDensityNet = None
     pin: FeatureDensityPin = None
 
+# congestion
 @dataclass
 class FeatureCongestionMapBase(object):
     horizontal: str = None
@@ -425,11 +522,16 @@ class FeatureCongestionUtilizationBase(object):
     horizontal: float = None
     union: float = None
     vertical: float = None
+    
+@dataclass
+class FeatureCongestionUtilizationStats(object):
+    max: FeatureCongestionUtilizationBase = None
+    top_average: FeatureCongestionUtilizationBase = None  
 
 @dataclass
 class FeatureCongestionUtilization(object):
-    lutrudy: FeatureCongestionUtilizationBase = None
-    rudy: FeatureCongestionUtilizationBase = None
+    lutrudy: FeatureCongestionUtilizationStats = None
+    rudy: FeatureCongestionUtilizationStats = None
 
 @dataclass
 class FeatureCongestion(object):
@@ -437,6 +539,7 @@ class FeatureCongestion(object):
     overflow: FeatureCongestionOverflow = None
     utilization: FeatureCongestionUtilization = None
 
+# timing
 @dataclass
 class MethodTimingIEDA(object):
     clock_timings: List[ClockTiming] = None
