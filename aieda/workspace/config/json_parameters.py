@@ -18,6 +18,15 @@ class ParametersParser(JsonParser):
                 parameters = EDAParameters()
                 
             self.json_data['placement_target_density'] = parameters.placement_target_density
+            self.json_data['placement_max_phi_coef'] = parameters.placement_max_phi_coef
+            self.json_data['placement_init_wirelength_coef'] = parameters.placement_init_wirelength_coef
+            self.json_data['placement_min_wirelength_force_bar'] = parameters.placement_min_wirelength_force_bar
+            self.json_data['cts_skew_bound'] = parameters.cts_skew_bound
+            self.json_data['cts_max_buf_tran'] = parameters.cts_max_buf_tran
+            self.json_data['cts_max_sink_tran'] = parameters.cts_max_sink_tran
+            self.json_data['cts_max_cap'] = parameters.cts_max_cap
+            self.json_data['cts_max_fanout'] = parameters.cts_max_fanout
+            self.json_data['cts_cluster_size'] = parameters.cts_cluster_size            
         
         return self.write()
         
