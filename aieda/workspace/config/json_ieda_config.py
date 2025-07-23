@@ -249,6 +249,61 @@ class ConfigIEDACTSParser(JsonParser):
             return self.write()
             
         return False
+    
+    def set_skew_bound(self, skew_bound : float):
+        if self.read():
+            self.json_data['skew_bound'] = skew_bound
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_max_buf_tran(self, max_buf_tran : float):
+        if self.read():
+            self.json_data['max_buf_tran'] = max_buf_tran
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_max_sink_tran(self, max_sink_tran : float):
+        if self.read():
+            self.json_data['max_sink_tran'] = max_sink_tran
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_max_cap(self, max_cap : float):
+        if self.read():
+            self.json_data['max_cap'] = max_cap
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_max_fanout(self, max_fanout : int):
+        if self.read():
+            self.json_data['max_fanout'] = max_fanout
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_cluster_size(self, cluster_size : int):
+        if self.read():
+            self.json_data['cluster_size'] = cluster_size
+
+            #save file
+            return self.write()
+            
+        return False
+    
 
 class ConfigIEDAFixFanoutParser(JsonParser):
     """config iEDA json"""
@@ -401,6 +456,34 @@ class ConfigIEDAPlacementParser(JsonParser):
             return self.write()
             
         return False
+    
+    def set_max_phi_coef(self, max_phi_coef):
+        if self.read():
+            self.json_data['PL']['GP']['Nesterov']['max_phi_coef'] = max_phi_coef
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_init_wirelength_coef(self, init_wirelength_coef):
+        if self.read():
+            self.json_data['PL']['GP']['Wirelength']['init_wirelength_coef'] = init_wirelength_coef
+
+            #save file
+            return self.write()
+            
+        return False
+    
+    def set_min_wirelength_force_bar(self, min_wirelength_force_bar):
+        if self.read():
+            self.json_data['PL']['GP']['Wirelength']['min_wirelength_force_bar'] = min_wirelength_force_bar
+
+            #save file
+            return self.write()
+            
+        return False
+
 
 class ConfigIEDARouterParser(JsonParser):
     """config iEDA json"""
