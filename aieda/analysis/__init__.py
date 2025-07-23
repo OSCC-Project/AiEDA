@@ -1,7 +1,8 @@
 from .design import (
     CellTypeAnalyzer,
     CoreUsageAnalyzer,
-    PinDistributionAnalyzer
+    PinDistributionAnalyzer,
+    ResultStatisAnalyzer
 )
 
 from .net import (
