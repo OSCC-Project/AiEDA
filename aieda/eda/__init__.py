@@ -10,3 +10,4 @@ from .iEDA.placement import IEDAPlacement
 from .iEDA.routing import IEDARouting
 from .iEDA.sta import IEDASta
 from .iEDA.timing_opt import IEDATimingOpt
+from .iEDA.vectorization import IEDAVectorization

@@ -96,6 +96,12 @@ class RunIEDA(RunFlowBase):
                     ieda_flow = IEDAPlacement(workspace=self.workspace,
                                               flow=flow)
                     ieda_flow.run_filler()
+                    
+                case DbFlow.FlowStep.vectorization:
+                    from ..eda import IEDAVectorization
+                    ieda_flow = IEDAVectorization(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_vectorization()
         
         if flow.is_finish() is True:
             return True
@@ -361,5 +367,20 @@ class RunIEDA(RunFlowBase):
         
         if output_verilog is None:
             flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_flow(flow)
+    
+    def run_vectorization(self, 
+                input_def:str, 
+                input_verilog:str=None):   
+        """ run data vectorization flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.vectorization,
+                      input_def=input_def,
+                      input_verilog=input_verilog)
+        
         
         return self.run_flow(flow)

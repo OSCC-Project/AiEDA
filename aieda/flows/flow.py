@@ -36,7 +36,8 @@ class DbFlow(object):
         sta = "sta"
         rcx = "rcx"
         gds = "gds"
-        full_flow = 'full_flow'
+        full_flow = 'full_flow',
+        vectorization = 'vectorization'
         
     class FlowState(Enum):
         """flow running state

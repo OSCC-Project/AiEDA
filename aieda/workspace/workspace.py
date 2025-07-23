@@ -458,7 +458,8 @@ class Workspace:
                 "{}/output/iEDA/data".format(self.directory),
                 "{}/output/iEDA/feature".format(self.directory),
                 "{}/output/iEDA/result".format(self.directory),
-                "{}/output/iEDA/rpt".format(self.directory)
+                "{}/output/iEDA/rpt".format(self.directory),
+                "{}/output/iEDA/vectors".format(self.directory)
             ]
             
             return top_dirs
@@ -500,7 +501,7 @@ class Workspace:
                     'rt_sta' : "{}/output/iEDA/data/rt/sta".format(self.directory),
                        'rpt' : "{}/output/iEDA/rpt".format(self.directory),
                    'feature' : "{}/output/iEDA/feature".format(self.directory),
-                   'vectorization' : "{}/output/iEDA/vectorization".format(self.directory),
+                   'vectors' : "{}/output/iEDA/vectors".format(self.directory),
                 }
             return output
         
@@ -560,6 +561,17 @@ class Workspace:
             }
             
             return feature_csv
+        
+        @property
+        def ieda_vectorization(self):
+            vectorization_dir = {
+                'nets' : "{}/nets".format(self.ieda_output['vectorization']),    
+                'patchs' : "{}/patchs".format(self.ieda_output['vectorization']),
+                'wire_graph' : "{}/wire_graph".format(self.ieda_output['vectorization']),
+                'wire_paths' : "{}/wire_paths".format(self.ieda_output['vectorization']),
+            }
+            
+            return vectorization_dir
         
         @property
         def scripts(self):
