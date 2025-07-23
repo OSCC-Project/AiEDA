@@ -12,7 +12,7 @@ from import_aieda import import_aieda
 import_aieda()
 ######################################################################################
 
-from aieda.analysis import CellTypeAnalyzer,CoreUsageAnalyzer,PinDistributionAnalyzer
+from aieda.analysis import CellTypeAnalyzer,CoreUsageAnalyzer,PinDistributionAnalyzer,ResultStatisAnalyzer
     
 BASE_DIRS = [
     "/data2/project_share/dataset_baseline/s713",
@@ -121,6 +121,20 @@ DISPLAY_NAME = {
 }
 
 
+BASE_DIRS_FOR_STATS = [
+    "/data/project_share/yhqiu/s713",
+    "/data/project_share/yhqiu/s44",
+    "/data/project_share/yhqiu/apb4_rng",
+    "/data/project_share/yhqiu/gcd",
+    "/data/project_share/yhqiu/s1238",
+    "/data/project_share/yhqiu/s1488",
+    "/data/project_share/yhqiu/apb4_archinfo",
+    "/data/project_share/yhqiu/apb4_ps2",
+    "/data/project_share/yhqiu/s9234",
+    "/data/project_share/yhqiu/apb4_timer",
+]
+
+
 def main():
     # 1. test cell type analysis: load, analyze, visualize
     cell_analyzer = CellTypeAnalyzer()
@@ -155,6 +169,16 @@ def main():
     pin_analyzer.analyze()
     pin_analyzer.visualize(save_path="./")
     
+    # 4. test result statistics
+    result_analyzer = ResultStatisAnalyzer()
+    result_analyzer.load(
+        base_dirs=BASE_DIRS_FOR_STATS, 
+        pattern="workspace/output/innovus/feature/large_model",
+        calc_wire_num=False, 
+        verbose=True
+    )
+    result_analyzer.analyze()
+    result_analyzer.visualize(save_path="./")
 
 if __name__ == "__main__":  
     main()

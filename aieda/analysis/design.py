@@ -3,7 +3,7 @@
 '''
 @File : design.py
 @Author : yhqiu
-@Desc : design level data ananlysis, including cell type distribution, core usage, and pin distribution
+@Desc : design level data ananlysis, including cell type distribution, core usage, pin distribution and result statistics
 '''
 import os
 import json
@@ -15,6 +15,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Dict, List, Any, Optional, Union
 from pathlib import Path
+from concurrent.futures import ProcessPoolExecutor
+import multiprocessing
+from functools import partial
 
 from .base import BaseAnalyzer
 
@@ -213,29 +216,27 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         
         for base_dir in base_dirs:
             design_name = os.path.basename(base_dir)
-            
+   
             json_path = os.path.join(base_dir, pattern)
             matching_files = glob.glob(json_path)
             
             if not matching_files:
-                self.missing_files.append(display_name)
                 continue
                 
             json_file = matching_files[0]
             
-            try:
-                with open(json_file, 'r') as f:
-                    data = json.load(f)
+            
+            with open(json_file, 'r') as f:
+                data = json.load(f)
+                
+            # Extract core_usage value
+            if "Design Layout" in data and "core_usage" in data["Design Layout"]:
+                core_usage = data["Design Layout"]["core_usage"]
+                self.core_usage[design_name] = core_usage
+            else:
+                self.missing_files.append(f"{design_name} (No core_usage field)")
                     
-                # Extract core_usage value
-                if "Design Layout" in data and "core_usage" in data["Design Layout"]:
-                    core_usage = data["Design Layout"]["core_usage"]
-                    self.core_usage[design_name] = core_usage
-                else:
-                    self.missing_files.append(f"{design_name} (No core_usage field)")
-                    
-            except Exception as e:
-                self.missing_files.append(f"{design_name} (Error: {str(e)})")
+
             
     def analyze(self):
         """Analyze core usage distribution across designs."""
@@ -330,47 +331,43 @@ class PinDistributionAnalyzer(BaseAnalyzer):
             matching_files = glob.glob(json_path)
             
             if not matching_files:
-                self.missing_files.append(display_name)
                 continue
                 
             json_file = matching_files[0]
             
-            try:
-                with open(json_file, 'r') as f:
-                    data = json.load(f)
+            with open(json_file, 'r') as f:
+                data = json.load(f)
                     
-                if "Pins" in data and "pin_distribution" in data["Pins"]:
-                    pin_data = []
-                    for item in data["Pins"]["pin_distribution"]:
-                        if "pin_num" in item and "net_num" in item and "net_ratio" in item:
-                            pin_num = self._parse_pin_num(item["pin_num"])
+            if "Pins" in data and "pin_distribution" in data["Pins"]:
+                pin_data = []
+                for item in data["Pins"]["pin_distribution"]:
+                    if "pin_num" in item and "net_num" in item and "net_ratio" in item:
+                        pin_num = self._parse_pin_num(item["pin_num"])
+                        
+                        try:
+                            net_num = int(item["net_num"]) if isinstance(item["net_num"], (int, float, str)) else 0
+                        except ValueError:
+                            print(f"Warning: Could not parse net_num '{item['net_num']}', using 0 as default")
+                            net_num = 0
                             
-                            try:
-                                net_num = int(item["net_num"]) if isinstance(item["net_num"], (int, float, str)) else 0
-                            except ValueError:
-                                print(f"Warning: Could not parse net_num '{item['net_num']}', using 0 as default")
-                                net_num = 0
-                                
-                            try:
-                                net_ratio = float(item["net_ratio"]) if isinstance(item["net_ratio"], (int, float, str)) else 0.0
-                            except ValueError:
-                                print(f"Warning: Could not parse net_ratio '{item['net_ratio']}', using 0.0 as default")
-                                net_ratio = 0.0
-                            
-                            pin_data.append({
-                                "pin_num": pin_num,
-                                "net_num": net_num,
-                                "net_ratio": net_ratio,
-                                "original_pin_num": item["pin_num"]  
-                            })
+                        try:
+                            net_ratio = float(item["net_ratio"]) if isinstance(item["net_ratio"], (int, float, str)) else 0.0
+                        except ValueError:
+                            print(f"Warning: Could not parse net_ratio '{item['net_ratio']}', using 0.0 as default")
+                            net_ratio = 0.0
+                        
+                        pin_data.append({
+                            "pin_num": pin_num,
+                            "net_num": net_num,
+                            "net_ratio": net_ratio,
+                            "original_pin_num": item["pin_num"]  
+                        })
+                
+                pin_data.sort(key=lambda x: x["pin_num"])
+                self.pin_dist[design_name] = pin_data
+            else:
+                self.missing_files.append(f"{design_name} (No pin_distribution field)")
                     
-                    pin_data.sort(key=lambda x: x["pin_num"])
-                    self.pin_dist[design_name] = pin_data
-                else:
-                    self.missing_files.append(f"{design_name} (No pin_distribution field)")
-                    
-            except Exception as e:
-                self.missing_files.append(f"{design_name} (Error: {str(e)})")
             
     def analyze(self):
         """Analyze pin number distribution across designs."""
@@ -486,3 +483,378 @@ class PinDistributionAnalyzer(BaseAnalyzer):
             print(f"Error: Failed to parse pin_num '{pin_num_str}', using -1 as default")
             return -1
                 
+class ResultStatisAnalyzer(BaseAnalyzer):
+    """Analyzer for result statistics including file counts, sizes, and wire numbers."""
+    
+    def __init__(self):
+        super().__init__()
+        self.stats_data = {}
+        self.total_stats = {
+            'nets_count': 0,
+            'nets_size': 0,
+            'patches_count': 0, 
+            'patches_size': 0,
+            'paths_count': 0,
+            'paths_size': 0,
+            'wire_num_sum': 0,
+            'accessible_designs': 0
+        }
+        self.calc_wire_num = False
+    
+    def load(self, 
+             base_dirs: List[Union[str, Path]], 
+             dir_to_display_name: Optional[Dict[str, str]] = None,
+             pattern: Optional[str] = None,
+             verbose: bool = True,
+             calc_wire_num: bool = False):
+        """
+        Load data from multiple directories.
+        
+        Args:
+            base_dirs: List of base directories to process
+            dir_to_display_name: Optional mapping from directory name to display name
+            pattern: Path pattern to append to base_dirs (required)
+            verbose: Whether to print progress information
+            calc_wire_num: Whether to calculate wire number sum (time-consuming)
+        """
+        if pattern is None:
+            raise ValueError("Pattern must be specified for result statistics analysis")
+            
+        self.calc_wire_num = calc_wire_num
+        
+        # Build complete design path list
+        design_paths = []
+        design_name_mapping = {}
+        
+        for base_dir in base_dirs:
+            # Extract design name from base_dir
+            design_name = os.path.basename(base_dir.rstrip('/'))
+            
+            # Build complete path
+            full_path = os.path.join(base_dir, pattern)
+            design_paths.append(full_path)
+            
+            # Establish mapping from path to design name
+            design_name_mapping[full_path] = design_name
+        
+        # Use process pool to handle all designs in parallel
+        process_design_with_params = partial(self._process_design, calc_wire_num=calc_wire_num)
+        
+        with ProcessPoolExecutor(max_workers=min(len(design_paths), multiprocessing.cpu_count())) as executor:
+            results = list(executor.map(process_design_with_params, design_paths))
+        
+        # Process results
+        for result in results:
+            if result:
+                design_path = result['design_path']
+                design_name = design_name_mapping.get(design_path, os.path.basename(design_path))
+                display_name = dir_to_display_name.get(design_name, design_name) if dir_to_display_name else design_name
+                
+                # Store data
+                self.stats_data[display_name] = {
+                    'nets_count': result['nets'][0],
+                    'nets_size': result['nets'][1],
+                    'patches_count': result['patches'][0],
+                    'patches_size': result['patches'][1],
+                    'paths_count': result['paths'][0],
+                    'paths_size': result['paths'][1],
+                    'wire_num_sum': result['wire_num_sum']
+                }
+                
+                # Accumulate totals
+                if result['nets'][0] > 0 or result['patches'][0] > 0 or result['paths'][0] > 0:
+                    self.total_stats['accessible_designs'] += 1
+                    self.total_stats['nets_count'] += result['nets'][0]
+                    self.total_stats['nets_size'] += result['nets'][1]
+                    self.total_stats['patches_count'] += result['patches'][0]
+                    self.total_stats['patches_size'] += result['patches'][1]
+                    self.total_stats['paths_count'] += result['paths'][0]
+                    self.total_stats['paths_size'] += result['paths'][1]
+                    self.total_stats['wire_num_sum'] += result['wire_num_sum']
+                else:
+                    self.missing_files.append(display_name)
+            else:
+                # If processing failed, extract design name from path
+                failed_path = design_paths[results.index(result)] if result is None else "Unknown"
+                design_name = design_name_mapping.get(failed_path, "Unknown")
+                display_name = dir_to_display_name.get(design_name, design_name) if dir_to_display_name else design_name
+                self.missing_files.append(display_name)
+        
+        if verbose:
+            print(f"Loaded data for {len(self.stats_data)} designs")
+            if self.missing_files:
+                print(f"Missing or inaccessible designs: {len(self.missing_files)}")
+                print(f"Missing designs: {', '.join(self.missing_files)}")
+    
+    def analyze(self):
+        """Analyze the loaded statistics data."""
+        if not self.stats_data:
+            print("No statistics data found")
+            return
+        
+        df = pd.DataFrame.from_dict(self.stats_data, orient='index')
+        
+        # Print statistics in table format
+        print(f"{'Designs':<16} | {'Nets Dir':<25} | {'Patches Dir':<25} | {'Paths Dir':<25} | {'Wire Num':<20}")
+        print(f"{'-'*16} | {'-'*25} | {'-'*25} | {'-'*25} | {'-'*12}")
+        
+        for design, data in self.stats_data.items():
+            nets_info = f"{data['nets_count']} files, {self._format_size(data['nets_size'])}"
+            patches_info = f"{data['patches_count']} files, {self._format_size(data['patches_size'])}"
+            paths_info = f"{data['paths_count']} files, {self._format_size(data['paths_size'])}"
+            
+            print(f"{design:<16} | {nets_info:<25} | {patches_info:<25} | {paths_info:<25} | {data['wire_num_sum']:<12}")
+        
+        # Print totals
+        print(f"{'-'*16} | {'-'*25} | {'-'*25} | {'-'*25} | {'-'*12}")
+        print(f"{'Total':<16} | {self.total_stats['nets_count']} files, {self._format_size(self.total_stats['nets_size']):<10} | "
+              f"{self.total_stats['patches_count']} files, {self._format_size(self.total_stats['patches_size']):<10} | "
+              f"{self.total_stats['paths_count']} files, {self._format_size(self.total_stats['paths_size']):<10} | "
+              f"{self.total_stats['wire_num_sum']:<12}")
+        print(f"Accessible Designs: {self.total_stats['accessible_designs']}/{len(self.stats_data) + len(self.missing_files)}")
+        
+        # Statistical analysis
+        print("\n=== Statistical Analysis ===")
+        
+        # File count statistics
+        print("\nFile Count Statistics:")
+        for file_type in ['nets_count', 'patches_count', 'paths_count']:
+            values = df[file_type]
+            print(f"\n{file_type.replace('_count', '').upper()}:")
+            print(f"  Mean: {values.mean():.2f}")
+            print(f"  Median: {values.median():.2f}")
+            print(f"  Min: {values.min()}")
+            print(f"  Max: {values.max()}")
+            print(f"  Std Dev: {values.std():.2f}")
+        
+        # File size statistics
+        print("\nFile Size Statistics:")
+        for size_type in ['nets_size', 'patches_size', 'paths_size']:
+            values = df[size_type]
+            print(f"\n{size_type.replace('_size', '').upper()}:")
+            print(f"  Mean: {self._format_size(values.mean())}")
+            print(f"  Median: {self._format_size(values.median())}")
+            print(f"  Min: {self._format_size(values.min())}")
+            print(f"  Max: {self._format_size(values.max())}")
+            print(f"  Total: {self._format_size(values.sum())}")
+        
+        # Wire number statistics (if calculated)
+        if self.calc_wire_num:
+            print("\nWire Number Statistics:")
+            wire_values = df['wire_num_sum']
+            print(f"  Mean: {wire_values.mean():.2f}")
+            print(f"  Median: {wire_values.median():.2f}")
+            print(f"  Min: {wire_values.min()}")
+            print(f"  Max: {wire_values.max()}")
+            print(f"  Total: {wire_values.sum()}")
+            print(f"  Std Dev: {wire_values.std():.2f}")
+    
+    def visualize(self, save_path: Optional[str] = None):
+        """Create visualizations for the statistics data."""
+        if not self.stats_data:
+            print("No statistics data found")
+            return
+        
+        if save_path is None:
+            save_path = ""
+        
+        df = pd.DataFrame.from_dict(self.stats_data, orient='index')
+        
+        # 1. File count distribution charts
+        fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+        
+        # File count bar charts
+        file_counts = ['nets_count', 'patches_count', 'paths_count']
+        colors = ['skyblue', 'lightgreen', 'lightcoral']
+        
+        for i, (count_type, color) in enumerate(zip(file_counts, colors)):
+            ax = axes[0, 0] if i == 0 else (axes[0, 1] if i == 1 else axes[1, 0])
+            values = df[count_type].sort_values(ascending=False)
+            ax.bar(range(len(values)), values, color=color)
+            ax.set_title(f'All Designs - {count_type.replace("_count", "").title()} File Count')
+            ax.set_xlabel('Design Rank')
+            ax.set_ylabel('File Count')
+            ax.grid(axis='y', alpha=0.3)
+            
+            # Set x-axis labels to design names
+            ax.set_xticks(range(len(values)))
+            ax.set_xticklabels(values.index, rotation=45, ha='right')
+        
+        # File size distribution histogram
+        total_sizes = df['nets_size'] + df['patches_size'] + df['paths_size']
+        axes[1, 1].hist(total_sizes / (1024**3), bins=max(5, len(df)//2), color='orange', alpha=0.7, edgecolor='black')
+        axes[1, 1].set_title('Total File Size Distribution')
+        axes[1, 1].set_xlabel('Total Size (GB)')
+        axes[1, 1].set_ylabel('Number of Designs')
+        axes[1, 1].grid(axis='y', alpha=0.3)
+        
+        plt.tight_layout()
+        plt.savefig(save_path + 'result_stats_overview.png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # 2. Heatmap - file counts
+        plt.figure(figsize=(10, max(6, len(df) * 0.4)))
+        
+        # Sort by total file count
+        df['total_files'] = df['nets_count'] + df['patches_count'] + df['paths_count']
+        df_sorted = df.sort_values('total_files', ascending=True)  # Sort ascending for better visualization
+        
+        heatmap_data = df_sorted[['nets_count', 'patches_count', 'paths_count']]
+        
+        ax = sns.heatmap(heatmap_data, 
+                        annot=True, 
+                        fmt='d', 
+                        cmap='YlOrRd', 
+                        linewidths=0.5,
+                        cbar_kws={'label': 'File Count'})
+        
+        plt.title('File Count Heatmap (All Designs)', fontsize=16, fontweight='bold')
+        plt.xlabel('Directory Type', fontsize=12)
+        plt.ylabel('Design', fontsize=12)
+        plt.setp(ax.get_yticklabels(), style='italic')
+        plt.tight_layout()
+        plt.savefig(save_path + 'result_stats_heatmap.png', dpi=300, bbox_inches='tight')
+        plt.close()
+        
+        # 3. Wire number distribution charts (if calculated)
+        if self.calc_wire_num and 'wire_num_sum' in df.columns:
+            plt.figure(figsize=(12, 5))
+            
+            # Subplot 1: Wire number bar chart
+            plt.subplot(1, 2, 1)
+            wire_values = df['wire_num_sum'].sort_values(ascending=False)
+            plt.bar(range(len(wire_values)), wire_values, color='purple', alpha=0.7)
+            plt.title('All Designs - Wire Number Sum')
+            plt.xlabel('Design Rank')
+            plt.ylabel('Wire Number Sum')
+            plt.xticks(range(len(wire_values)), wire_values.index, rotation=45, ha='right')
+            plt.grid(axis='y', alpha=0.3)
+            
+            # Subplot 2: Wire number distribution histogram
+            plt.subplot(1, 2, 2)
+            plt.hist(df['wire_num_sum'], bins=max(5, len(df)//2), color='purple', alpha=0.7, edgecolor='black')
+            plt.title('Wire Number Sum Distribution')
+            plt.xlabel('Wire Number Sum')
+            plt.ylabel('Number of Designs')
+            plt.grid(axis='y', alpha=0.3)
+            
+            plt.tight_layout()
+            plt.savefig(save_path + 'wire_number_analysis.png', dpi=300, bbox_inches='tight')
+            plt.close()
+            
+            print("Saved wire number analysis:")
+            print("- 'wire_number_analysis.png'")
+        
+        print("Saved result statistics visualizations:")
+        print("- 'result_stats_overview.png' (Overview charts)")
+        print("- 'result_stats_heatmap.png' (File count heatmap)")
+    
+    def _process_design(self, design_path, calc_wire_num=False):
+        """Process a single design directory and return statistics."""
+        # Build subdirectory paths
+        nets_dir = os.path.join(design_path, "nets")
+        patches_dir = os.path.join(design_path, "patchs")
+        paths_dir = os.path.join(design_path, "wire_paths")
+        
+        try:
+            with ProcessPoolExecutor(max_workers=3) as executor:
+                dir_futures = {
+                    executor.submit(self._fast_dir_scan, nets_dir): "nets",
+                    executor.submit(self._fast_dir_scan, patches_dir): "patches",
+                    executor.submit(self._fast_dir_scan, paths_dir): "paths"
+                }
+                
+                results = {}
+                for future in dir_futures:
+                    dir_type = dir_futures[future]
+                    try:
+                        file_count, size = future.result()
+                        results[dir_type] = (file_count, size)
+                    except Exception:
+                        results[dir_type] = (0, 0)
+            
+            # Calculate wire_num sum (potentially time-consuming, based on parameter)
+            wire_num_sum = 0
+            if calc_wire_num and results.get('nets', (0, 0))[0] > 0:
+                wire_num_sum = self._get_wire_num_sum_parallel(nets_dir)
+            
+            return {
+                'design_path': design_path,
+                'nets': results.get('nets', (0, 0)),
+                'patches': results.get('patches', (0, 0)),
+                'paths': results.get('paths', (0, 0)),
+                'wire_num_sum': wire_num_sum
+            }
+        except Exception:
+            return None
+    
+    def _fast_dir_scan(self, directory):
+        """Quickly count files and calculate total size in directory."""
+        if not os.path.exists(directory):
+            return 0, 0
+            
+        total_size = 0
+        file_count = 0
+        
+        try:
+            for entry in os.scandir(directory):
+                if entry.is_file(follow_symlinks=False):
+                    file_count += 1
+                    total_size += entry.stat().st_size
+                elif entry.is_dir(follow_symlinks=False):
+                    subdir_count, subdir_size = self._fast_dir_scan(entry.path)
+                    file_count += subdir_count
+                    total_size += subdir_size
+        except Exception:
+            pass
+            
+        return file_count, total_size
+    
+    def _process_net_file(self, file_path):
+        """Process a single net file and return wire_num."""
+        try:
+            with open(file_path, 'r') as f:
+                for line in f:
+                    if '"wire_num":' in line:
+                        # Simple parsing to avoid loading entire JSON
+                        match = re.search(r'"wire_num":\s*(\d+)', line)
+                        if match:
+                            return int(match.group(1))
+                        break
+        except Exception:
+            pass
+        return 0
+    
+    def _get_wire_num_sum_parallel(self, nets_dir, max_workers=None):
+        """Calculate sum of wire_num from all net files in specified directory in parallel."""
+        if not os.path.exists(nets_dir):
+            return 0
+        
+        # Use glob pattern to match all net_*.json files
+        net_files = list(glob.glob(os.path.join(nets_dir, 'net_*.json')))
+        
+        if not net_files:
+            return 0
+        
+        if max_workers is None:
+            max_workers = multiprocessing.cpu_count()
+        
+        total_wire_num = 0
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            results = executor.map(self._process_net_file, net_files)
+            total_wire_num = sum(results)
+        
+        return total_wire_num
+    
+    def _format_size(self, size_bytes):
+        """Convert byte size to human-readable format (KB, MB, GB, etc.)."""
+        if size_bytes == 0:
+            return "0 B"
+            
+        size_units = ["B", "KB", "MB", "GB", "TB"]
+        i = 0
+        while size_bytes >= 1024 and i < len(size_units) - 1:
+            size_bytes /= 1024.0
+            i += 1
+            
+        return f"{size_bytes:.2f} {size_units[i]}"
