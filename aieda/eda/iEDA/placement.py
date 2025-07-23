@@ -95,7 +95,7 @@ class IEDAPlacement(IEDAIO):
         
         self.ieda.feature_summary(ieda_feature_json['place_summary'])
         
-        # TODO: mode eval metrics
+        # TODO: more eval metrics
         # generate eval metrics. The default map_grid_size is 1X row_height.
         map_grid_size = 1
         self.ieda.feature_pl_eval(ieda_feature_json['place_eval'], map_grid_size)
@@ -107,7 +107,7 @@ class IEDAPlacement(IEDAIO):
         
         self.ieda.feature_summary(ieda_feature_json['legalization_summary'])
         
-        # TODO: mode eval metrics
+        # TODO: more eval metrics
         
     def run_filler_eval(self):
         self.read_def()
@@ -116,4 +116,4 @@ class IEDAPlacement(IEDAIO):
         
         self.ieda.feature_summary(ieda_feature_json['filler_summary'])
         
-        # TODO: mode eval metrics
+        # TODO: more eval metrics
