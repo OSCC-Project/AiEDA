@@ -12,13 +12,15 @@ from ...data.database.enum import FeatureOption
 
 class IEDAVectorization(IEDAIO):
     """CTS api"""
-    def __init__(self, workspace : Workspace, flow : DbFlow):
+    def __init__(self, workspace : Workspace, flow : DbFlow, vectors_dir : str = None):
+        self.vectors_dir = vectors_dir
         super().__init__(workspace=workspace, flow=flow)
         
     def build_config(self):
-        self.result_dir = self.workspace.paths_table.ieda_output['vectors']
+        if self.vectors_dir is None:
+            self.vectors_dir = self.workspace.paths_table.ieda_output['vectors']
     
     def run_vectorization(self):
         self.read_def() 
-        
-        self.generate_vectors(dir=self.result_dir)
+
+        self.ieda.generate_vectors(dir=self.vectors_dir)

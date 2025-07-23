@@ -6,6 +6,7 @@
 @Desc : run iEDA flow api
 '''
 from multiprocessing import Process
+
 from .flow import DbFlow, RunFlowBase
 
 class RunIEDA(RunFlowBase):
@@ -32,7 +33,7 @@ class RunIEDA(RunFlowBase):
             "filler"
         ]
             
-    def run_flow(self, flow : DbFlow):
+    def run_flow(self, flow : DbFlow, output_dir:str=None):
         """run flow"""            
         def __run_eda__(flow : DbFlow):
             """run eda tool""" 
@@ -100,7 +101,8 @@ class RunIEDA(RunFlowBase):
                 case DbFlow.FlowStep.vectorization:
                     from ..eda import IEDAVectorization
                     ieda_flow = IEDAVectorization(workspace=self.workspace,
-                                              flow=flow)
+                                              flow=flow,
+                                              vectors_dir=output_dir)
                     ieda_flow.run_vectorization()
         
         if flow.is_finish() is True:
@@ -370,10 +372,10 @@ class RunIEDA(RunFlowBase):
         
         return self.run_flow(flow)
     
-<<<<<<< HEAD
     def run_vectorization(self, 
                 input_def:str, 
-                input_verilog:str=None):   
+                input_verilog:str=None,
+                vectors_dir:str=None):   
         """ run data vectorization flow by iEDA
         input_def : input def path, must be set
         input_verilog :input verilog path, optional variable for iEDA flow
@@ -383,9 +385,20 @@ class RunIEDA(RunFlowBase):
                       input_def=input_def,
                       input_verilog=input_verilog)
         
+        if input_def is None:
+            # use output def of step route as input def
+            flow.input_def = self.workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route))
         
-        return self.run_flow(flow)
-=======
+        def vectorization(flow):
+            from ..eda import IEDAVectorization
+            ieda_flow = IEDAVectorization(workspace=self.workspace,
+                                      flow=flow,
+                                      vectors_dir=vectors_dir)
+            ieda_flow.run_vectorization()
+    
+        p = Process(target=vectorization, args=(flow,))
+        p.start()
+        p.join()
 
 class RunEval(RunFlowBase):
     '''run ieda eval
@@ -743,4 +756,3 @@ class RunEval(RunFlowBase):
             flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
         
         return self.run_eval_flow(flow)
->>>>>>> 46921786b5ea07eab7e9975e2e6b8af34ec1dbe1
