@@ -3,5 +3,7 @@ from .flow import (
 )
 
 from .ieda import (
-    RunIEDA
+    RunIEDA,
+    RunEval
+    
 )

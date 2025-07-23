@@ -14,10 +14,13 @@ from .log import Logger
 class JsonParser:
     """basic json parser"""
 
-    def __init__(self, json_path: str, logger : Logger):
+    def __init__(self, json_path: str, logger : Logger = None):
         self.json_path = json_path
-        self.logger : Logger= logger
         self.json_data = None
+        if logger is None:
+            self.logger = Logger("JsonParser")
+        else:
+            self.logger = logger
 
     def set_json_data(self, value: dict):
         self.json_data = value

@@ -35,3 +35,13 @@ class IEDANetOpt(IEDAIO):
         
         # generate feature CTS data
         self.ieda.feature_tool(ieda_feature_json['fixFanout_tool'], DbFlow.FlowStep.fixFanout.value)
+        
+    def run_eval(self):
+        self.read_def()
+
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature summary data
+        self.ieda.feature_summary(ieda_feature_json['fixFanout_summary'])
+        
+        # TODO: more eval metrics

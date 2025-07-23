@@ -397,6 +397,23 @@ class Workspace:
         from .config import ConfigIEDAPlacementParser
         parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'], self.logger)
         parser.set_target_density(parameters.placement_target_density)
+        parser.set_max_phi_coef(parameters.placement_max_phi_coef)    
+        parser.set_init_wirelength_coef(parameters.placement_init_wirelength_coef)    
+        parser.set_min_wirelength_force_bar(parameters.placement_min_wirelength_force_bar)
+        
+        # update iEDA_config/cts_default_config.json
+        from .config import ConfigIEDACTSParser
+        parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'], self.logger)
+        parser.set_skew_bound(parameters.cts_skew_bound)
+        parser.set_max_buf_tran(parameters.cts_max_buf_tran)
+        parser.set_max_sink_tran(parameters.cts_max_sink_tran)
+        parser.set_max_cap(parameters.cts_max_cap)
+        parser.set_max_fanout(parameters.cts_max_fanout)
+        parser.set_cluster_size(parameters.cts_cluster_size)
+
+        
+        
+     
         
     def load_parameters(self, parameters_json : str):
         """load parameters data from json
@@ -539,29 +556,15 @@ class Workspace:
                 'filler_tool'          : "{}/{}_filler_tool.json".format(self.ieda_output['feature'], self.design),
                 'route_summary'        : "{}/{}_route_summary.json".format(self.ieda_output['feature'], self.design),
                 'route_tool'           : "{}/{}_route_tool.json".format(self.ieda_output['feature'], self.design),      
-                'route_drc'            : "{}/{}_route_drc.json".format(self.ieda_output['feature'], self.design)
+                'route_drc'            : "{}/{}_route_drc.json".format(self.ieda_output['feature'], self.design),
+                # eva metrics for the main pr stage   
+                'place_eval' : "{}/{}_place_eval.json".format(self.ieda_output['feature'], self.design),    
+                'CTS_eval' : "{}/{}_CTS_eval.json".format(self.ieda_output['feature'], self.design),
             }
             
             return feature_json
-        
-        @property
-        def ieda_feature_jsonl(self):
-            feature_jsonl = {
-                'CTS_eval' : "{}/{}CTS_eval.jsonl".format(self.ieda_output['feature'], self.design),
-                'place_eval' : "{}/{}place_eval.jsonl".format(self.ieda_output['feature'], self.design)                
-            }
-            
-            return feature_jsonl
-        
-        @property
-        def ieda_feature_csv(self):
-            feature_csv = {
-                'CTS_eval' : "{}/{}CTS_eval.csv".format(self.ieda_output['feature'], self.design),
-                'place_eval' : "{}/{}place_eval.csv".format(self.ieda_output['feature'], self.design)                
-            }
-            
-            return feature_csv
-        
+
+    
         @property
         def ieda_vectorization(self):
             vectorization_dir = {
