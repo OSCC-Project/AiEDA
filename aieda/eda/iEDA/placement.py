@@ -16,8 +16,17 @@ class IEDAPlacement(IEDAIO):
         
     def build_config(self):
         self.ieda_config = self.workspace.paths_table.ieda_config['place']
+    
+    def __run_flow__(self): 
+        match self.flow.step:
+            case DbFlow.FlowStep.place:
+                self.__run_placement__()  
+            case DbFlow.FlowStep.legalization:
+                self.__run_legalization__()   
+            case DbFlow.FlowStep.filler:
+                self.__run_filler__()      
         
-    def run_placement(self):
+    def __run_placement__(self):
         self.read_def()
         
         self.ieda.run_placer(self.ieda_config)
@@ -25,22 +34,11 @@ class IEDAPlacement(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
-        self.run_placement_feature()
-    
-    def run_placement_feature(self):
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        self.__generate_placement_feature_summary__()
+        self.__generate_placement_feature_tool__()
+        self.__generate_feature_map__()
         
-        # generate feature summary data
-        self.ieda.feature_summary(ieda_feature_json['place_summary'])
-        
-        # generate feature CTS data
-        self.ieda.feature_tool(ieda_feature_json['place_tool'], DbFlow.FlowStep.place.value)
-        
-        # generate eval metrics. The default map_grid_size is 1X row_height.
-        map_grid_size = 1
-        self.ieda.feature_pl_eval(ieda_feature_json['place_eval'], map_grid_size)
-        
-    def run_legalization(self):
+    def __run_legalization__(self):
         self.read_def()
         
         self.ieda.run_incremental_flow(self.ieda_config)
@@ -48,18 +46,10 @@ class IEDAPlacement(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
-        self.run_legalization_feature()
-    
-    def run_legalization_feature(self):
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        self.__generate_legalization_feature_summary__()
+        self.__generate_legalization_feature_tool__()
         
-        # generate feature summary data
-        self.ieda.feature_summary(ieda_feature_json['legalization_summary'])
-        
-        # generate feature CTS data
-        self.ieda.feature_tool(ieda_feature_json['legalization_tool'], DbFlow.FlowStep.legalization.value)
-        
-    def run_filler(self):
+    def __run_filler__(self):
         self.read_def()
         
         self.ieda.run_filler(self.ieda_config)
@@ -67,15 +57,87 @@ class IEDAPlacement(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
-        self.run_filler_feature()
+        self.__generate_filler_feature_summary__()
+        self.__generate_filler_feature_tool__()
     
-    def run_filler_feature(self):
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+    def __generate_feature_summary__(self, json_path:str=None):
+        match self.flow.step:
+            case DbFlow.FlowStep.place:
+                self.__generate_placement_feature_summary__(json_path)  
+            case DbFlow.FlowStep.legalization:
+                self.__generate_legalization_feature_summary__(json_path)   
+            case DbFlow.FlowStep.filler:
+                self.__generate_filler_feature_summary__(json_path)
+                
+    def __generate_placement_feature_summary__(self, json_path:str=None):
+        if json_path is None:
+            # use default feature path in workspace
+            json_path = self.workspace.paths_table.ieda_feature_json['place_summary']
+            
+        self.read_output_def()
         
         # generate feature summary data
-        self.ieda.feature_summary(ieda_feature_json['filler_summary'])
+        self.ieda.feature_summary(json_path)
         
-        # generate feature CTS data
+    def __generate_legalization_feature_summary__(self, json_path:str=None):
+        if json_path is None:
+            # use default feature path in workspace
+            json_path = self.workspace.paths_table.ieda_feature_json['legalization_summary']
+            
+        self.read_output_def()
+        
+        # generate feature summary data
+        self.ieda.feature_summary(json_path)
+        
+    def __generate_filler_feature_summary__(self, json_path:str=None):
+        if json_path is None:
+            # use default feature path in workspace
+            json_path = self.workspace.paths_table.ieda_feature_json['filler_summary']
+            
+        self.read_output_def()
+        
+        # generate feature summary data
+        self.ieda.feature_summary(json_path)
+        
+    def __generate_feature_tool__(self):
+        match self.flow.step:
+            case DbFlow.FlowStep.place:
+                self.__generate_placement_feature_tool__()  
+            case DbFlow.FlowStep.legalization:
+                self.__generate_legalization_feature_tool__()   
+            case DbFlow.FlowStep.filler:
+                self.__generate_filler_feature_tool__()
+        
+    def __generate_placement_feature_tool__(self):
+        self.read_output_def()
+            
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature tool data
+        self.ieda.feature_tool(ieda_feature_json['place_tool'], DbFlow.FlowStep.place.value)
+    
+    def __generate_feature_map__(self, map_grid_size = 1):
+        self.read_output_def()
+            
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate eval metrics. The default map_grid_size is 1X row_height.
+        self.ieda.feature_pl_eval(ieda_feature_json['place_map'], map_grid_size)
+        
+    def __generate_legalization_feature_tool__(self):
+        self.read_output_def()
+            
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature tool data
+        self.ieda.feature_tool(ieda_feature_json['legalization_tool'], DbFlow.FlowStep.legalization.value)
+        
+    def __generate_filler_feature_tool__(self):
+        self.read_output_def()
+            
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        
+        # generate feature tool data
         self.ieda.feature_tool(ieda_feature_json['filler_tool'], DbFlow.FlowStep.filler.value)
         
     def run_mp(self, config : str, tcl_path=""):
@@ -87,33 +149,3 @@ class IEDAPlacement(IEDAIO):
     # build macro drc distribution
     def feature_macro_drc_distribution(self, path: str, drc_path: str):
         self.ieda.feature_macro_drc(path=path, drc_path=drc_path)
-        
-    def run_place_eval(self):
-        self.read_def()
-        
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
-        
-        self.ieda.feature_summary(ieda_feature_json['place_summary'])
-        
-        # TODO: more eval metrics
-        # generate eval metrics. The default map_grid_size is 1X row_height.
-        map_grid_size = 1
-        self.ieda.feature_pl_eval(ieda_feature_json['place_eval'], map_grid_size)
-        
-    def run_legalization_eval(self):
-        self.read_def()
-        
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
-        
-        self.ieda.feature_summary(ieda_feature_json['legalization_summary'])
-        
-        # TODO: more eval metrics
-        
-    def run_filler_eval(self):
-        self.read_def()
-        
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
-        
-        self.ieda.feature_summary(ieda_feature_json['filler_summary'])
-        
-        # TODO: more eval metrics

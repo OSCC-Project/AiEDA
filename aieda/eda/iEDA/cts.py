@@ -8,7 +8,6 @@
 from .io import IEDAIO
 from ...workspace import Workspace
 from ...flows import DbFlow
-from ...data.database.enum import FeatureOption
 
 class IEDACts(IEDAIO):
     """CTS api"""
@@ -19,41 +18,44 @@ class IEDACts(IEDAIO):
         self.ieda_config = self.workspace.paths_table.ieda_config['CTS']
         self.result_dir = self.workspace.paths_table.ieda_output['cts']
     
-    def run_cts(self):
+    def __run_flow__(self):     
         self.read_def()
         
         self.ieda.run_cts(self.ieda_config, self.result_dir)
         self.ieda.cts_report(self.result_dir)
         
-        self.ieda.run_incremental_flow(self.workspace.paths_table.ieda_config['place'])
+        #legalization
+        self.ieda.run_incremental_flow(self.workspace.paths_table.ieda_config['legalization'])
         
         self.def_save()
         self.verilog_save(self.cell_names)
         
-        self.run_feature()
-    
-    def run_feature(self):
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
+        self.__generate_feature_summary__()
+        self.__generate_feature_map__()
+        self.__generate_feature_tool__()
+        
+    def __generate_feature_summary__(self, json_path:str=None):
+        if json_path is None:
+            # use default feature path in workspace
+            json_path = self.workspace.paths_table.ieda_feature_json['CTS_summary']
+            
+        self.read_output_def()
         
         # generate feature summary data
-        self.ieda.feature_summary(ieda_feature_json['CTS_summary'])
+        self.ieda.feature_summary(json_path)
+        
+    def __generate_feature_tool__(self):
+        self.read_output_def()
+
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
         
         # generate feature CTS data
         self.ieda.feature_tool(ieda_feature_json['CTS_tool'], DbFlow.FlowStep.cts.value)
         
-        # generate eval metrics. The default map_grid_size is 1X row_height.
-        map_grid_size = 1
-        self.ieda.feature_cts_eval(ieda_feature_json['CTS_eval'], map_grid_size)
-    
-    def run_eval(self):
-        self.read_def()
-        
+    def __generate_feature_map__(self, map_grid_size = 1):
+        self.read_output_def()
+
         ieda_feature_json = self.workspace.paths_table.ieda_feature_json
         
-        # generate feature summary data
-        self.ieda.feature_summary(ieda_feature_json['CTS_summary'])
-        
-        # TODO: more eval metrics
         # generate eval metrics. The default map_grid_size is 1X row_height.
-        map_grid_size = 1
-        self.ieda.feature_cts_eval(ieda_feature_json['CTS_eval'], map_grid_size)
+        self.ieda.feature_cts_eval(ieda_feature_json['CTS_map'], map_grid_size)

@@ -13,8 +13,9 @@ import_aieda()
 
 from aieda import (
     workspace_create,
-    RunIEDA,
     DbFlow,
+    RunIEDA,
+    DataGeneration
 )
 
 
@@ -91,11 +92,11 @@ if __name__ == "__main__":
     
     # workspace.set_libs(lib_paths)
     
-    # step 2 : init iEDA by workspace
-    run_ieda = RunIEDA(workspace)
+    # step 2 : init by workspace
+    data_gen = DataGeneration(workspace)
     
     # step 3 : generate vectors
-    run_ieda.run_vectorization(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
+    data_gen.generate_vectors(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
                                vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors")
 
     exit(0)

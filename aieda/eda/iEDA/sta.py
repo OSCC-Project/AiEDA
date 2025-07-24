@@ -20,7 +20,7 @@ class IEDASta(IEDAIO):
             self.output_dir = self.workspace.paths_table.ieda_output['sta']
         self.rpt_dir = self.workspace.paths_table.ieda_output['rpt']
         
-    def run_sta(self):
+    def __run_flow__(self):
         self.read_def()
         
         self.ieda.run_sta(self.output_dir)

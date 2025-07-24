@@ -18,7 +18,7 @@ class IEDARouting(IEDAIO):
         self.ieda_config = self.workspace.paths_table.ieda_config['route']
         self.rt_sta_dir = self.workspace.paths_table.ieda_output['rt_sta']
          
-    def run_routing(self):
+    def __run_flow__(self):
         import os
         import json
         from .sta import IEDASta
@@ -49,16 +49,28 @@ class IEDARouting(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
-        self.run_feature()
+        self.__generate_feature_summary__()
+        self.__generate_feature_tool__()
         
     def close_routing(self):
         self.ieda.destroy_rt()
-        
-    def run_feature(self):
+    
+    def __generate_feature_summary__(self, json_path:str=None):
+        if json_path is None:
+            # use default feature path in workspace
+            json_path = self.workspace.paths_table.ieda_feature_json['route_summary']
+            
+        self.read_output_def()
+
         ieda_feature_json = self.workspace.paths_table.ieda_feature_json
         
         # generate feature summary data
-        self.ieda.feature_summary(ieda_feature_json['route_summary'])
+        self.ieda.feature_summary(json_path)
+
+    def __generate_feature_tool__(self):
+        self.read_output_def()
+
+        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
         
         # generate feature route data
         self.ieda.feature_tool(ieda_feature_json['route_tool'], DbFlow.FlowStep.route.value)
@@ -70,13 +82,3 @@ class IEDARouting(IEDAIO):
     # read route def and save route data to json
     def feature_route(self, json_path: str):
         self.ieda.feature_route(path=json_path)
-    
-    def run_eval(self):
-        self.read_def()
-        
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
-        
-        # generate feature summary data
-        self.ieda.feature_summary(ieda_feature_json['route_summary'])
-        
-        #TODO: more eval metrics

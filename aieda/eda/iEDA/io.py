@@ -5,7 +5,7 @@
 @Author : yell
 @Desc : iEDA data io, including read/write config/lef/def/verilog/gds ext.
 '''
-
+from multiprocessing import Process
 from .base import IEDABase
 from ...workspace import Workspace
 from ...flows import DbFlow
@@ -16,7 +16,49 @@ class IEDAIO(IEDABase):
         self.cell_names : set = set()
         
         super().__init__(workspace=workspace, flow=flow)
-            
+        self.inited_flag = False
+        
+    def run_flow(self):
+        p = Process(target=self.__run_flow__, args=())
+        p.start()
+        p.join()
+       
+    def __run_flow__(self):
+        pass
+        
+    def generate_feature_summary(self, json_path:str=None):    
+        if self.inited_flag:
+            self.__generate_feature_summary__(json_path=json_path)
+        else:
+            p = Process(target=self.__generate_feature_summary__, args=(json_path,))
+            p.start()
+            p.join()
+    
+    def __generate_feature_summary__(self, json_path:str=None):
+        pass
+    
+    def generate_feature_tool(self):
+        if self.inited_flag:
+            self.__generate_feature_tool__()
+        else:
+            p = Process(target=self.__generate_feature_tool__, args=())
+            p.start()
+            p.join()
+    
+    def __generate_feature_tool__(self):
+        pass
+    
+    def generate_feature_map(self,map_grid_size=1):
+        if self.inited_flag:
+            self.__generate_feature_map__()
+        else:
+            p = Process(target=self.__generate_feature_map__, args=(map_grid_size,))
+            p.start()
+            p.join()
+    
+    def __generate_feature_map__(self):
+        pass
+        
     def init_config(self):
         """init_config"""
         self.ieda.flow_init(flow_config=self.workspace.paths_table.ieda_config['initFlow'])
@@ -72,20 +114,42 @@ class IEDAIO(IEDABase):
         self.ieda.flow_exit()
         
     def read_def(self, read_verilog=False):
-        self.init_config()
-        self.init_techlef()
-        self.init_lef()
-        
-        if read_verilog:
-            self.init_verilog()
+        if self.inited_flag:
+            self.workspace.logger.info("design has been init.")
         else:
-            self.init_def(self.flow.input_def)
+            self.init_config()
+            self.init_techlef()
+            self.init_lef()
+            
+            if read_verilog:
+                self.init_verilog()
+            else:
+                self.init_def(self.flow.input_def)
+                
+            self.inited_flag = True
+    
+    def read_output_def(self):
+        if self.inited_flag:
+            self.workspace.logger.info("design has been init.")
+        else:
+            self.init_config()
+            self.init_techlef()
+            self.init_lef()
+            
+            self.init_def(self.flow.output_def)
+                
+            self.inited_flag = True
         
     def read_verilog(self, top_module=""):
-        self.init_config()
-        self.init_techlef()
-        self.init_lef()
-        self.init_verilog(top_module)
+        if self.inited_flag:
+            self.workspace.logger.info("design has been init.")
+        else:
+            self.init_config()
+            self.init_techlef()
+            self.init_lef()
+            self.init_verilog(top_module)
+            
+            self.inited_flag = True
         
     def run_def_to_gds(self, gds_path : str):
         self.ieda.gds_save(gds_path)

@@ -27,7 +27,7 @@ if __name__ == "__main__":
     run_ieda = RunIEDA(workspace)
     
     # step 3 : run physical backend flows configured in workspace/config/flow.json
-    run_ieda.run_flows()
+    run_ieda.run_flows(reset=True)
 
     exit(0)
 

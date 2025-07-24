@@ -17,23 +17,33 @@ class IEDAFloorplan(IEDAIO):
     def build_config(self):
         self.ieda_config = self.workspace.paths_table.ieda_config['floorplan']
     
-    def run_floorplan(self):
+    def __run_flow__(self):
         pass
     
     def auto_place_pins(self, 
                         layer : str, 
                         width : int, 
-                        height : int):
+                        height : int,
+                        sides : list[str]=[]):
+        """
+        layer : layer place io pins
+        witdh : io pin width, in dbu
+        height : io pin height, in dbu
+        sides : "left", "rigth", "top", "bottom", if empty, place io pins around die.
+        """
         self.ieda.auto_place_pins(layer=layer, 
                                   width = width, 
-                                  height=height)
+                                  height=height,
+                                  sides=sides)
     
-    def run_eval(self):
-        self.read_def()
+    def __generate_feature_summary__(self, json_path:str=None):
+        if json_path is None:
+            # use default feature path in workspace
+            json_path = self.workspace.paths_table.ieda_feature_json['floorplan_summary']
+            
+        self.read_output_def()
         
-        ieda_feature_json = self.workspace.paths_table.ieda_feature_json
-        
-        self.ieda.feature_summary(ieda_feature_json['floorplan_summary'])
+        self.ieda.feature_summary(json_path)
                 
         
         

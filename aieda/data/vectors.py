@@ -7,3 +7,7 @@
 '''
 from ..workspace.workspace import Workspace
 from ..flows import DbFlow
+
+class DataVectors:
+    def __init__(self, workspace : Workspace):
+        self.workspace = workspace

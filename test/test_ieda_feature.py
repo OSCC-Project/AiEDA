@@ -14,16 +14,30 @@ import_aieda()
 from aieda import (
     workspace_create,
     DbFlow,
-    load_feature_summary,
-    load_feature_tool,
-    load_feature_eval
+    DataFeature,
+    DataGeneration
 )
 
-if __name__ == "__main__":  
-    # step 1 : create workspace
-    # workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
-    workspace_dir = "/data/project_share/yhqiu/test_aieda/workspace_rerun"
-    workspace = workspace_create(directory=workspace_dir, design="gcd")
+def test_feature_generation(workspace):
+    # step 1 : init data generation
+    data_gen = DataGeneration(workspace)
+    
+    # step 2 : test generate feature summary json
+    for step in ["fixFanout", 
+                 "place",
+                 "CTS",
+                 "optDrv",
+                 "optHold",
+                 "legalization",
+                 "route",
+                 "filler"
+                 ]:
+        data_gen.generate_feature(step=DbFlow.FlowStep(step))
+        print("generate feature summary data in step {}".format(step))
+
+def test_data_load(workspace):
+    # step 1 : init data generation
+    feature = DataFeature(workspace=workspace)
     
     # step 2 : test get feature summary db from iEDA flow
     for step in ["fixFanout", 
@@ -35,10 +49,8 @@ if __name__ == "__main__":
                  "route",
                  "filler"
                  ]:
-        feature_db = load_feature_summary(workspace=workspace, 
-                                  flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step))
-                                  )
-        print("feature summary db in step {}".format(step))
+        feature_db = feature.load_feature_summary(flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step)))
+        print("get feature summary data in step {}".format(step))
         
     # step 3 : test get feature tool db from iEDA flow
     for step in ["fixFanout", 
@@ -50,12 +62,10 @@ if __name__ == "__main__":
                  "route",
                  "filler"
                  ]:
-        feature_db = load_feature_tool(workspace=workspace, 
-                                  flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step))
-                                  )
-        print("feature tool db in step {}".format(step))
+        feature_db = feature.load_feature_tool(flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step)))
+        print("get feature tool data in step {}".format(step))
         
-    # step 4 : test get feature eval db from iEDA flow
+    # step 4 : test get feature map db from iEDA flow
     for step in ["fixFanout", 
                  "place",
                  "CTS",
@@ -66,10 +76,18 @@ if __name__ == "__main__":
                  "filler"
                  ]:
         if step == "place" or step == "CTS":
-            feature_db = load_feature_eval(workspace=workspace, 
-                                    flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step))
-                                    )
-            print("feature eval db in step {}".format(step))
+            feature_db = feature.load_feature_map(flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step)))
+            print("get feature eval db in step {}".format(step))
+
+if __name__ == "__main__":  
+    # step 1 : create workspace
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130"
+    # workspace_dir = "/data/project_share/yhqiu/test_aieda/workspace_rerun"
+    workspace = workspace_create(directory=workspace_dir, design="gcd")
+    
+    # test_feature_generation(workspace)
+    
+    test_data_load(workspace)
 
     exit(0)
 

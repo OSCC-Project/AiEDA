@@ -23,8 +23,15 @@ class IEDABase():
         self.ieda = ieda #iEDA 
         self.workspace = workspace
         self.flow = flow
-
+        self.__init__flow()
         self.build_config()
+        
+    def __init__flow(self):
+        if self.flow.output_def is None:
+            self.flow.output_def = self.workspace.configs.get_output_def(self.flow)
+        
+        if self.flow.output_verilog is None:
+            self.flow.output_verilog = self.workspace.configs.get_output_verilog(self.flow)
         
     def build_config(self):
         pass

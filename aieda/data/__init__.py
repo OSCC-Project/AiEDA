@@ -1,7 +1,9 @@
+from .database import *
+
 from .feature import (
-    load_feature_summary,
-    load_feature_tool,
-    load_feature_eval
+    DataFeature
 )
 
-from .database import *
+from .vectors import (
+    DataVectors
+)

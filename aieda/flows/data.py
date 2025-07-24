@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File : ieda.py
+@Author : yell
+@Desc : run iEDA flow api
+'''
+from .base import DbFlow, RunFlowBase
+
+class DataGeneration(RunFlowBase):
+    '''run ieda eval
+    '''
+    from ..workspace import Workspace
+    def __init__(self, workspace : Workspace):  
+        """workspace : use workspace to manage all the data, inlcuding configs, 
+                       process modes, input and output path, feature data and so on
+        """     
+        super().__init__(workspace=workspace)    
+        
+    def generate_feature(self, 
+                      step:DbFlow.FlowStep,
+                      def_path:str=None,
+                      verilog_path:str=None,
+                      output_path:str=None):   
+        """ generate feature summary data
+        def_path : def path to read, must be set
+        step : specified step 
+        output_path : output path for summary feature json
+        verilog_path : verilog path to read, optional variable for iEDA flow
+        """
+        flow = DbFlow(eda_tool="iEDA", # use iEDA to extract feature
+                      step=step,
+                      output_def=def_path,
+                      output_verilog=verilog_path)
+        
+        self.generate_flow_feature(flow=flow, output_path=output_path)
+            
+    def generate_flow_feature(self, 
+                         flow : DbFlow, 
+                         output_path:str=None):             
+        match flow.step:
+            case DbFlow.FlowStep.floorplan:
+                from ..eda import IEDAFloorplan
+                ieda_flow = IEDAFloorplan(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+                
+            case DbFlow.FlowStep.fixFanout:
+                from ..eda import IEDANetOpt
+                ieda_flow = IEDANetOpt(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+                
+            case DbFlow.FlowStep.place:
+                from ..eda import IEDAPlacement
+                ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+                ieda_flow.generate_feature_map()
+            
+            case DbFlow.FlowStep.cts:
+                from ..eda import IEDACts
+                ieda_flow = IEDACts(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+                ieda_flow.generate_feature_map()
+                
+            case DbFlow.FlowStep.optDrv:
+                from ..eda import IEDATimingOpt
+                ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+                
+            case DbFlow.FlowStep.optHold:
+                from ..eda import IEDATimingOpt
+                ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+                
+            case DbFlow.FlowStep.optSetup:
+                from ..eda import IEDATimingOpt
+                ieda_flow = IEDATimingOpt(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+                
+            case DbFlow.FlowStep.legalization:
+                from ..eda import IEDAPlacement
+                ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+                
+            case DbFlow.FlowStep.route:
+                from ..eda import IEDARouting
+                ieda_flow = IEDARouting(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+            
+            case DbFlow.FlowStep.filler:
+                from ..eda import IEDAPlacement
+                ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                            flow=flow)
+                ieda_flow.generate_feature_summary(json_path=output_path)
+    
+    def generate_vectors(self, 
+                input_def:str=None, 
+                input_verilog:str=None,
+                vectors_dir:str=None):   
+        """ run data vectorization flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.vectorization,
+                      input_def=input_def,
+                      input_verilog=input_verilog)
+        
+        if input_def is None:
+            # use output def of step route as input def
+            flow.input_def = self.workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route))
+        
+        from ..eda import IEDAVectorization
+        ieda_flow = IEDAVectorization(workspace=self.workspace,
+                                      flow=flow,
+                                      vectors_dir=vectors_dir)
+        ieda_flow.generate_vectors()
+

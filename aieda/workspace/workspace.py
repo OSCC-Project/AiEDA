@@ -557,9 +557,9 @@ class Workspace:
                 'route_summary'        : "{}/{}_route_summary.json".format(self.ieda_output['feature'], self.design),
                 'route_tool'           : "{}/{}_route_tool.json".format(self.ieda_output['feature'], self.design),      
                 'route_drc'            : "{}/{}_route_drc.json".format(self.ieda_output['feature'], self.design),
-                # eva metrics for the main pr stage   
-                'place_eval' : "{}/{}_place_eval.json".format(self.ieda_output['feature'], self.design),    
-                'CTS_eval' : "{}/{}_CTS_eval.json".format(self.ieda_output['feature'], self.design),
+
+                'place_map' : "{}/{}_place_map.json".format(self.ieda_output['feature'], self.design),    
+                'CTS_map' : "{}/{}_CTS_map.json".format(self.ieda_output['feature'], self.design),
             }
             
             return feature_json
