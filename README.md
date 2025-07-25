@@ -2,7 +2,7 @@
 <img src="AiEDA.png" width="35%" alt="AiEDA" />
  <h1>AiEDA</h1>
 
-<h3> An Python Library for RTL-to-Vector-to-GDS.</h3>
+<h3> A Python Library for RTL-to-Vector-to-GDS.</h3>
 
 <p align="center">
     <a title="GitHub Watchers" target="_blank" href="https://github.com/OSCC-Project/AiEDA/watchers">
