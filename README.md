@@ -1,5 +1,5 @@
 <div align="center">
-<img src="AiEDA.png" width="35%" alt="AiEDA" />
+<img src="AiEDA.png" width="31%" alt="AiEDA" />
  <h1>AiEDA</h1>
 
 <h3> A Python Library for RTL-to-Vector-to-GDS.</h3>
