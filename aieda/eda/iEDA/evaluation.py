@@ -122,3 +122,6 @@ class IEDAEvaluation(IEDAIO):
                         step : str, 
                         value : str):
         self.ieda.plot_flow_value(plot_path, file_name, step, value)
+        
+    def get_timing_wire_graph(self, wire_graph_yaml_path: str):
+        return self.ieda.get_timing_wire_graph(wire_graph_yaml_path)

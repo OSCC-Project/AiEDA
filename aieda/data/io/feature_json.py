@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : json.py
+@File : feature_json.py
 @Author : yell
 @Desc : json parser for feature
 '''

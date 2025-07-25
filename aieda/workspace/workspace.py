@@ -566,15 +566,19 @@ class Workspace:
 
     
         @property
-        def ieda_vectorization(self):
-            vectorization_dir = {
-                'nets' : "{}/nets".format(self.ieda_output['vectorization']),    
-                'patchs' : "{}/patchs".format(self.ieda_output['vectorization']),
-                'wire_graph' : "{}/wire_graph".format(self.ieda_output['vectorization']),
-                'wire_paths' : "{}/wire_paths".format(self.ieda_output['vectorization']),
+        def ieda_vectors(self):
+            vectors_paths = {
+                'nets' : "{}/nets".format(self.ieda_output['vectors']),    
+                'patchs' : "{}/patchs".format(self.ieda_output['vectors']),
+                'wire_graph' : "{}/wire_graph".format(self.ieda_output['vectors']),
+                'wire_paths' : "{}/wire_paths".format(self.ieda_output['vectors']),
+                'patterns' : "{}/patterns".format(self.ieda_output['vectors']),
+                'timing_wire_graph' : "{}/wire_graph/timing_wire_graph.yaml".format(self.ieda_output['vectors']),
+                'wire_patterns' : "{}/patterns/wire_patterns.csv".format(self.ieda_output['vectors'])
             }
             
-            return vectorization_dir
+            return vectors_paths
+        
         
         @property
         def scripts(self):

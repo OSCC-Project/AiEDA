@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : test_ieda_vectorization.py
+@File : test_ieda_vectors.py
 @Author : yell
 @Desc : test data vectorization for iEDA
 '''
@@ -14,8 +14,8 @@ import_aieda()
 from aieda import (
     workspace_create,
     DbFlow,
-    RunIEDA,
-    DataGeneration
+    DataGeneration,
+    DataVectors
 )
 
 
@@ -85,6 +85,24 @@ lib_paths = [
     "/data/project_share/process_node/T28_lib/mem/ts5n28hpcplvta256x64m2fw_130a_ssg0p9v125c.lib"
 ]
 
+def test_vectors_generation(workspace):
+    # step 1 : init by workspace
+    data_gen = DataGeneration(workspace)
+    
+    # step 2 : generate vectors
+    data_gen.generate_vectors(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
+                               vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors")
+    
+def test_vector_load(workspace):
+    data_load = DataVectors(workspace)
+    
+    nets = data_load.load_nets(nets_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/nets")
+    patchs = data_load.load_patchs(patchs_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/patchs")
+    
+    timing_graph = data_load.load_timing_graph("/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/wire_graph/timing_wire_graph.yaml")
+    
+    print(1)
+    
 if __name__ == "__main__":  
     # step 1 : create workspace
     workspace_dir = "/data/project_share/dataset_baseline/eth_top/workspace"
@@ -92,12 +110,8 @@ if __name__ == "__main__":
     
     # workspace.set_libs(lib_paths)
     
-    # step 2 : init by workspace
-    data_gen = DataGeneration(workspace)
-    
-    # step 3 : generate vectors
-    data_gen.generate_vectors(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
-                               vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors")
+    test_vectors_generation(workspace)
+    test_vector_load(workspace)
 
     exit(0)
 

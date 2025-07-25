@@ -81,3 +81,28 @@ from .eda import (
 from .parameters import (
     EDAParameters
 )
+
+from .vectors import (
+    VectorNode,
+    VectorPath,
+    VectorWireFeature,
+    VectorWire,
+    VectorPin,
+    VectorNetFeature,
+    VectorNetRoutingPoint,
+    VectorNetRoutingVertex,
+    VectorNetRoutingEdge,
+    VectorNetRoutingGraph,
+    VectorNet,
+    VectorPatchLayer,
+    VectorPatch,
+    VectorWirePatternPoint,
+    VectorWirePatternDirection,
+    VectorWirePatternUnit,
+    VectorWirePatternSeq,
+    VectorNetSeq,
+    VectorTimingWireGraphNode,
+    VectorTimingWireGraphEdge,
+    VectorTimingWireGraph,
+    VectorTimingWirePathGraph
+)

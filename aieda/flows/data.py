@@ -118,9 +118,24 @@ class DataGeneration(RunFlowBase):
             # use output def of step route as input def
             flow.input_def = self.workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route))
         
+        # create nets, patchs, wire_graph, wire_paths by iEDA
         from ..eda import IEDAVectorization
         ieda_flow = IEDAVectorization(workspace=self.workspace,
                                       flow=flow,
                                       vectors_dir=vectors_dir)
         ieda_flow.generate_vectors()
+        
+        # create patterns
+        from ..data import DataVectors
+        data_vectors = DataVectors(workspace=self.workspace)
+        if vectors_dir is None:
+            nets_dir = self.workspace.paths_table.ieda_vectors['nets']
+            patterns_csv = self.workspace.paths_table.ieda_vectors['wire_patterns']
+        else:
+            nets_dir = "{}/nets".format(vectors_dir)
+            patterns_csv = "{}/patterns/wire_patterns.csv".format(vectors_dir)
+            
+        vector_nets = data_vectors.load_nets(nets_dir=nets_dir)
+        data_vectors.generate_nets_patterns(vector_nets=vector_nets,
+                                            patterns_csv=patterns_csv)
 
