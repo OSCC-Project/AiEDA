@@ -20,14 +20,19 @@ import multiprocessing
 from functools import partial
 
 from .base import BaseAnalyzer
+from ..workspace import Workspace
 
-
+from aieda import (
+    DbFlow,
+    DataFeature
+)
 class CellTypeAnalyzer(BaseAnalyzer):
     """Analyzer for cell type distribution across designs."""
     
     def __init__(self):
         super().__init__()
         self.inst_count = {}
+        self.base_dirs = []
     
     def load(self, 
             base_dirs: List[Union[str, Path]], 
@@ -78,6 +83,38 @@ class CellTypeAnalyzer(BaseAnalyzer):
                     
             except Exception as e:
                 self.missing_files.append(f"{display_name} (Error: {str(e)})")
+                
+    def load_workspace(self, 
+            base_dirs: List[Workspace], 
+            dir_to_display_name: Optional[Dict[str, str]] = None,
+            flow : Optional[DbFlow] = None,
+            verbose: bool = True):
+        """
+        Load data from multiple directories.
+        
+        Args:
+            base_dirs: List of base directories to process
+            dir_to_display_name: Optional mapping from directory name to display name
+            pattern: File pattern to search for
+            verbose: Whether to print progress information
+        """        
+        self.base_dirs = base_dirs
+        for workspace in base_dirs:
+            design_name = workspace.design
+            display_name = dir_to_display_name.get(design_name, design_name) 
+            
+            feature = DataFeature(workspace=workspace)
+            feature_db = feature.load_feature_summary(flow)
+            
+            counts = {}
+            counts["clock"] = feature_db.instances.clock.num 
+            counts["logic"] = feature_db.instances.logic.num
+            counts["macros"] = feature_db.instances.macros.num
+            counts["iopads"] = feature_db.instances.iopads.num
+            
+            counts["total"] = sum(counts.values())
+            self.inst_count[display_name] = counts
+                    
             
     def analyze(self):
         """Analyze cell type distribution across designs."""
@@ -113,7 +150,11 @@ class CellTypeAnalyzer(BaseAnalyzer):
         """Create visualizations for cell type distribution."""
         if not self.inst_count:
             print("No instance data found")
-            return       
+            return     
+        
+        if self.base_dirs.__len__() == 1:
+            save_path = self.base_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
         
         df = pd.DataFrame.from_dict(self.inst_count, orient='index')
         if "total" not in df.columns:
@@ -147,7 +188,7 @@ class CellTypeAnalyzer(BaseAnalyzer):
         plt.ylabel('Design', fontsize=12)
         plt.tight_layout()
         
-        plt.savefig(save_path + 'instance_count_top20.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_path + '/instance_count_top20.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # 2. create heatmap for bottom 20 designs
@@ -176,7 +217,7 @@ class CellTypeAnalyzer(BaseAnalyzer):
         plt.ylabel('Design', fontsize=12)
         plt.tight_layout()
         
-        plt.savefig(save_path + 'instance_count_bottom20.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_path + '/instance_count_bottom20.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         print("Saved instance count heatmaps:")
@@ -196,7 +237,8 @@ class CoreUsageAnalyzer(BaseAnalyzer):
     def __init__(self):
         super().__init__()
         self.core_usage = {}
-    
+        self.base_dirs = []
+
     def load(self, 
             base_dirs: List[Union[str, Path]], 
             dir_to_display_name: Optional[Dict[str, str]] = None,
@@ -235,9 +277,31 @@ class CoreUsageAnalyzer(BaseAnalyzer):
                 self.core_usage[design_name] = core_usage
             else:
                 self.missing_files.append(f"{design_name} (No core_usage field)")
-                    
 
+    def load_workspace(self, 
+            base_dirs: List[Workspace], 
+            dir_to_display_name: Optional[Dict[str, str]] = None,
+            flow : Optional[DbFlow] = None,
+            verbose: bool = True):
+        """
+        Load data from multiple directories.
+        
+        Args:
+            base_dirs: List of base directories to process
+            dir_to_display_name: Optional mapping from directory name to display name
+            pattern: File pattern to search for
+            verbose: Whether to print progress information
+        """        
+        self.base_dirs = base_dirs
+        for workspace in base_dirs:
+            design_name = workspace.design
             
+            feature = DataFeature(workspace=workspace)
+            feature_db = feature.load_feature_summary(flow)
+            
+            self.core_usage[design_name] = feature_db.layout.core_usage
+                    
+   
     def analyze(self):
         """Analyze core usage distribution across designs."""
         
@@ -278,7 +342,11 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         """Create visualizations for cell usage distribution."""
         if not self.core_usage:
             print("No core usage data found")
-            return       
+            return      
+         
+        if self.base_dirs.__len__() == 1:
+            save_path = self.base_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
             
         usages = list(self.core_usage.values())
         
@@ -292,7 +360,7 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         plt.gca().xaxis.set_major_locator(MultipleLocator(0.1))  
         
         plt.tight_layout()
-        plt.savefig(save_path + 'core_usage_hist.png', bbox_inches='tight') 
+        plt.savefig(save_path + '/core_usage_hist.png', bbox_inches='tight') 
         plt.close()
         
         print("Charts saved as separate files:")
@@ -305,6 +373,7 @@ class PinDistributionAnalyzer(BaseAnalyzer):
     def __init__(self):
         super().__init__()
         self.pin_dist = {}
+        self.base_dirs = []
     
     def load(self, 
             base_dirs: List[Union[str, Path]], 
@@ -367,8 +436,55 @@ class PinDistributionAnalyzer(BaseAnalyzer):
                 self.pin_dist[design_name] = pin_data
             else:
                 self.missing_files.append(f"{design_name} (No pin_distribution field)")
-                    
+
+    def load_workspace(self, 
+            base_dirs: List[Workspace], 
+            dir_to_display_name: Optional[Dict[str, str]] = None,
+            flow : Optional[DbFlow] = None,
+            verbose: bool = True):
+        """
+        Load data from multiple directories.
+        
+        Args:
+            base_dirs: List of base directories to process
+            dir_to_display_name: Optional mapping from directory name to display name
+            pattern: File pattern to search for
+            verbose: Whether to print progress information
+        """        
+        self.base_dirs = base_dirs
+        for workspace in base_dirs:
+            design_name = workspace.design
             
+            feature = DataFeature(workspace=workspace)
+            feature_db = feature.load_feature_summary(flow)
+            
+            pin_data = []
+            for iterm in feature_db.pins.pin_distribution:
+                if hasattr(iterm, 'pin_num') and hasattr(iterm, 'net_num') and hasattr(iterm, 'net_ratio'):
+                    pin_num = self._parse_pin_num(iterm.pin_num)  
+                    
+                    try:
+                        net_num = int(iterm.net_num) if isinstance(iterm.net_num, (int, float, str)) else 0
+                    except ValueError:
+                        print(f"Warning: Could not parse net_num '{iterm.net_num}', using 0 as default")
+                        net_num = 0
+                        
+                    try:
+                        net_ratio = float(iterm.net_ratio) if isinstance(iterm.net_ratio, (int, float, str)) else 0.0
+                    except ValueError:
+                        print(f"Warning: Could not parse net_ratio '{iterm.net_ratio}', using 0.0 as default")
+                        net_ratio = 0.0
+                    
+                    pin_data.append({
+                        "pin_num": pin_num,
+                        "net_num": net_num,
+                        "net_ratio": net_ratio,
+                        "original_pin_num": iterm.pin_num  
+                    })
+            pin_data.sort(key=lambda x: x["pin_num"])
+            self.pin_dist[design_name] = pin_data
+            
+
     def analyze(self):
         """Analyze pin number distribution across designs."""
         
@@ -402,8 +518,12 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         """Create visualizations for pin distribution."""
         if not self.pin_dist:
             print("No pin_dist data found")
-            return       
-        
+            return      
+         
+        if self.base_dirs.__len__() == 1:
+            save_path = self.base_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
+            
         all_data = []
         for design_name, pin_data in self.pin_dist.items():
             for item in pin_data:
@@ -443,7 +563,7 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         plt.tick_params(axis='both', which='major', direction='out', length=4, width=1)
         
         plt.tight_layout()
-        plt.savefig(save_path + 'pin_vs_net_ratio.png', bbox_inches='tight')
+        plt.savefig(save_path + '/pin_vs_net_ratio.png', bbox_inches='tight')
         print("Saved pin_vs_net_ratio.png")
         plt.close()  
         
