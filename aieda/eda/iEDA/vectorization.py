@@ -17,7 +17,9 @@ class IEDAVectorization(IEDAIO):
         self.vectors_dir = vectors_dir
         super().__init__(workspace=workspace, flow=flow)
         
-    def build_config(self):
+    def __configs__(self):
+        super().__configs__()
+        
         if self.vectors_dir is None:
             self.vectors_dir = self.workspace.paths_table.ieda_output['vectors']
     

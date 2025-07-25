@@ -14,7 +14,9 @@ class IEDARouting(IEDAIO):
     def __init__(self, workspace : Workspace, flow : DbFlow):
         super().__init__(workspace=workspace, flow=flow)
 
-    def build_config(self):
+    def __configs__(self):
+        super().__configs__()
+        
         self.ieda_config = self.workspace.paths_table.ieda_config['route']
         self.rt_sta_dir = self.workspace.paths_table.ieda_output['rt_sta']
          
