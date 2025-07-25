@@ -232,19 +232,19 @@ class FeatureParserJson(JsonParser):
 
         return feature_tools
 
-    def get_eval(self):
+    def get_metrics(self):
         ''' get design data '''
         if self.read() is False:
             return None
 
-        feature_eval = FeatureEval()
-        feature_eval.wirelength = self.get_eval_wirelength()
-        feature_eval.density = self.get_eval_density()
-        feature_eval.congestion = self.get_eval_congestion()
-        feature_eval.timing = self.get_eval_timing() # include power
+        metrics = FeatureMetric()
+        metrics.wirelength = self.get_wirelength()
+        metrics.density = self.get_density()
+        metrics.congestion = self.get_congestion()
+        metrics.timing = self.get_timing() # include power
         
 
-        return feature_eval
+        return metrics
 
     def get_tools_netopt(self):
         if 'fixFanout' in self.json_data:
@@ -769,7 +769,7 @@ class FeatureParserJson(JsonParser):
 
         return to_summary
     
-    def get_eval_wirelength(self):
+    def get_wirelength(self):
         if 'Wirelength' in self.json_data:
             dict_wirelength = self.json_data['Wirelength']
             
@@ -785,7 +785,7 @@ class FeatureParserJson(JsonParser):
         
         return None
     
-    def get_eval_density(self):
+    def get_density(self):
         if 'Density' in self.json_data:
             dict_density = self.json_data['Density']
             
@@ -828,7 +828,7 @@ class FeatureParserJson(JsonParser):
         return None
 
 
-    def get_eval_congestion(self):
+    def get_congestion(self):
         if 'Congestion' in self.json_data:
             dict_congestion = self.json_data['Congestion']
             
@@ -941,7 +941,7 @@ class FeatureParserJson(JsonParser):
         
         return None
 
-    def get_eval_timing(self): # include power
+    def get_timing(self): # include power
         if 'Timing' in self.json_data:
             dict_timing = self.json_data['Timing']
             

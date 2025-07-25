@@ -61,7 +61,7 @@ class NetType(Enum):
     power = "power"
     ground = "ground"
     
-class EvalCongestionType(Enum):
+class CongestionType(Enum):
     """congestion type in evaluation
     """
     none = 0
@@ -75,7 +75,7 @@ class EvalCongestionType(Enum):
     macro_margin = 8
     macro_channel = 9
     
-class EvalRudyType(Enum):
+class RudyType(Enum):
     """RUDY type in evaluation
     """
     none = 0
@@ -83,7 +83,7 @@ class EvalRudyType(Enum):
     pin_rudy = 2
     lut_rudy = 3
     
-class EvalInstanceStatus(Enum):
+class InstanceStatus(Enum):
     """congestion type in evaluation
     """
     none = 0
@@ -92,7 +92,7 @@ class EvalInstanceStatus(Enum):
     placed = 3
     unplaced = 4
 
-class EvalWirelengthType(Enum):
+class WirelengthType(Enum):
     """wirelength type in evaluation
     """
     none = 0
@@ -101,7 +101,7 @@ class EvalWirelengthType(Enum):
     b2b = 3
     egr = 4
 
-class EvalDirection(Enum):
+class Direction(Enum):
     """direction type in evaluation
     """
     none = 0

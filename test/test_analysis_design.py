@@ -5,7 +5,7 @@
 @Author : yhqiu
 @Desc : test design_level data ananlysis
 '''
-
+import os
 ######################################################################################
 # import aieda
 from import_aieda import import_aieda
@@ -13,58 +13,62 @@ import_aieda()
 ######################################################################################
 
 from aieda.analysis import CellTypeAnalyzer,CoreUsageAnalyzer,PinDistributionAnalyzer,ResultStatisAnalyzer
-    
+from aieda import (
+    workspace_create,
+    DbFlow
+)
+
 BASE_DIRS = [
     "/data2/project_share/dataset_baseline/s713",
-    "/data2/project_share/dataset_baseline/s44",
-    "/data2/project_share/dataset_baseline/apb4_rng",
-    "/data2/project_share/dataset_baseline/gcd",
-    "/data2/project_share/dataset_baseline/s1238",
-    "/data2/project_share/dataset_baseline/s1488",
-    "/data2/project_share/dataset_baseline/apb4_archinfo",
-    "/data2/project_share/dataset_baseline/apb4_ps2",
-    "/data2/project_share/dataset_baseline/s9234",
-    "/data2/project_share/dataset_baseline/apb4_timer",
-    "/data2/project_share/dataset_baseline/s13207",
-    "/data2/project_share/dataset_baseline/apb4_i2c",
-    "/data2/project_share/dataset_baseline/s5378",
-    "/data2/project_share/dataset_baseline/apb4_pwm",
-    "/data2/project_share/dataset_baseline/apb4_wdg",
-    "/data2/project_share/dataset_baseline/apb4_clint",
-    "/data2/project_share/dataset_baseline/ASIC",
-    "/data2/project_share/dataset_baseline/s15850",
-    "/data2/project_share/dataset_baseline/apb4_uart",
-    "/data2/project_share/dataset_baseline/s38417",
-    "/data2/project_share/dataset_baseline/s35932",
-    "/data2/project_share/dataset_baseline/s38584",
-    "/data2/project_share/dataset_baseline/BM64",
-    "/data2/project_share/dataset_baseline/picorv32",
-    "/data2/project_share/dataset_baseline/PPU",
-    "/data2/project_share/dataset_baseline/blabla",
-    "/data2/project_share/dataset_baseline/aes_core",
-    "/data2/project_share/dataset_baseline/aes",
-    "/data2/project_share/dataset_baseline/salsa20",
-    "/data2/project_share/dataset_baseline/jpeg_encoder",
-    "/data2/project_share/dataset_baseline/eth_top",
-    "/data2/project_share/dataset_baseline/yadan_riscv_sopc",
-    "/data2/project_share/dataset_baseline/beihai",
-    "/data2/project_share/dataset_baseline/shanghai_MS",
-    "/data2/project_share/dataset_baseline/nvdla",
-    "/data2/project_share/dataset_baseline/ZJU_asic_top",
-    "/data2/project_share/dataset_baseline/iEDA_2023",
-    "/data2/project_share/dataset_baseline/ysyx4_SoC2",
-    "/data2/project_share/dataset_baseline/BEIHAI_2.0",
-    "/data2/project_share/dataset_baseline/AIMP",
-    "/data2/project_share/dataset_baseline/AIMP_2.0",
-    "/data2/project_share/dataset_baseline/ysyx6",
-    "/data2/project_share/dataset_baseline/WUKONG",
-    "/data2/project_share/dataset_baseline/ysyx4_SoC1",
-    "/data2/project_share/dataset_baseline/ysyx4_2",
-    "/data2/project_share/dataset_baseline/T1",
-    "/data2/project_share/dataset_baseline/T1_machamp",
-    "/data2/project_share/dataset_baseline/nanhu-G",
-    "/data2/project_share/dataset_baseline/openC910",
-    "/data2/project_share/dataset_baseline/T1_sandslash"
+    # "/data2/project_share/dataset_baseline/s44",
+    # "/data2/project_share/dataset_baseline/apb4_rng",
+    # "/data2/project_share/dataset_baseline/gcd",
+    # "/data2/project_share/dataset_baseline/s1238",
+    # "/data2/project_share/dataset_baseline/s1488",
+    # "/data2/project_share/dataset_baseline/apb4_archinfo",
+    # "/data2/project_share/dataset_baseline/apb4_ps2",
+    # "/data2/project_share/dataset_baseline/s9234",
+    # "/data2/project_share/dataset_baseline/apb4_timer",
+    # "/data2/project_share/dataset_baseline/s13207",
+    # "/data2/project_share/dataset_baseline/apb4_i2c",
+    # "/data2/project_share/dataset_baseline/s5378",
+    # "/data2/project_share/dataset_baseline/apb4_pwm",
+    # "/data2/project_share/dataset_baseline/apb4_wdg",
+    # "/data2/project_share/dataset_baseline/apb4_clint",
+    # "/data2/project_share/dataset_baseline/ASIC",
+    # "/data2/project_share/dataset_baseline/s15850",
+    # "/data2/project_share/dataset_baseline/apb4_uart",
+    # "/data2/project_share/dataset_baseline/s38417",
+    # "/data2/project_share/dataset_baseline/s35932",
+    # "/data2/project_share/dataset_baseline/s38584",
+    # "/data2/project_share/dataset_baseline/BM64",
+    # "/data2/project_share/dataset_baseline/picorv32",
+    # "/data2/project_share/dataset_baseline/PPU",
+    # "/data2/project_share/dataset_baseline/blabla",
+    # "/data2/project_share/dataset_baseline/aes_core",
+    # "/data2/project_share/dataset_baseline/aes",
+    # "/data2/project_share/dataset_baseline/salsa20",
+    # "/data2/project_share/dataset_baseline/jpeg_encoder",
+    # "/data2/project_share/dataset_baseline/eth_top",
+    # "/data2/project_share/dataset_baseline/yadan_riscv_sopc",
+    # "/data2/project_share/dataset_baseline/beihai",
+    # "/data2/project_share/dataset_baseline/shanghai_MS",
+    # "/data2/project_share/dataset_baseline/nvdla",
+    # "/data2/project_share/dataset_baseline/ZJU_asic_top",
+    # "/data2/project_share/dataset_baseline/iEDA_2023",
+    # "/data2/project_share/dataset_baseline/ysyx4_SoC2",
+    # "/data2/project_share/dataset_baseline/BEIHAI_2.0",
+    # "/data2/project_share/dataset_baseline/AIMP",
+    # "/data2/project_share/dataset_baseline/AIMP_2.0",
+    # "/data2/project_share/dataset_baseline/ysyx6",
+    # "/data2/project_share/dataset_baseline/WUKONG",
+    # "/data2/project_share/dataset_baseline/ysyx4_SoC1",
+    # "/data2/project_share/dataset_baseline/ysyx4_2",
+    # "/data2/project_share/dataset_baseline/T1",
+    # "/data2/project_share/dataset_baseline/T1_machamp",
+    # "/data2/project_share/dataset_baseline/nanhu-G",
+    # "/data2/project_share/dataset_baseline/openC910",
+    # "/data2/project_share/dataset_baseline/T1_sandslash"
 ]
 
 DISPLAY_NAME = {
@@ -179,6 +183,45 @@ def main():
     )
     result_analyzer.analyze()
     result_analyzer.visualize(save_path="./")
+    
+    
+    workspace_list = []
+    for base_dir in BASE_DIRS:
+        workspace = workspace_create(directory=base_dir+"/workspace", design = os.path.basename(base_dir))
+        workspace_list.append(workspace)
+        
+    # 5. test cell type analysis from workspace and flow
+    cell_analyzer = CellTypeAnalyzer()
+    cell_analyzer.load_workspace(
+        base_dirs=workspace_list,
+        dir_to_display_name=DISPLAY_NAME,
+        flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
+        verbose=True
+    )
+    cell_analyzer.analyze()
+    cell_analyzer.visualize(save_path="./")
+    
+    # 6. test core usage analysis form workspace and flow
+    core_analyzer = CoreUsageAnalyzer()
+    core_analyzer.load_workspace(
+        base_dirs=workspace_list,
+        flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
+        verbose=True
+    )
+    core_analyzer.analyze()
+    core_analyzer.visualize(save_path="./")
+    
+    
+    # 7. test pin distribution analysis from workspace and flow
+    pin_analyzer = PinDistributionAnalyzer()
+    pin_analyzer.load_workspace(
+        base_dirs=workspace_list,
+        flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
+        verbose=True
+    )
+    pin_analyzer.analyze()
+    pin_analyzer.visualize(save_path="./")
+    
 
 if __name__ == "__main__":  
     main()

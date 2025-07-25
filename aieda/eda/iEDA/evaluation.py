@@ -11,11 +11,11 @@ from ...workspace import Workspace
 from ...flows import DbFlow
 
 from ...data import (
-    EvalInstanceStatus, 
-    EvalCongestionType, 
-    EvalWirelengthType, 
-    EvalRudyType, 
-    EvalDirection
+    InstanceStatus, 
+    CongestionType, 
+    WirelengthType, 
+    RudyType, 
+    Direction
 )
 
 class IEDAEvaluation(IEDAIO): 
@@ -108,7 +108,7 @@ class IEDAEvaluation(IEDAIO):
     def plot_bin_value(self, 
                        plot_path : str, 
                        file_name : str, 
-                       value_type : EvalCongestionType):
+                       value_type : CongestionType):
         self.ieda.plot_bin_value(plot_path, file_name, value_type.value)
 
     def plot_tile_value(self, 

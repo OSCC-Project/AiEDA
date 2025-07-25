@@ -46,4 +46,4 @@ class DataFeature:
             feature_path = self.workspace.paths_table.ieda_feature_json[eval_key]
             
             parser = FeatureParserJson(feature_path)
-            return parser.get_eval()    
+            return parser.get_metrics()    

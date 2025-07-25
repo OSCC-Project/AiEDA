@@ -432,12 +432,15 @@ class Workspace:
             self.directory = directory
             self.design = design
             self.workspace_top = [
-                "{}/analysis".format(self.directory),
+                "{}/analyse".format(self.directory),
                 "{}/config".format(self.directory),
                 "{}/feature".format(self.directory),
                 "{}/output".format(self.directory),
                 "{}/script".format(self.directory)
             ]
+        @property
+        def analysis_path(self):
+            return self.workspace_top[0]
             
         @property
         def flow(self):
