@@ -14,7 +14,9 @@ class IEDADrc(IEDAIO):
     def __init__(self, workspace : Workspace, flow : DbFlow):
         super().__init__(workspace=workspace, flow=flow)
         
-    def build_config(self):
+    def __configs__(self):
+        super().__configs__()
+        
         self.ieda_config = self.workspace.paths_table.ieda_config['drc']
         self.report_path = self.workspace.paths_table.ieda_report['drc']
         self.feature_path = self.workspace.paths_table.ieda_feature_json['route_drc']

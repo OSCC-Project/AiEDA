@@ -14,7 +14,9 @@ class IEDANetOpt(IEDAIO):
     def __init__(self, workspace : Workspace, flow : DbFlow):
         super().__init__(workspace=workspace, flow=flow)
         
-    def build_config(self):
+    def __configs__(self):
+        super().__configs__()
+        
         self.ieda_config = self.workspace.paths_table.ieda_config['fixFanout']
     
     def __run_flow__(self):

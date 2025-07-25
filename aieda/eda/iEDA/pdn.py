@@ -14,8 +14,8 @@ class IEDAPdn(IEDAIO):
     def __init__(self, workspace : Workspace, flow : DbFlow):
         super().__init__(workspace=workspace, flow=flow)
         
-    def build_config(self):
-        pass
+    def __configs__(self):
+        super().__configs__()
     
     def run_pdn(self):
         pass
