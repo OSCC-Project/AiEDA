@@ -562,7 +562,7 @@ class FeatureTimingIEDA(object):
     DR: MethodTimingIEDA = None
 
 @dataclass
-class FeatureEval(object):
+class FeatureMetric(object):
     wirelength: FeatureWirelength = None
     density: FeatureDensity = None
     congestion: FeatureCongestion = None

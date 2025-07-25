@@ -5,12 +5,11 @@ from .enum import (
     OrientType,
     PlaceStatus,
     NetType,
-    EvalCongestionType,
-    EvalRudyType,
-    EvalInstanceStatus,
-    EvalWirelengthType,
-    EvalWirelengthType,
-    EvalDirection,
+    CongestionType,
+    RudyType,
+    InstanceStatus,
+    WirelengthType,
+    Direction,
     FeatureOption,
     DSEMethod
 )
@@ -75,7 +74,7 @@ from .eda import (
     MethodTimingIEDA,
     FeatureTimingEnumIEDA,
     FeatureTimingIEDA,
-    FeatureEval
+    FeatureMetric
 )
 
 from .parameters import (
