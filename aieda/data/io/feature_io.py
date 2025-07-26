@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : feature_json.py
+@File : feature_io.py
 @Author : yell
-@Desc : json parser for feature
+@Desc : parser for feature
 '''
 
 from ...utility.json_parser import JsonParser

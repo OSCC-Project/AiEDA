@@ -91,12 +91,55 @@ class DataVectors:
         return patchs
         
     def load_timing_graph(self, graph_path : str = None):
-        from .io import VectorTimingWireGraphParser
+        from .io import VectorsParserYaml
+        
         if graph_path is None:
             graph_path = self.workspace.paths_table.ieda_vectors['timing_wire_graph']
-        parser = VectorTimingWireGraphParser(yaml_path=graph_path,
+        parser = VectorsParserYaml(yaml_path=graph_path,
                                              logger=self.workspace.logger)
         return parser.get_wire_graph()
+    
+    def load_timing_wire_paths(self, timing_paths_dir:str=None, file_path:str=None): 
+        from .io import VectorsParserYaml
+         
+        wire_paths = []   
+        
+        def read_from_dir():
+            # get data from directory
+            for root, dirs, files in os.walk(timing_paths_dir):
+                for _, file in tqdm.tqdm(enumerate(files), total=len(files), desc="timing wire paths"):
+                    if file.endswith(".yml"):                    
+                        filepath = os.path.join(root, file)
+                        
+                        parser = VectorsParserYaml(yaml_path=filepath,
+                                                   logger=self.workspace.logger)
+                        yaml_path_hash, yaml_data = parser.get_timing_wire_paths()
+                        
+                        wire_paths.append((yaml_path_hash, yaml_data))
+                
+        if timing_paths_dir is not None and os.path.isdir(timing_paths_dir):
+            self.workspace.logger.info("read paths from %s", timing_paths_dir)
+            # get timing paths from timing_paths_dir
+            read_from_dir()
+        
+        if file_path is not None and os.path.isfile(file_path):
+            self.workspace.logger.info("read paths from %s", file_path)
+            # get timing paths from file
+            parser = VectorsParserYaml(yaml_path=file_path,
+                                       logger=self.workspace.logger)
+            yaml_path_hash, yaml_data = parser.get_timing_wire_paths()
+            
+            wire_paths.append((yaml_path_hash, yaml_data))
+            
+        if timing_paths_dir is None and file_path is None:
+            #read paths from output/vectors/wire_paths in workspace
+            timing_paths_dir = self.workspace.paths_table.ieda_vectors['wire_paths']
+            
+            self.workspace.logger.info("read timing paths from workspace %s", timing_paths_dir)
+            read_from_dir()
+        
+        return wire_paths
+    
     
     def generate_nets_patterns(self, vector_nets : List[VectorNet]=[],
                                epsilon: int = 1,

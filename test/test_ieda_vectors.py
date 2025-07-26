@@ -96,10 +96,18 @@ def test_vectors_generation(workspace):
 def test_vector_load(workspace):
     data_load = DataVectors(workspace)
     
-    nets = data_load.load_nets(nets_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/nets")
-    patchs = data_load.load_patchs(patchs_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/patchs")
-    
-    timing_graph = data_load.load_timing_graph("/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/wire_graph/timing_wire_graph.yaml")
+    nets = data_load.load_nets(
+        nets_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/nets"
+        )
+    patchs = data_load.load_patchs(
+        patchs_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/patchs"
+        )
+    timing_graph = data_load.load_timing_graph(
+        graph_path="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/wire_graph/timing_wire_graph.yaml"
+        )
+    timint_wire_paths = data_load.load_timing_wire_paths(
+        timing_paths_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/wire_paths"
+        )
     
     print(1)
     

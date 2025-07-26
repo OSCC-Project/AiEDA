@@ -31,7 +31,7 @@ class IEDAEvaluation(IEDAIO):
     def init_wirelength_eval(self):
         self.ieda.init_wirelength_eval()
     
-    def eval_total_wirelength(self, type : EvalWirelengthType):
+    def eval_total_wirelength(self, type : WirelengthType):
         return self.ieda.eval_total_wirelength(wirelength_type = type.value)
 
     def init_cong_eval(self, 
@@ -88,18 +88,18 @@ class IEDAEvaluation(IEDAIO):
         self.ieda.eval_macro_io_pin_connection(plot_path, level, forward)
 
     def eval_inst_density(self, 
-                          status : EvalInstanceStatus, 
+                          status : InstanceStatus, 
                           flip_flop : int):
         self.ieda.eval_inst_density(inst_status = status.value, eval_flip_flop = flip_flop)
 
     def eval_pin_density(self, 
-                         status : EvalInstanceStatus, 
+                         status : InstanceStatus, 
                          eval_level : int):
         self.ieda.eval_pin_density(inst_status = status.value, level = eval_level)
     
     def eval_rudy_cong(self, 
-                       type : EvalRudyType, 
-                       eval_direction : EvalDirection ):
+                       type : RudyType, 
+                       eval_direction : Direction ):
         self.ieda.eval_rudy_cong(rudy_type = type.value, direction = eval_direction.value)
     
     def eval_egr_cong(self):

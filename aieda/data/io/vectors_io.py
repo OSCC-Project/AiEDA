@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : vectors_json.py
+@File : vectors_io.py
 @Author : yell
-@Desc : json parser for vectors
+@Desc : parser for vectors
 '''
-
+import os
+from attr import dataclass
+from tqdm import tqdm
 from ...utility.json_parser import JsonParser
 from ...utility.log import Logger
 from ..database import *
@@ -284,237 +286,9 @@ class VectorsParserJson(JsonParser):
                 vec_patchs.append(vec_patch)
     
         return vec_patchs
-    
-from typing import List, Dict, Tuple, Any
-from collections import defaultdict
-from math import gcd
-from tqdm import tqdm
-import networkx as nx
-from dataclasses import asdict
-import pandas as pd
-import json
-import os
-class VectorWirePatternGen:
-    def __init__(self, epsilon: int = 1):
-        self._epsilon = epsilon
-        self._patterns: Dict[str, VectorWirePatternSeq] = {}
-        self._pattern_count: Dict[str, int] = defaultdict(int)
-
-    def generate(self, csv_path: str = None) -> pd.DataFrame:
-        df = pd.DataFrame(self._pattern_count.items(),
-                          columns=["Pattern", "Count"])
-        df.sort_values(by="Count", ascending=False,
-                       inplace=True, ignore_index=True)
-        if csv_path:
-            df.to_csv(csv_path, index=False)
-        return df
-
-    def add_wire(self, wire: VectorWire) -> VectorWirePatternSeq:
-        pattern = self.gen_pattern(wire)
-        self.add_pattern(pattern)
-        return pattern
-
-    def add_pattern(self, pattern: VectorWirePatternSeq):
-        if pattern.name in self._pattern_count:
-            self._pattern_count[pattern.name] += 1
-        else:
-            self._patterns[pattern.name] = pattern
-            self._pattern_count[pattern.name] = 1
-
-    def gen_pattern(self, wire: VectorWire) -> VectorWirePatternSeq:
-        point_list = self._get_point_list(wire)
-        pattern = self._calc_pattern(point_list)
-        return pattern
-
-    def _get_point_list(self, wire: VectorWire) -> List[VectorWirePatternPoint]:
-        paths = wire.paths
-        points = [
-            VectorWirePatternPoint(path.node1.x, path.node1.y, path.node1.layer)
-            for path in paths
-        ]
-        end = VectorWirePatternPoint(
-            paths[-1].node2.x, paths[-1].node2.y, paths[-1].node2.layer
-        )
-        points.append(end)
-        return points
-
-    def _calc_pattern(self, points: List[VectorWirePatternPoint]) -> VectorWirePatternSeq:
-        sorted_points = points[:]
-        if sorted_points[0].x > sorted_points[-1].x or (
-            sorted_points[0].x == sorted_points[-1].x
-            and sorted_points[0].y > sorted_points[-1].y
-        ):
-            sorted_points.reverse()
-
-        pattern = VectorWirePatternSeq()
-        for i in range(len(sorted_points) - 1):
-            start = sorted_points[i]
-            end = sorted_points[i + 1]
-            x_same = start.x == end.x
-            y_same = start.y == end.y
-            z_same = start.z == end.z
-            if x_same and y_same and z_same:
-                continue
-
-            if x_same and y_same:
-                direction = VectorWirePatternDirection.VIA
-                length = 1
-            elif x_same:
-                direction = (
-                    VectorWirePatternDirection.TOP
-                    if start.y < end.y
-                    else VectorWirePatternDirection.BOTTOM
-                )
-                length = abs(start.y - end.y)
-            else:
-                direction = (
-                    VectorWirePatternDirection.RIGHT
-                    if start.x < end.x
-                    else VectorWirePatternDirection.LEFT
-                )
-                length = abs(start.x - end.x)
-
-            pattern.units.append(VectorWirePatternUnit(direction, length))
-
-        if not pattern.units:
-            return pattern
-
-        max_common_factor = pattern.units[0].length
-        for unit in pattern.units:
-            max_common_factor = gcd(max_common_factor, unit.length)
-
-        for unit in pattern.units:
-            unit.length //= max_common_factor
-
-        pattern_name = ""
-        for unit in pattern.units:
-            direction = unit.direction.name[0]
-            normalized_length = unit.length // self._epsilon + 1
-            pattern_name += f"{direction}{normalized_length}"
-
-        pattern.name = pattern_name
-        return pattern
 
 
-class VectorNetSeqConverter:
-    def __init__(self, epsilon: int = 1):
-        self._gen = VectorWirePatternGen(epsilon=epsilon)
-        self._seqs = []
-
-    def build_seqs(self, vec_nets: List[VectorNet]) -> List[VectorNetSeq]:
-        for vec_net in vec_nets:
-            graph = self._convert(vec_net)
-            seqs = self._convert_to_seq(graph)
-            self._seqs.extend(seqs)
-        return self._seqs
-
-    def save_seqs(self, json_path: str):
-        with open(json_path, "w") as f:
-            json.dump(self._seqs, f, default=asdict)
-
-    def load_seqs(self, json_path: str) -> List[VectorNetSeq]:
-        with open(json_path, "r") as f:
-            self._seqs = json.load(f)
-        return self._seqs
-
-    def _convert(self, vec_net: VectorNet) -> nx.Graph:
-        # edge with pattern
-        graph = nx.Graph()
-        wires = vec_net.wires
-        for wire in wires:
-            wire: VectorWire
-            start = wire.wire.node1
-            end = wire.wire.node2
-
-            pattern = self._gen.add_wire(wire)
-            pattern_name = pattern.name
-            if start.id not in graph:
-                graph.add_node(start.id, pos=(start.x, start.y, start.layer))
-            if end.id not in graph:
-                graph.add_node(end.id, pos=(end.x, end.y, end.layer))
-            graph.add_edge(start.id, end.id, pattern=pattern_name)
-
-        return graph
-
-    def _convert_to_seq(self, net_graph: nx.Graph) -> List[VectorNetSeq]:
-        seqs = []
-        source = 0
-        for node in net_graph.nodes:
-            if net_graph.degree(node) == 1:
-                source = node
-                break
-        targets = []
-        for node in net_graph.nodes:
-            if net_graph.degree(node) == 1 and node != source:
-                targets.append(node)
-        for target in targets:
-            loc_seq = []
-            pattern_seq = []
-            path = nx.shortest_path(net_graph, source, target)
-            for vertex in path:
-                pos = net_graph.nodes[vertex]["pos"]
-                loc_seq.append(VectorWirePatternPoint(pos[0], pos[1], pos[2]))
-            for i in range(1, len(path)):
-                pattern = net_graph[path[i - 1]][path[i]]["pattern"]
-                pattern_seq.append(pattern)
-            seq = VectorNetSeq(loc_seq, pattern_seq)
-            seqs.append(seq)
-        return seqs
-
-
-class VectorTimingGraphSeqConverter:
-    def __init__(self, epsilon: int = 1):
-        self._gen = VectorWirePatternGen(epsilon=epsilon)
-        self._seqs = []
-
-    def convert(self, timing_wire_graph : VectorTimingWireGraph, vec_nets: List[VectorNet]) -> nx.Graph:
-        nodes = timing_wire_graph.nodes
-        edges = timing_wire_graph.edges
-        graph = nx.Graph()
-        # build nodes
-        for node in nodes:
-            graph.add_node(node.name, is_pin=node.is_pin, is_port=node.is_port)
-        # build edges
-        wire_map = self._build_wire_map(vec_nets)
-        for edge in edges:
-            from_node = nodes[edge.from_node]
-            to_node = nodes[edge.to_node]
-            key = (
-                (int)(from_node.name.split(":")[1]),
-                (int)(to_node.name.split(":")[1]),
-            )
-            pattern = "" if key not in wire_map else self._gen.add_wire(
-                wire_map[key])
-            graph.add_edge(
-                from_node.name,
-                to_node.name,
-                feature_R=edge.feature_R,
-                feature_C=edge.feature_C,
-                feature_from_slew=edge.feature_from_slew,
-                feature_to_slew=edge.feature_to_slew,
-                is_net_edge=edge.is_net_edge,
-                pattern=pattern,
-            )
-        return graph
-
-    def convert_to_seq(self, graph: nx.Graph) -> List[VectorNetSeq]:
-        seqs = []
-        pass
-
-    def _build_wire_map(self, vec_nets: List[VectorNet]) -> Dict[Tuple[int, int], VectorWire]:
-        wire_map = {}
-        for vec_net in vec_nets:
-            wires = vec_net.wires
-            for wire in wires:
-                wire: VectorWire
-                start = wire.wire.node1.id
-                end = wire.wire.node2.id
-                wire_map[(start, end)] = wire
-                wire_map[(end, start)] = wire
-        return wire_map
-
-
-class VectorTimingWireGraphParser:
+class VectorsParserYaml:
     """The parser for vector wire timing graph."""
     def __init__(self, yaml_path : str, logger: Logger = None):
         self.yaml_path = yaml_path
@@ -585,3 +359,128 @@ class VectorTimingWireGraphParser:
             return wire_timing_graph
 
         return None
+    
+    class TimingWirePathData:        
+        def __init__(self):
+            self.capacitance_list = []
+            self.slew_list = []
+            self.resistance_list = []
+            self.incr_list = []
+            
+            # record path nodes
+            self.nodes = []
+        
+        def get_combined_tensor(self):
+            """Combine all lists into a single 2D tensor with each list as a row."""
+            import torch
+            
+            combined_data = [
+                self.capacitance_list,
+                self.slew_list,
+                self.resistance_list
+            ]
+            tensor = torch.tensor(combined_data, dtype=torch.float32)
+            return tensor
+    
+        def get_incr_tensor(self):
+            """Get the tensor of Incr values and calculate the sum."""
+            import torch
+            
+            incr_tensor = torch.tensor(self.incr_list, dtype=torch.float32)
+            incr_sum = incr_tensor.sum().item()
+            return incr_tensor, incr_sum
+    
+        @staticmethod
+        def pad_tensors(tensor_list, max_length):
+            """Pad all tensors in the list to the max length."""
+            import torch
+            
+            padded_tensors = []
+            for tensor in tensor_list:
+                padded = torch.nn.functional.pad(tensor, (0, max_length - tensor.size(1)), "constant", 0)
+                padded_tensors.append(padded)
+            return padded_tensors
+        
+        def generate_hash(self):
+            """Generate a hash for the concatenated unique strings."""
+            import hashlib
+            
+            concatenated = "".join(self.nodes)
+            hash_object = hashlib.md5(concatenated.encode())
+            return hash_object.hexdigest() 
+            
+    def get_timing_wire_paths(self):
+        """return : 
+        yaml_path_hash : unique hash string
+        yaml_data : VectorTimingWirePathGraph
+        """
+        def get_path_data_package() -> self.TimingWirePathData:
+            import yaml
+            
+            if not os.path.exists(self.yaml_path):
+                return None
+            
+            path_data= self.TimingWirePathData()
+    
+            with open(self.yaml_path, "r") as file:
+                self.logger.info("load wire graph yaml %s", self.yaml_path)
+                
+                data = yaml.safe_load(file)
+                
+                """Parse nodes, net arcs, and instance arcs in order."""
+                remove_parentheses_content = lambda s: s[:s.find('(')].strip() if s.find('(')!= -1 else s
+                for key, value in data.items():
+                    if key.startswith("node_"):
+                        # Parse node
+                        path_data.capacitance_list.append(value.get("Capacitance", 0))
+                        path_data.slew_list.append(value.get("slew", 0))
+                        path_data.resistance_list.append(0)  # Default R value for nodes
+                        
+                        # record pin node
+                        node_name = value.get("Point", "")
+                        # remove instance cell name
+                        node_name = remove_parentheses_content(node_name)
+                        if not len(path_data.nodes) or node_name != path_data.nodes[-1]: 
+                            path_data.nodes.append(node_name)
+                            
+                    elif key.startswith("net_arc_"):
+                        path_data.incr_list.append(value.get("Incr", 0))
+                        for edge_key, edge_value in value.items():
+                            if edge_key.startswith("edge_"):
+                                path_data.capacitance_list.append(edge_value.get("wire_C", 0))
+                                path_data.slew_list.append(edge_value.get("to_slew", 0))
+                                path_data.resistance_list.append(edge_value.get("wire_R", 0))
+                                
+                                # record edge node
+                                path_data.nodes.append(edge_value.get("wire_to_node", ""))
+          
+                    elif key.startswith("inst_arc_"):
+                        path_data.incr_list.append(value.get("Incr", 0))
+                        
+            return path_data
+        
+        def construct_path_graph(nodes) -> VectorTimingWirePathGraph:
+            """construct a path graph from yaml data.
+            """
+            wire_path_nodes = []
+            wire_path_edges = []
+            for index, node_name in enumerate(nodes):
+                parts = node_name.split(":")
+                is_port = True if len(parts) == 1 else False
+                is_pin = True if len(parts) == 2 and not parts[1].isdigit() else False
+                wire_path_node = VectorTimingWireGraphNode(node_name, is_pin, is_port)
+                wire_path_nodes.append(wire_path_node)
+                
+                if index > 0:
+                    wire_path_edge = VectorTimingWireGraphEdge(index - 1, index)
+                    wire_path_edges.append(wire_path_edge)
+                    
+            wire_path_graph = VectorTimingWirePathGraph(wire_path_nodes, wire_path_edges)
+            return wire_path_graph
+        
+        path_data_package = get_path_data_package()
+        yaml_data = construct_path_graph(path_data_package.nodes)
+        yaml_path_hash = path_data_package.generate_hash()
+        
+        return yaml_path_hash, yaml_data
+        
