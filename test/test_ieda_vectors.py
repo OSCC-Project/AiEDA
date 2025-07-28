@@ -118,7 +118,7 @@ if __name__ == "__main__":
     
     # workspace.set_libs(lib_paths)
     
-    test_vectors_generation(workspace)
+    # test_vectors_generation(workspace)
     test_vector_load(workspace)
 
     exit(0)

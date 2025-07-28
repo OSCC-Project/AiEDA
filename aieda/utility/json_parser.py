@@ -35,7 +35,7 @@ class JsonParser:
         else:
             return None
 
-    def read(self):
+    def read(self, is_db=False):
         ''' Json reader '''
         if not os.path.exists(self.json_path):
             self.logger.error("json file not exist. path = %s", self.json_path)
@@ -49,7 +49,11 @@ class JsonParser:
                     self.json_data = json.loads(unzip_data)
             else:
                 with open(self.json_path, 'r', encoding='utf-8') as f_reader:
-                    self.json_data = json.load(f_reader)
+                    if is_db:
+                        str_json = json.load(f_reader)
+                        self.json_data = json.loads(str_json)
+                    else:
+                        self.json_data = json.load(f_reader)
 
             return True
         except json.JSONDecodeError:
@@ -64,19 +68,31 @@ class JsonParser:
             self.write()
 
         return self.read()
+    
+    def create(self):
+        # create file
+        self.json_data = {}
+        self.write()
 
-    def write(self, dict_value: dict = None):
+        return self.read()
+
+    def write(self, dict_value = None, indent=4, is_db=False):
+        from dataclasses import asdict
         if dict_value != None:
-            self.json_data = dict_value
+            #overwrite
+            if is_db:
+                self.json_data = json.dumps(dict_value, indent=indent, default=asdict)
+            else:
+                self.json_data = dict_value
 
         ''' Json writer '''
         if self.json_path.endswith(".gz"):
             with gzip.open(self.json_path, 'wb') as f:
-                zip_data = json.dumps(self.json_data, indent=4)
+                zip_data = json.dumps(self.json_data, indent=indent)
                 f.write(zip_data.encode('utf-8'))
         else:
             with open(self.json_path, 'w', encoding='utf-8') as f_writer:
-                json.dump(self.json_data, f_writer, indent=4)
+                json.dump(self.json_data, f_writer, indent=indent)
 
         return True
 

@@ -411,10 +411,6 @@ class Workspace:
         parser.set_max_fanout(parameters.cts_max_fanout)
         parser.set_cluster_size(parameters.cts_cluster_size)
 
-        
-        
-     
-        
     def load_parameters(self, parameters_json : str):
         """load parameters data from json
         """
@@ -577,7 +573,8 @@ class Workspace:
                 'wire_paths' : "{}/wire_paths".format(self.ieda_output['vectors']),
                 'patterns' : "{}/patterns".format(self.ieda_output['vectors']),
                 'timing_wire_graph' : "{}/wire_graph/timing_wire_graph.yaml".format(self.ieda_output['vectors']),
-                'wire_patterns' : "{}/patterns/wire_patterns.csv".format(self.ieda_output['vectors'])
+                'wire_patterns' : "{}/patterns/wire_patterns.csv".format(self.ieda_output['vectors']),
+                'wire_sequences' : "{}/patterns/wire_sequences.json".format(self.ieda_output['vectors'])
             }
             
             return vectors_paths

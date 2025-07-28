@@ -14,4 +14,7 @@ step 5
 test feature generation in test_ieda_feature.py
 
 step 6
+test vector generation in test_ieda_vectors.py
+
+step 7
 test data analysis

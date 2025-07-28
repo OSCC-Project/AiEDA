@@ -125,17 +125,26 @@ class DataGeneration(RunFlowBase):
                                       vectors_dir=vectors_dir)
         ieda_flow.generate_vectors()
         
-        # create patterns
-        from ..data import DataVectors
-        data_vectors = DataVectors(workspace=self.workspace)
+        # create wire patterns
         if vectors_dir is None:
             nets_dir = self.workspace.paths_table.ieda_vectors['nets']
-            patterns_csv = self.workspace.paths_table.ieda_vectors['wire_patterns']
         else:
             nets_dir = "{}/nets".format(vectors_dir)
-            patterns_csv = "{}/patterns/wire_patterns.csv".format(vectors_dir)
+        self.generate_patterns(nets_dir)
+    
+    def generate_patterns(self, nets_dir:str):
+        # create wire patterns
+        from ..data import DataPatterns
+        data_gen = DataPatterns(workspace=self.workspace)
+        if nets_dir is None:
+            nets_dir = self.workspace.paths_table.ieda_vectors['nets']
             
-        vector_nets = data_vectors.load_nets(nets_dir=nets_dir)
-        data_vectors.generate_nets_patterns(vector_nets=vector_nets,
-                                            patterns_csv=patterns_csv)
+        # create wire patterns    
+        vector_nets = data_gen.load_nets(nets_dir=nets_dir)
+        data_gen.generate_wire_patterns(vector_nets=vector_nets,
+                                        epsilon=100)
+        
+        data_gen.generate_wire_sequences(vector_nets=vector_nets,
+                                        epsilon=100)
+        
 

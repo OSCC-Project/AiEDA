@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : vectorization.py
+@File : vectors.py
 @Author : yell
 @Desc : data vectorization api
 '''
@@ -10,11 +10,10 @@ import tqdm
 
 from typing import List
 
-from aieda import workspace
 from ..workspace.workspace import Workspace
 from ..flows import DbFlow
 from .io import VectorsParserJson
-from .database.vectors import VectorNet
+from .database.vectors import VectorNet, VectorWire
 
 class DataVectors:
     def __init__(self, workspace : Workspace):
@@ -138,25 +137,4 @@ class DataVectors:
             self.workspace.logger.info("read timing paths from workspace %s", timing_paths_dir)
             read_from_dir()
         
-        return wire_paths
-    
-    
-    def generate_nets_patterns(self, vector_nets : List[VectorNet]=[],
-                               epsilon: int = 1,
-                               patterns_csv : str=None):
-        if len(vector_nets) == 0:
-            # load data from output/vectors/nets in workspace
-            vector_nets = self.load_nets()
-            
-        from .io import VectorWirePatternGen
-        net_patterns_gen = VectorWirePatternGen(epsilon=epsilon)
-
-        for vec_net in tqdm.tqdm(vector_nets, desc="build vector net wires"):
-            wires = vec_net.wires
-            for wire in wires:
-                net_patterns_gen.add_wire(wire)
-                
-        if patterns_csv is None:
-            patterns_csv = self.workspace.paths_table.ieda_vectors['wire_patterns']
-
-        net_patterns_gen.generate(patterns_csv)
+        return wire_paths 
