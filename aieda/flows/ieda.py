@@ -125,7 +125,7 @@ class RunIEDA(RunFlowBase):
         self.workspace.configs.save_flow_state(flow)
         return is_success
     
-    def run_fixFanout(self, 
+    def run_fix_fanout(self, 
                       input_def:str, 
                       input_verilog:str=None,
                       output_def:str=None,

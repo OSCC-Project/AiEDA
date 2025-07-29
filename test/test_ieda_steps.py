@@ -28,7 +28,7 @@ if __name__ == "__main__":
     run_ieda = RunIEDA(workspace)
     
     # step 3 : run each step of physical flow by iEDA 
-    run_ieda.run_fixFanout(input_def=workspace.configs.paths.def_input_path)
+    run_ieda.run_fix_fanout(input_def=workspace.configs.paths.def_input_path)
     
     run_ieda.run_placement(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)))
     
