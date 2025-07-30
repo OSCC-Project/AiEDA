@@ -103,5 +103,9 @@ from .vectors import (
     VectorTimingWireGraphNode,
     VectorTimingWireGraphEdge,
     VectorTimingWireGraph,
-    VectorTimingWirePathGraph
+    VectorTimingWirePathGraph,
+    VectorCell,
+    VectorCells,
+    VectorInstance,
+    VectorInstances
 )

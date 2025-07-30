@@ -13,11 +13,26 @@ from typing import List
 from ..workspace.workspace import Workspace
 from ..flows import DbFlow
 from .io import VectorsParserJson
-from .database.vectors import VectorNet, VectorWire
 
 class DataVectors:
     def __init__(self, workspace : Workspace):
         self.workspace = workspace
+        
+    def load_cells(self, cells_path:str = None):
+        if cells_path is None:
+            # read from workspace vectors/cells/cells.json
+            cells_path = self.workspace.paths_table.ieda_vectors['cells']
+            
+        parser = VectorsParserJson(json_path=cells_path, logger=self.workspace.logger)
+        return parser.get_cells()
+    
+    def load_instances(self, instances_path:str = None):
+        if instances_path is None:
+            # read from workspace vectors/cells/cells.json
+            instances_path = self.workspace.paths_table.ieda_vectors['instances']
+            
+        parser = VectorsParserJson(json_path=instances_path, logger=self.workspace.logger)
+        return parser.get_instances()
         
     def load_nets(self, nets_dir:str=None, net_path:str=None):  
         nets = []   

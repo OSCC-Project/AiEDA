@@ -90,21 +90,35 @@ def test_vectors_generation(workspace):
     data_gen = DataGeneration(workspace)
     
     # step 2 : generate vectors
+    vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors"
     data_gen.generate_vectors(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
-                               vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors")
+                               vectors_dir=vectors_dir)
     
-def test_vector_load(workspace):
+    data_gen.generate_patterns(vectors_dir=vectors_dir)
+    
+def test_vectors_load(workspace):
     data_load = DataVectors(workspace)
+    
+    cells = data_load.load_cells(
+        cells_path="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/cells/cells.json"
+        )
+    
+    instances = data_load.load_instances(
+        instances_path="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/instances/instances.json"
+        )
     
     nets = data_load.load_nets(
         nets_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/nets"
         )
+    
     patchs = data_load.load_patchs(
         patchs_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/patchs"
         )
+    
     timing_graph = data_load.load_timing_graph(
         graph_path="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/wire_graph/timing_wire_graph.yaml"
         )
+    
     timint_wire_paths = data_load.load_timing_wire_paths(
         timing_paths_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/wire_paths"
         )
@@ -118,8 +132,8 @@ if __name__ == "__main__":
     
     # workspace.set_libs(lib_paths)
     
-    # test_vectors_generation(workspace)
-    test_vector_load(workspace)
+    test_vectors_generation(workspace)
+    test_vectors_load(workspace)
 
     exit(0)
 

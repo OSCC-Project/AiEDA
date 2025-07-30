@@ -189,7 +189,7 @@ class VectorWireSequences(JsonParser):
             return seqs
         
         if self.create():
-            for _, vec_net in tqdm(enumerate(vec_nets), total=len(vec_nets), desc="transforms vector nets"):
+            for _, vec_net in tqdm(enumerate(vec_nets), total=len(vec_nets), desc="transform vector nets"):
                 graph = _convert(vec_net)
                 seqs = _convert_to_seq(graph)
                 sequences.extend(seqs)

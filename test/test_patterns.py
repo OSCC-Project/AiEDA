@@ -22,8 +22,9 @@ def test_pattern_generation(workspace):
     data_gen = DataGeneration(workspace)
     
     # step 2 : generate vectors
-    data_gen.generate_vectors(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
-                               vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors")
+    vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors"
+
+    data_gen.generate_patterns(vectors_dir=vectors_dir)
 
 def test_patterns_load(workspace):
     data_load = DataPatterns(workspace)

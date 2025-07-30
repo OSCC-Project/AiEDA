@@ -26,6 +26,7 @@ class Workspace:
             self.logger = None
             self.configs = None
     
+    
     def create_wrokspace(self):
         """check if workspace exist, if not exist, create workspace
         """
@@ -567,6 +568,8 @@ class Workspace:
         @property
         def ieda_vectors(self):
             vectors_paths = {
+                'cells' : "{}/cells/cells.json".format(self.ieda_output['vectors']), 
+                'instances' : "{}/instances/instances.json".format(self.ieda_output['vectors']),  
                 'nets' : "{}/nets".format(self.ieda_output['vectors']),    
                 'patchs' : "{}/patchs".format(self.ieda_output['vectors']),
                 'wire_graph' : "{}/wire_graph".format(self.ieda_output['vectors']),
