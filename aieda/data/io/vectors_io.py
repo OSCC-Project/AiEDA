@@ -319,7 +319,7 @@ class VectorsParserJson(JsonParser):
                 vec_inst.y = json_inst.get('y')
                 vec_inst.width = json_inst.get('width')
                 vec_inst.height = json_inst.get('height')
-                vec_inst.llx = json_inst.get('illxd')
+                vec_inst.llx = json_inst.get('llx')
                 vec_inst.lly = json_inst.get('lly')
                 vec_inst.urx = json_inst.get('urx')
                 vec_inst.ury = json_inst.get('ury')
