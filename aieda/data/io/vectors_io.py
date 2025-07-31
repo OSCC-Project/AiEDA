@@ -8,6 +8,7 @@
 import os
 from attr import dataclass
 from tqdm import tqdm
+
 from ...utility.json_parser import JsonParser
 from ...utility.log import Logger
 from ..database import *
@@ -185,7 +186,6 @@ class VectorsParserJson(JsonParser):
 
         return vec_nets
     
-    
     def get_patchs(self) -> list[VectorPatch]:
         vec_patchs = []
         if self.read():
@@ -286,7 +286,47 @@ class VectorsParserJson(JsonParser):
                 vec_patchs.append(vec_patch)
     
         return vec_patchs
-
+    
+    def get_cells(self) -> VectorCells:
+        vec_cells = VectorCells()
+        
+        if self.read() is True:
+            vec_cells.cell_num = self.json_data.get("cell_num")
+            json_cells = self.json_data.get('cells', [])
+            for json_cell in json_cells:
+                vec_cell = VectorCell()
+                vec_cell.id = json_cell.get('id')
+                vec_cell.name = json_cell.get('name')
+                vec_cell.width = json_cell.get('width')
+                vec_cell.height = json_cell.get('height')
+                
+                vec_cells.cells.append(vec_cell)
+ 
+        return vec_cells
+    
+    def get_instances(self) -> VectorInstances:
+        vec_insts = VectorInstances()
+        
+        if self.read() is True:
+            vec_insts.instance_num = self.json_data.get("instance_num")
+            json_insts = self.json_data.get('instances', [])
+            for json_inst in json_insts:
+                vec_inst = VectorInstance()
+                vec_inst.id = json_inst.get('id')
+                vec_inst.cell_id = json_inst.get('cell_id')
+                vec_inst.name = json_inst.get('name')
+                vec_inst.x = json_inst.get('x')
+                vec_inst.y = json_inst.get('y')
+                vec_inst.width = json_inst.get('width')
+                vec_inst.height = json_inst.get('height')
+                vec_inst.llx = json_inst.get('llx')
+                vec_inst.lly = json_inst.get('lly')
+                vec_inst.urx = json_inst.get('urx')
+                vec_inst.ury = json_inst.get('ury')
+                
+                vec_insts.instances.append(vec_inst)
+ 
+        return vec_insts    
 
 class VectorsParserYaml:
     """The parser for vector wire timing graph."""

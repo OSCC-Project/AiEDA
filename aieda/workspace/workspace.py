@@ -26,6 +26,7 @@ class Workspace:
             self.logger = None
             self.configs = None
     
+    
     def create_wrokspace(self):
         """check if workspace exist, if not exist, create workspace
         """
@@ -411,10 +412,6 @@ class Workspace:
         parser.set_max_fanout(parameters.cts_max_fanout)
         parser.set_cluster_size(parameters.cts_cluster_size)
 
-        
-        
-     
-        
     def load_parameters(self, parameters_json : str):
         """load parameters data from json
         """
@@ -571,13 +568,16 @@ class Workspace:
         @property
         def ieda_vectors(self):
             vectors_paths = {
+                'cells' : "{}/cells/cells.json".format(self.ieda_output['vectors']), 
+                'instances' : "{}/instances/instances.json".format(self.ieda_output['vectors']),  
                 'nets' : "{}/nets".format(self.ieda_output['vectors']),    
                 'patchs' : "{}/patchs".format(self.ieda_output['vectors']),
                 'wire_graph' : "{}/wire_graph".format(self.ieda_output['vectors']),
                 'wire_paths' : "{}/wire_paths".format(self.ieda_output['vectors']),
                 'patterns' : "{}/patterns".format(self.ieda_output['vectors']),
                 'timing_wire_graph' : "{}/wire_graph/timing_wire_graph.yaml".format(self.ieda_output['vectors']),
-                'wire_patterns' : "{}/patterns/wire_patterns.csv".format(self.ieda_output['vectors'])
+                'wire_patterns' : "{}/patterns/wire_patterns.csv".format(self.ieda_output['vectors']),
+                'wire_sequences' : "{}/patterns/wire_sequences.json".format(self.ieda_output['vectors'])
             }
             
             return vectors_paths

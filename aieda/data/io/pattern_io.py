@@ -8,17 +8,14 @@
 
 from ...utility.log import Logger
 from ..database import *
-
-    
+from ...utility.json_parser import JsonParser
+   
 from typing import List, Dict, Tuple, Any
 from collections import defaultdict
 from math import gcd
 from tqdm import tqdm
 import networkx as nx
-from dataclasses import asdict
 import pandas as pd
-import json
-import os
 
 class VectorWirePatternGen:
     def __init__(self, epsilon: int = 1):
@@ -121,71 +118,94 @@ class VectorWirePatternGen:
         pattern.name = pattern_name
         return pattern
 
+class VectorWirePatterns:
+    def __init__(self, patterns_csv: str, logger : Logger, epsilon: int = 1):
+        self.patterns_csv = patterns_csv
+        self.logger = logger
+        self.epsilon = epsilon
+    
+    def generate(self, vec_nets: List[VectorNet]):
+        wire_patterns_gen = VectorWirePatternGen(epsilon=self.epsilon)
 
-class VectorNetSeqConverter:
-    def __init__(self, epsilon: int = 1):
-        self._gen = VectorWirePatternGen(epsilon=epsilon)
-        self._seqs = []
+        for _, vec_net in tqdm(enumerate(vec_nets), total=len(vec_nets), desc="build vector net wires"):
+            wires = vec_net.wires
+            for wire in wires:
+                wire_patterns_gen.add_wire(wire)
 
-    def build_seqs(self, vec_nets: List[VectorNet]) -> List[VectorNetSeq]:
-        for vec_net in vec_nets:
-            graph = self._convert(vec_net)
-            seqs = self._convert_to_seq(graph)
-            self._seqs.extend(seqs)
-        return self._seqs
+        wire_patterns_gen.generate(self.patterns_csv)
+    
 
-    def save_seqs(self, json_path: str):
-        with open(json_path, "w") as f:
-            json.dump(self._seqs, f, default=asdict)
+class VectorWireSequences(JsonParser):
+    def __init__(self, json_path: str, logger : Logger, epsilon: int = 1):
+        self.epsilon = epsilon
+        super().__init__(json_path=json_path, logger=logger)
 
-    def load_seqs(self, json_path: str) -> List[VectorNetSeq]:
-        with open(json_path, "r") as f:
-            self._seqs = json.load(f)
-        return self._seqs
+    def generate(self, vec_nets: List[VectorNet]):
+        gen = VectorWirePatternGen(epsilon=self.epsilon)
+        sequences = []
+        
+        def _convert(vec_net: VectorNet) -> nx.Graph:
+            # edge with pattern
+            graph = nx.Graph()
+            wires = vec_net.wires
+            for wire in wires:
+                wire: VectorWire
+                start = wire.wire.node1
+                end = wire.wire.node2
+    
+                pattern = gen.add_wire(wire)
+                pattern_name = pattern.name
+                if start.id not in graph:
+                    graph.add_node(start.id, pos=(start.x, start.y, start.layer))
+                if end.id not in graph:
+                    graph.add_node(end.id, pos=(end.x, end.y, end.layer))
+                graph.add_edge(start.id, end.id, pattern=pattern_name)
+    
+            return graph
+    
+        def _convert_to_seq(net_graph: nx.Graph) -> List[VectorNetSeq]:
+            seqs = []
+            source = 0
+            for node in net_graph.nodes:
+                if net_graph.degree(node) == 1:
+                    source = node
+                    break
+            targets = []
+            for node in net_graph.nodes:
+                if net_graph.degree(node) == 1 and node != source:
+                    targets.append(node)
+            for target in targets:
+                loc_seq = []
+                pattern_seq = []
+                path = nx.shortest_path(net_graph, source, target)
+                for vertex in path:
+                    pos = net_graph.nodes[vertex]["pos"]
+                    loc_seq.append(VectorWirePatternPoint(pos[0], pos[1], pos[2]))
+                for i in range(1, len(path)):
+                    pattern = net_graph[path[i - 1]][path[i]]["pattern"]
+                    pattern_seq.append(pattern)
+                seq = VectorNetSeq(loc_seq, pattern_seq)
+                seqs.append(seq)
+            return seqs
+        
+        if self.create():
+            for _, vec_net in tqdm(enumerate(vec_nets), total=len(vec_nets), desc="transform vector nets"):
+                graph = _convert(vec_net)
+                seqs = _convert_to_seq(graph)
+                sequences.extend(seqs)
 
-    def _convert(self, vec_net: VectorNet) -> nx.Graph:
-        # edge with pattern
-        graph = nx.Graph()
-        wires = vec_net.wires
-        for wire in wires:
-            wire: VectorWire
-            start = wire.wire.node1
-            end = wire.wire.node2
+            #save files
+            return self.write(dict_value=sequences, is_db=True, indent=None)
+        
+        return False
 
-            pattern = self._gen.add_wire(wire)
-            pattern_name = pattern.name
-            if start.id not in graph:
-                graph.add_node(start.id, pos=(start.x, start.y, start.layer))
-            if end.id not in graph:
-                graph.add_node(end.id, pos=(end.x, end.y, end.layer))
-            graph.add_edge(start.id, end.id, pattern=pattern_name)
-
-        return graph
-
-    def _convert_to_seq(self, net_graph: nx.Graph) -> List[VectorNetSeq]:
-        seqs = []
-        source = 0
-        for node in net_graph.nodes:
-            if net_graph.degree(node) == 1:
-                source = node
-                break
-        targets = []
-        for node in net_graph.nodes:
-            if net_graph.degree(node) == 1 and node != source:
-                targets.append(node)
-        for target in targets:
-            loc_seq = []
-            pattern_seq = []
-            path = nx.shortest_path(net_graph, source, target)
-            for vertex in path:
-                pos = net_graph.nodes[vertex]["pos"]
-                loc_seq.append(VectorWirePatternPoint(pos[0], pos[1], pos[2]))
-            for i in range(1, len(path)):
-                pattern = net_graph[path[i - 1]][path[i]]["pattern"]
-                pattern_seq.append(pattern)
-            seq = VectorNetSeq(loc_seq, pattern_seq)
-            seqs.append(seq)
-        return seqs
+    def load_sequences(self) -> List[VectorNetSeq]:
+        sequences = []
+        
+        if self.read(is_db=True):
+            sequences=self.json_data
+            
+        return sequences
 
 
 class VectorTimingGraphSeqConverter:

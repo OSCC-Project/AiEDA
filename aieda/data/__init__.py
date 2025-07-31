@@ -7,3 +7,7 @@ from .feature import (
 from .vectors import (
     DataVectors
 )
+
+from .patterns import (
+    DataPatterns
+)

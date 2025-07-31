@@ -8,5 +8,6 @@ from .vectors_io import (
 )
 
 from .pattern_io import (
-    VectorWirePatternGen
+    VectorWirePatterns,
+    VectorWireSequences
 )

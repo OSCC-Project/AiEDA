@@ -252,7 +252,7 @@ class ConfigIEDACTSParser(JsonParser):
     
     def set_skew_bound(self, skew_bound : float):
         if self.read():
-            self.json_data['skew_bound'] = skew_bound
+            self.json_data['skew_bound'] = str(skew_bound)
 
             #save file
             return self.write()
@@ -261,7 +261,7 @@ class ConfigIEDACTSParser(JsonParser):
     
     def set_max_buf_tran(self, max_buf_tran : float):
         if self.read():
-            self.json_data['max_buf_tran'] = max_buf_tran
+            self.json_data['max_buf_tran'] = str(max_buf_tran)
 
             #save file
             return self.write()
@@ -270,7 +270,7 @@ class ConfigIEDACTSParser(JsonParser):
     
     def set_max_sink_tran(self, max_sink_tran : float):
         if self.read():
-            self.json_data['max_sink_tran'] = max_sink_tran
+            self.json_data['max_sink_tran'] = str(max_sink_tran)
 
             #save file
             return self.write()
@@ -279,7 +279,7 @@ class ConfigIEDACTSParser(JsonParser):
     
     def set_max_cap(self, max_cap : float):
         if self.read():
-            self.json_data['max_cap'] = max_cap
+            self.json_data['max_cap'] = str(max_cap)
 
             #save file
             return self.write()
@@ -288,7 +288,7 @@ class ConfigIEDACTSParser(JsonParser):
     
     def set_max_fanout(self, max_fanout : int):
         if self.read():
-            self.json_data['max_fanout'] = max_fanout
+            self.json_data['max_fanout'] = str(max_fanout)
 
             #save file
             return self.write()
