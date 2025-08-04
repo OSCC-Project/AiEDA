@@ -104,7 +104,9 @@ class DataGeneration(RunFlowBase):
     def generate_vectors(self, 
                 input_def:str=None, 
                 input_verilog:str=None,
-                vectors_dir:str=None):   
+                vectors_dir:str=None,
+                patch_row_step:int=9,
+                patch_col_step:int=9):   
         """ run data vectorization flow by iEDA
         input_def : input def path, must be set
         input_verilog :input verilog path, optional variable for iEDA flow
@@ -123,7 +125,7 @@ class DataGeneration(RunFlowBase):
         ieda_flow = IEDAVectorization(workspace=self.workspace,
                                       flow=flow,
                                       vectors_dir=vectors_dir)
-        ieda_flow.generate_vectors()
+        ieda_flow.generate_vectors(patch_row_step, patch_col_step)
     
     def generate_patterns(self, vectors_dir:str=None):
         # create wire patterns

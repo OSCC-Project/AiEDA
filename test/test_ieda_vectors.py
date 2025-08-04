@@ -85,7 +85,7 @@ lib_paths = [
     "/data/project_share/process_node/T28_lib/mem/ts5n28hpcplvta256x64m2fw_130a_ssg0p9v125c.lib"
 ]
 
-def test_vectors_generation(workspace):
+def test_vectors_generation(workspace, patch_row_step : int, patch_col_step : int):
     # step 1 : init by workspace
     data_gen = DataGeneration(workspace)
     
@@ -95,7 +95,12 @@ def test_vectors_generation(workspace):
     #                            vectors_dir=vectors_dir)
     data_gen.generate_vectors()
     
-    data_gen.generate_patterns()
+    # data_gen.generate_patterns()
+    # vectors_dir="/data/project_share/dataset_baseline/gcd/workspace/output/innovus/vectors"
+    data_gen.generate_vectors(patch_row_step=patch_row_step,
+                              patch_col_step=patch_col_step)
+    
+    # data_gen.generate_patterns(vectors_dir=vectors_dir)
     
 def test_vectors_load(workspace):
     data_load = DataVectors(workspace)
@@ -118,11 +123,12 @@ if __name__ == "__main__":
     # step 1 : create workspace
     # workspace_dir = "/data/project_share/dataset_baseline/eth_top/workspace"
     workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
+    # workspace_dir = "/data/project_share/dataset_baseline/gcd/workspace"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
-    # workspace.set_libs(lib_paths)
+    workspace.set_libs(lib_paths)
     
-    test_vectors_generation(workspace)
+    test_vectors_generation(workspace, patch_row_step=9, patch_col_step=9)
     test_vectors_load(workspace)
 
     exit(0)
