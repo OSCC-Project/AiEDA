@@ -90,45 +90,35 @@ def test_vectors_generation(workspace):
     data_gen = DataGeneration(workspace)
     
     # step 2 : generate vectors
-    vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors"
-    data_gen.generate_vectors(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
-                               vectors_dir=vectors_dir)
+    # vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors"
+    # data_gen.generate_vectors(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
+    #                            vectors_dir=vectors_dir)
+    data_gen.generate_vectors()
     
-    data_gen.generate_patterns(vectors_dir=vectors_dir)
+    data_gen.generate_patterns()
     
 def test_vectors_load(workspace):
     data_load = DataVectors(workspace)
     
-    cells = data_load.load_cells(
-        cells_path="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/cells/cells.json"
-        )
+    cells = data_load.load_cells()
     
-    instances = data_load.load_instances(
-        instances_path="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/instances/instances.json"
-        )
+    instances = data_load.load_instances()
     
-    nets = data_load.load_nets(
-        nets_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/nets"
-        )
+    nets = data_load.load_nets()
     
-    patchs = data_load.load_patchs(
-        patchs_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/patchs"
-        )
+    patchs = data_load.load_patchs()
     
-    timing_graph = data_load.load_timing_graph(
-        graph_path="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/wire_graph/timing_wire_graph.yaml"
-        )
+    timing_graph = data_load.load_timing_graph()
     
-    timint_wire_paths = data_load.load_timing_wire_paths(
-        timing_paths_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/wire_paths"
-        )
+    timint_wire_paths = data_load.load_timing_wire_paths()
     
     print(1)
     
 if __name__ == "__main__":  
     # step 1 : create workspace
-    workspace_dir = "/data/project_share/dataset_baseline/eth_top/workspace"
-    workspace = workspace_create(directory=workspace_dir, design="eth_top")
+    # workspace_dir = "/data/project_share/dataset_baseline/eth_top/workspace"
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
+    workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # workspace.set_libs(lib_paths)
     

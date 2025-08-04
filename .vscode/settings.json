@@ -41,6 +41,10 @@
         "*.ipp": "cpp",
         "unordered_set": "cpp",
         "*.inc": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "bitset": "cpp",
+        "regex": "cpp",
+        "iostream": "cpp",
+        "optional": "cpp"
     }
 }
