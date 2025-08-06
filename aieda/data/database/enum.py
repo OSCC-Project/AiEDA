@@ -98,8 +98,9 @@ class WirelengthType(Enum):
     none = 0
     hpwl = 1
     flute = 2
-    b2b = 3
-    egr = 4
+    htree = 3
+    vtree = 4
+    grwl = 5
 
 class Direction(Enum):
     """direction type in evaluation
