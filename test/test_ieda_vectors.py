@@ -93,14 +93,14 @@ def test_vectors_generation(workspace, patch_row_step : int, patch_col_step : in
     # vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors"
     # data_gen.generate_vectors(input_def="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/result/eth_top_route.def",
     #                            vectors_dir=vectors_dir)
-    data_gen.generate_vectors()
+    # data_gen.generate_vectors()
     
     # data_gen.generate_patterns()
     # vectors_dir="/data/project_share/dataset_baseline/gcd/workspace/output/innovus/vectors"
     data_gen.generate_vectors(patch_row_step=patch_row_step,
                               patch_col_step=patch_col_step)
     
-    # data_gen.generate_patterns(vectors_dir=vectors_dir)
+    data_gen.generate_patterns()
     
 def test_vectors_load(workspace):
     data_load = DataVectors(workspace)
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     # workspace_dir = "/data/project_share/dataset_baseline/gcd/workspace"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
-    workspace.set_libs(lib_paths)
+    # workspace.set_libs(lib_paths)
     
     test_vectors_generation(workspace, patch_row_step=9, patch_col_step=9)
     test_vectors_load(workspace)
