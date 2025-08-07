@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : ieda_engine.py
-@Author : yell
-@Desc : run iEDA
+@File : evaluation.py
+@Author : yhqiu
+@Desc : metric evaluation api
 '''
 
 from .io import IEDAIO
@@ -12,7 +12,6 @@ from ...flows import DbFlow
 
 from ...data import (
     WirelengthType, 
-    InstanceStatus, 
     CongestionType, 
     RudyType, 
     Direction
@@ -24,10 +23,7 @@ class IEDAEvaluation(IEDAIO):
         
         self.is_wirelength_eval = False
         self.wirelength_dict = {}
-        
-
-        
-        
+    
     def __configs__(self):
         super().__configs__()
 #######################################################################################
@@ -65,6 +61,7 @@ class IEDAEvaluation(IEDAIO):
 #######################################################################################
 #                         density evaluation                                          # 
 #######################################################################################   
+    # cell density (macro and standard cell)
     def cell_density(self, 
                      bin_cnt_x : int = 256, 
                      bin_cnt_y : int = 256, 
@@ -73,6 +70,7 @@ class IEDAEvaluation(IEDAIO):
         max_density, avg_density = self.ieda.cell_density(bin_cnt_x, bin_cnt_y, save_path)
         return max_density, avg_density
     
+    # pin density (pin count)
     def pin_density(self, 
                      bin_cnt_x : int = 256, 
                      bin_cnt_y : int = 256, 
@@ -81,6 +79,7 @@ class IEDAEvaluation(IEDAIO):
         max_density, avg_density = self.ieda.pin_density(bin_cnt_x, bin_cnt_y, save_path)
         return max_density, avg_density
     
+    # net density (net count)
     def net_density(self, 
                      bin_cnt_x : int = 256, 
                      bin_cnt_y : int = 256, 
@@ -92,7 +91,72 @@ class IEDAEvaluation(IEDAIO):
 #######################################################################################
 #                         congestion evaluation                                       # 
 #######################################################################################   
+    # RUDY congestion
+    def rudy_congestion(self,
+                        bin_cnt_x : int = 256,
+                        bin_cnt_y : int = 256,
+                        save_path : str = ""):
+        self.read_output_def()
+        max_congestion, total_congestion = self.ieda.rudy_congestion(bin_cnt_x, bin_cnt_y, save_path)
+        return max_congestion, total_congestion
+    
+    # LUT-RUDY congesiton
+    def lut_rudy_congestion(self,
+                            bin_cnt_x : int = 256,
+                            bin_cnt_y : int = 256,
+                            save_path : str = ""):
+        self.read_output_def()
+        max_congestion, total_congestion = self.ieda.lut_rudy_congestion(bin_cnt_x, bin_cnt_y, save_path)
+        return max_congestion, total_congestion
+    
+    # EGR congestion, calling iRT
+    def egr_congestion(self,
+                       save_path : str = ""):
+        self.read_output_def()
+        max_congestion, total_congestion = self.ieda.egr_congestion(save_path)
+        return max_congestion, total_congestion
 
+
+#######################################################################################
+#                         timing and power evaluation                                 # 
+#######################################################################################   
+    # timing and power evaluation using HPWL wirelength model 
+    def timing_power_hpwl(self):
+        self.read_output_def()
+        result_dict = self.ieda.timing_power_hpwl()
+        return result_dict
+    
+    # timing and power evaluation using FULTE wirelength model 
+    def timing_power_stwl(self):
+        self.read_output_def()
+        result_dict = self.ieda.timing_power_stwl()
+        return result_dict
+    
+    # timing and power evaluation using EGR wirelength model 
+    def timing_power_egr(self):
+        self.read_output_def()
+        result_dict = self.ieda.timing_power_egr()
+        return result_dict
+    
+    # get timing wire graph (vectorization)
+    def get_timing_wire_graph(self, wire_graph_yaml_path: str):
+        return self.ieda.get_timing_wire_graph(wire_graph_yaml_path)
+    
+
+#######################################################################################
+#                       other evaluation (TO BE DONE)                                 # 
+#######################################################################################   
+    
+    def eval_macro_margin(self):
+        self.ieda.eval_macro_margin()
+    
+    def eval_continuous_white_space(self):
+        self.ieda.eval_continuous_white_space()
+
+    def eval_macro_channel(self, die_size_ratio : float = 0.5):
+        self.ieda.eval_macro_channel(die_size_ratio)
+        
+        
     def eval_cell_hierarchy(self, 
                             plot_path : str, 
                             level : int = 1, 
@@ -122,65 +186,3 @@ class IEDAEvaluation(IEDAIO):
                                      level : int = 1, 
                                      forward : int = 1):
         self.ieda.eval_macro_io_pin_connection(plot_path, level, forward)
-
-
-#######################################################################################
-#                         timing evaluation                                           # 
-#######################################################################################   
-
-    def eval_inst_density(self, 
-                          status : InstanceStatus, 
-                          flip_flop : int):
-        self.ieda.eval_inst_density(inst_status = status.value, eval_flip_flop = flip_flop)
-
-    def eval_pin_density(self, 
-                         status : InstanceStatus, 
-                         eval_level : int):
-        self.ieda.eval_pin_density(inst_status = status.value, level = eval_level)
-    
-    def eval_rudy_cong(self, 
-                       type : RudyType, 
-                       eval_direction : Direction ):
-        self.ieda.eval_rudy_cong(rudy_type = type.value, direction = eval_direction.value)
-    
-    def eval_egr_cong(self):
-        self.ieda.eval_egr_cong()
-
-
-#######################################################################################
-#                          power evaluation                                           # 
-#######################################################################################   
-    def plot_flow_value(self, 
-                        plot_path : str, 
-                        file_name : str, 
-                        step : str, 
-                        value : str):
-        self.ieda.plot_flow_value(plot_path, file_name, step, value)
-        
-    def get_timing_wire_graph(self, wire_graph_yaml_path: str):
-        return self.ieda.get_timing_wire_graph(wire_graph_yaml_path)
-    
-    def feature_eval_map(self, 
-                         plot_dir : str, 
-                         bin_cnt_x : int = 256, 
-                         bin_cnt_y : int = 256):
-        self.ieda.feature_summary_map(plot_dir, bin_cnt_x, bin_cnt_y)
-        
-    # density evaluation
-    def eval_macro_density(self):
-        self.ieda.eval_macro_density()
-
-    def eval_macro_pin_density(self):
-        self.ieda.eval_macro_pin_density()
-
-    def eval_cell_pin_density(self):
-        self.ieda.eval_cell_pin_density()
-
-    def eval_macro_margin(self):
-        self.ieda.eval_macro_margin()
-    
-    def eval_continuous_white_space(self):
-        self.ieda.eval_continuous_white_space()
-
-    def eval_macro_channel(self, die_size_ratio : float = 0.5):
-        self.ieda.eval_macro_channel(die_size_ratio)
