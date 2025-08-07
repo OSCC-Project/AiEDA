@@ -83,23 +83,15 @@ class RudyType(Enum):
     pin_rudy = 2
     lut_rudy = 3
     
-class InstanceStatus(Enum):
-    """congestion type in evaluation
-    """
-    none = 0
-    fixed = 1
-    cover = 2
-    placed = 3
-    unplaced = 4
-
 class WirelengthType(Enum):
     """wirelength type in evaluation
     """
     none = 0
     hpwl = 1
     flute = 2
-    b2b = 3
-    egr = 4
+    htree = 3
+    vtree = 4
+    grwl = 5
 
 class Direction(Enum):
     """direction type in evaluation

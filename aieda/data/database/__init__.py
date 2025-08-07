@@ -7,7 +7,6 @@ from .enum import (
     NetType,
     CongestionType,
     RudyType,
-    InstanceStatus,
     WirelengthType,
     Direction,
     FeatureOption,
