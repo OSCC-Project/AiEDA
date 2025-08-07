@@ -23,7 +23,7 @@ class IEDAVectorization(IEDAIO):
         if self.vectors_dir is None:
             self.vectors_dir = self.workspace.paths_table.ieda_output['vectors']
     
-    def generate_vectors(self, patch_row_step : int, patch_col_step : int):
+    def generate_vectors(self, patch_row_step : int = 9, patch_col_step : int = 9):
         def __generate_vectors__():
             self.read_def() 
 

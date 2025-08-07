@@ -22,6 +22,8 @@ class FlowParser(JsonParser):
             # DbFlow.FlowStep.optSetup,
             DbFlow.FlowStep.legalization,
             DbFlow.FlowStep.route,
+            DbFlow.FlowStep.drc,
+            DbFlow.FlowStep.vectorization,
             DbFlow.FlowStep.filler
         ]
         

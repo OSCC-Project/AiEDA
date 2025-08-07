@@ -46,4 +46,13 @@ class DataFeature:
             feature_path = self.workspace.paths_table.ieda_feature_json[eval_key]
             
             parser = FeatureParserJson(feature_path)
-            return parser.get_metrics()    
+            return parser.get_metrics()  
+        
+    def load_drc(self, drc_path : str = None):
+        from .io import FeatureParserJson   
+        if drc_path is None:
+            drc_path = self.workspace.paths_table.ieda_feature_json['route_drc']
+        
+        parser = FeatureParserJson(drc_path)
+        return parser.get_drc()  
+         

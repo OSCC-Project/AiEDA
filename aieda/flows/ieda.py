@@ -31,7 +31,7 @@ class RunIEDA(RunFlowBase):
             "filler"
         ]
             
-    def run_flow(self, flow : DbFlow, output_dir:str=None):
+    def run_flow(self, flow : DbFlow, output_path:str=None):
         """run flow"""            
         def __run_eda__(flow : DbFlow):
             """run eda tool""" 
@@ -100,7 +100,14 @@ class RunIEDA(RunFlowBase):
                     from ..eda import IEDAVectorization
                     ieda_flow = IEDAVectorization(workspace=self.workspace,
                                               flow=flow,
-                                              vectors_dir=output_dir)
+                                              vectors_dir=output_path)
+                    ieda_flow.generate_vectors()
+                    
+                case DbFlow.FlowStep.drc:
+                    from ..eda import IEDADrc
+                    ieda_flow = IEDADrc(workspace=self.workspace,
+                                        flow=flow,
+                                        output_path=output_path)
                     ieda_flow.run_flow()
         
         if flow.is_finish() is True:
@@ -367,3 +374,19 @@ class RunIEDA(RunFlowBase):
             flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
         
         return self.run_flow(flow)
+    
+    def run_drc(self, 
+                input_def:str, 
+                input_verilog:str=None,
+                drc_path : str = None):   
+        """ run instances filling flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        drc_path : output def path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.drc,
+                      input_def=input_def,
+                      input_verilog=input_verilog)
+               
+        return self.run_flow(flow, output_path=drc_path)
