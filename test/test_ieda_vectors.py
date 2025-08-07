@@ -105,13 +105,13 @@ def test_vectors_generation(workspace, patch_row_step : int, patch_col_step : in
 def test_vectors_load(workspace):
     data_load = DataVectors(workspace)
     
-    cells = data_load.load_cells()
+    # cells = data_load.load_cells()
     
-    instances = data_load.load_instances()
+    # instances = data_load.load_instances()
     
-    nets = data_load.load_nets()
+    # nets = data_load.load_nets()
     
-    patchs = data_load.load_patchs()
+    # patchs = data_load.load_patchs()
     
     timing_graph = data_load.load_timing_graph()
     
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     
     # workspace.set_libs(lib_paths)
     
-    test_vectors_generation(workspace, patch_row_step=9, patch_col_step=9)
+    # test_vectors_generation(workspace, patch_row_step=9, patch_col_step=9)
     test_vectors_load(workspace)
 
     exit(0)

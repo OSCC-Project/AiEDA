@@ -198,12 +198,14 @@ class VectorNetSeq:
 
 @dataclass
 class VectorTimingWireGraphNode:
+    id : str = None
     name: str = None
     is_pin: bool = False
     is_port: bool = False
     
 @dataclass
 class VectorTimingWireGraphEdge:
+    id : str = None
     from_node: int = None
     to_node: int = None
     is_net_edge : bool = False
