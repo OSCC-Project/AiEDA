@@ -252,3 +252,19 @@ class VectorInstance:
 class VectorInstances(object):
     instance_num : int = None
     instances: List[VectorInstance] = field(default_factory=list)
+    
+@dataclass
+class VectorInstanceGraphNode:
+    id : str = None
+    name: str = None
+    
+@dataclass
+class VectorInstanceGraphEdge:
+    id : str = None
+    from_node: int = None
+    to_node: int = None
+    
+@dataclass
+class VectorInstanceGraph(object):
+    nodes: List[VectorInstanceGraphNode] = field(default_factory=list)
+    edges: List[VectorInstanceGraphEdge] = field(default_factory=list)

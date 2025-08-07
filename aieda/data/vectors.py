@@ -149,3 +149,10 @@ class DataVectors:
             read_from_dir()
         
         return wire_paths 
+    
+    def load_instance_graph(self, graph_path : str = None):
+        if graph_path is None:
+            graph_path = self.workspace.paths_table.ieda_vectors['timing_instance_graph']
+        parser = VectorsParserJson(json_path=graph_path,
+                                    logger=self.workspace.logger)
+        return parser.get_instance_graph()

@@ -332,9 +332,6 @@ class VectorsParserJson(JsonParser):
         if self.read() is True:   
             wire_nodes = []
             wire_edges = []
-
-            wire_edge = None
-            edge_set = set()
             
             json_nodes = self.json_data.get("nodes")
             for json_node in tqdm(json_nodes, total=len(json_nodes), desc="load nodes"):
@@ -480,4 +477,38 @@ class VectorsParserJson(JsonParser):
         path_hash = path_data_package.generate_hash()
         
         return path_hash, wire_path_graph
+    
+    def get_instance_graph(self):
+        if self.read() is True:   
+            instance_nodes = []
+            instance_edges = []
+            
+            json_nodes = self.json_data.get("nodes")
+            for json_node in tqdm(json_nodes, total=len(json_nodes), desc="load nodes"):
+                instance_node = VectorInstanceGraphNode()
         
+                # patch
+                instance_node.id = json_node.get('id')
+                instance_node.name = json_node.get('name')
+                
+                instance_nodes.append(instance_node)
+            
+            json_edges = self.json_data.get("edges")
+            for json_edge in tqdm(json_edges, total=len(json_edges), desc="load edges"):
+                instance_edge = VectorInstanceGraphEdge()
+        
+                # patch
+                instance_edge.id = json_edge.get('id')
+                instance_edge.from_node = json_edge.get('from_node')
+                instance_edge.to_node = json_edge.get('to_node')
+                
+                instance_edges.append(instance_edge)
+                
+            instance_graph = VectorInstanceGraph(instance_nodes, instance_edges)
+
+            self.logger.info("load instance graph end")
+            self.logger.info("instance graph nodes num: %d", len(instance_nodes))
+            self.logger.info("instance graph edges num: %d", len(instance_edges))
+            return instance_graph
+
+        return None

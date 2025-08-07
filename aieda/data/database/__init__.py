@@ -107,5 +107,8 @@ from .vectors import (
     VectorCell,
     VectorCells,
     VectorInstance,
-    VectorInstances
+    VectorInstances,
+    VectorInstanceGraphNode,
+    VectorInstanceGraphEdge,
+    VectorInstanceGraph
 )
