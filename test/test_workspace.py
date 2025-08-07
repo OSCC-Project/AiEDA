@@ -274,8 +274,9 @@ def create_workspace_sky130_gcd(workspace_dir):
     workspace.set_version("V1")
     workspace.set_task("run_eda")
     
+    workspace.set_first_routing_layer("li1")
+    
     # config iEDA config
-    workspace.set_first_routing_layer("met1")
     workspace.set_ieda_fixfanout_buffer("sky130_fd_sc_hs__buf_8")
     workspace.set_ieda_cts_buffers(
         [
@@ -324,10 +325,10 @@ def create_workspace_sky130_gcd(workspace_dir):
     return workspace
 
 if __name__ == "__main__":  
-    workspace_dir = "/data2/huangzengrong/test_aieda/workspace3"
-    workspace = create_workspace_28nm_gcd(workspace_dir)     
-    # workspace_dir = "/data2/huangzengrong/test_aieda/sky130"
-    # workspace = create_workspace_sky130_gcd(workspace_dir)
+    # workspace_dir = "/data2/huangzengrong/test_aieda/workspace3"
+    # workspace = create_workspace_28nm_gcd(workspace_dir)     
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
+    workspace = create_workspace_sky130_gcd(workspace_dir)
 
     exit(0)
 

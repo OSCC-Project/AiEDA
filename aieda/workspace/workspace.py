@@ -575,7 +575,9 @@ class Workspace:
                 'wire_graph' : "{}/wire_graph".format(self.ieda_output['vectors']),
                 'wire_paths' : "{}/wire_paths".format(self.ieda_output['vectors']),
                 'patterns' : "{}/patterns".format(self.ieda_output['vectors']),
-                'timing_wire_graph' : "{}/wire_graph/timing_wire_graph.yaml".format(self.ieda_output['vectors']),
+                'instance_graph' : "{}/instance_graph".format(self.ieda_output['vectors']),
+                'timing_instance_graph' : "{}/instance_graph/timing_instance_graph.json".format(self.ieda_output['vectors']),
+                'timing_wire_graph' : "{}/wire_graph/timing_wire_graph.json".format(self.ieda_output['vectors']),
                 'wire_patterns' : "{}/patterns/wire_patterns.csv".format(self.ieda_output['vectors']),
                 'wire_sequences' : "{}/patterns/wire_sequences.json".format(self.ieda_output['vectors'])
             }

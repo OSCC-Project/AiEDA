@@ -3,8 +3,7 @@ from .feature_io import (
 )
 
 from .vectors_io import (
-    VectorsParserJson,
-    VectorsParserYaml
+    VectorsParserJson
 )
 
 from .pattern_io import (

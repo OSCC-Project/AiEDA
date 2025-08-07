@@ -29,6 +29,15 @@ class VectorWirePatternGen:
         df.sort_values(by="Count", ascending=False,
                        inplace=True, ignore_index=True)
         if csv_path:
+            import os
+            directory = os.path.dirname(csv_path)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+        
+            if not os.path.exists(csv_path):
+                with open(csv_path, 'w') as f:
+                    pass
+                
             df.to_csv(csv_path, index=False)
         return df
 

@@ -328,72 +328,38 @@ class VectorsParserJson(JsonParser):
  
         return vec_insts    
 
-class VectorsParserYaml:
-    """The parser for vector wire timing graph."""
-    def __init__(self, yaml_path : str, logger: Logger = None):
-        self.yaml_path = yaml_path
-        self.logger = logger
-
     def get_wire_graph(self) -> VectorTimingWireGraph:
-        if not os.path.exists(self.yaml_path):
-            return None
-
-        with open(self.yaml_path, "r") as file:
-            self.logger.info("load wire graph yaml %s", self.yaml_path)
-            
-            lines = file.readlines()
-            
+        if self.read() is True:   
             wire_nodes = []
             wire_edges = []
-
-            wire_node = None
-            wire_edge = None
-            edge_set = set()
-            for _, line in tqdm(
-                enumerate(lines), total=len(lines), desc="load wire graph"
-            ):
-                line = line.strip()
-                if line.startswith("node_"):
-                    if wire_node is not None:
-                        wire_nodes.append(wire_node)
-                        wire_node = None
-                elif line.startswith("edge_"):
-                    # add last node
-                    if wire_node is not None:
-                        wire_nodes.append(wire_node)
-                        wire_node = None
-
-                    if wire_edge is not None:
-                        if not (wire_edge.from_node, wire_edge.to_node) in edge_set:
-                            wire_edges.append(wire_edge)
-                            edge_set.add(
-                                (wire_edge.from_node, wire_edge.to_node))
-                        wire_edge = None
-                else:
-                    # Split at the first colon only
-                    key, value = line.split(":", 1)
-                    if key == "name":
-                        wire_node = VectorTimingWireGraphNode(
-                            value.strip(), False, False)
-                    elif key == "is_pin":
-                        wire_node.is_pin = True if int(
-                            value.strip()) == 1 else False
-                    elif key == "is_port":
-                        wire_node.is_port = True if int(
-                            value.strip()) == 1 else False
-                    elif key == "from_node":
-                        wire_edge = VectorTimingWireGraphEdge(
-                            int(value.strip()), None)
-                    elif key == "to_node":
-                        wire_edge.to_node = int(value.strip())
-                    elif key == "is_net_edge":
-                        wire_edge.is_net_edge = bool(value.strip())
-
-            # add last edge
-            wire_edges.append(wire_edge)
+            
+            json_nodes = self.json_data.get("nodes")
+            for json_node in tqdm(json_nodes, total=len(json_nodes), desc="load nodes"):
+                wire_node = VectorTimingWireGraphNode()
+        
+                # patch
+                wire_node.id = json_node.get('id')
+                wire_node.name = json_node.get('name')
+                wire_node.is_pin = json_node.get('is_pin')
+                wire_node.is_port = json_node.get('is_port')
+                
+                wire_nodes.append(wire_node)
+            
+            json_edges = self.json_data.get("edges")
+            for json_edge in tqdm(json_edges, total=len(json_edges), desc="load edges"):
+                wire_edge = VectorTimingWireGraphEdge()
+        
+                # patch
+                wire_edge.id = json_edge.get('id')
+                wire_edge.from_node = json_edge.get('from_node')
+                wire_edge.to_node = json_edge.get('to_node')
+                wire_edge.is_net_edge = json_edge.get('is_net_edge')
+                
+                wire_edges.append(wire_edge)
+                
             wire_timing_graph = VectorTimingWireGraph(wire_nodes, wire_edges)
 
-            self.logger.info("load wire graph yaml end")
+            self.logger.info("load wire graph end")
             self.logger.info("wire graph nodes num: %d", len(wire_nodes))
             self.logger.info("wire graph edges num: %d", len(wire_edges))
             return wire_timing_graph
@@ -451,51 +417,39 @@ class VectorsParserYaml:
             
     def get_timing_wire_paths(self):
         """return : 
-        yaml_path_hash : unique hash string
-        yaml_data : VectorTimingWirePathGraph
+        path_hash : unique hash string
+        wire_path_graph : VectorTimingWirePathGraph
         """
-        def get_path_data_package() -> self.TimingWirePathData:
-            import yaml
+        def get_path_data_package() -> self.TimingWirePathData:           
+            remove_parentheses_content = lambda s: s[:s.find('(')].strip() if s.find('(')!= -1 else s
             
-            if not os.path.exists(self.yaml_path):
-                return None
-            
-            path_data= self.TimingWirePathData()
+            if self.read() is True:  
+                path_data = self.TimingWirePathData()
+                
+                for json_item in self.json_data:   
+                    for key, json_value in json_item.items():
+                        if key.startswith("node_"):   
     
-            with open(self.yaml_path, "r") as file:
-                self.logger.info("load wire graph yaml %s", self.yaml_path)
-                
-                data = yaml.safe_load(file)
-                
-                """Parse nodes, net arcs, and instance arcs in order."""
-                remove_parentheses_content = lambda s: s[:s.find('(')].strip() if s.find('(')!= -1 else s
-                for key, value in data.items():
-                    if key.startswith("node_"):
-                        # Parse node
-                        path_data.capacitance_list.append(value.get("Capacitance", 0))
-                        path_data.slew_list.append(value.get("slew", 0))
-                        path_data.resistance_list.append(0)  # Default R value for nodes
-                        
-                        # record pin node
-                        node_name = value.get("Point", "")
-                        # remove instance cell name
-                        node_name = remove_parentheses_content(node_name)
-                        if not len(path_data.nodes) or node_name != path_data.nodes[-1]: 
+                            node_name = json_value.get("Point")
+                            node_name = remove_parentheses_content(node_name)
                             path_data.nodes.append(node_name)
-                            
-                    elif key.startswith("net_arc_"):
-                        path_data.incr_list.append(value.get("Incr", 0))
-                        for edge_key, edge_value in value.items():
-                            if edge_key.startswith("edge_"):
-                                path_data.capacitance_list.append(edge_value.get("wire_C", 0))
-                                path_data.slew_list.append(edge_value.get("to_slew", 0))
-                                path_data.resistance_list.append(edge_value.get("wire_R", 0))
+                            path_data.capacitance_list.append(json_value.get("Capacitance", 0))
+                            path_data.slew_list.append(json_value.get("slew", 0))
+                            path_data.resistance_list.append(0)  # Default R value for nodes
                                 
-                                # record edge node
-                                path_data.nodes.append(edge_value.get("wire_to_node", ""))
-          
-                    elif key.startswith("inst_arc_"):
-                        path_data.incr_list.append(value.get("Incr", 0))
+                        elif key.startswith("net_arc_"):
+                            path_data.incr_list.append(json_value.get("Incr", 0))
+                            for edge_key, edge_value in json_value.items():
+                                if edge_key.startswith("edge_"):
+                                    path_data.capacitance_list.append(edge_value.get("wire_C", 0))
+                                    path_data.slew_list.append(edge_value.get("to_slew", 0))
+                                    path_data.resistance_list.append(edge_value.get("wire_R", 0))
+                                    
+                                    # record edge node
+                                    path_data.nodes.append(edge_value.get("wire_to_node", ""))
+              
+                        elif key.startswith("inst_arc_"):
+                            path_data.incr_list.append(json_value.get("Incr", 0))
                         
             return path_data
         
@@ -519,8 +473,42 @@ class VectorsParserYaml:
             return wire_path_graph
         
         path_data_package = get_path_data_package()
-        yaml_data = construct_path_graph(path_data_package.nodes)
-        yaml_path_hash = path_data_package.generate_hash()
+        wire_path_graph = construct_path_graph(path_data_package.nodes)
+        path_hash = path_data_package.generate_hash()
         
-        return yaml_path_hash, yaml_data
+        return path_hash, wire_path_graph
+    
+    def get_instance_graph(self):
+        if self.read() is True:   
+            instance_nodes = []
+            instance_edges = []
+            
+            json_nodes = self.json_data.get("nodes")
+            for json_node in tqdm(json_nodes, total=len(json_nodes), desc="load nodes"):
+                instance_node = VectorInstanceGraphNode()
         
+                # patch
+                instance_node.id = json_node.get('id')
+                instance_node.name = json_node.get('name')
+                
+                instance_nodes.append(instance_node)
+            
+            json_edges = self.json_data.get("edges")
+            for json_edge in tqdm(json_edges, total=len(json_edges), desc="load edges"):
+                instance_edge = VectorInstanceGraphEdge()
+        
+                # patch
+                instance_edge.id = json_edge.get('id')
+                instance_edge.from_node = json_edge.get('from_node')
+                instance_edge.to_node = json_edge.get('to_node')
+                
+                instance_edges.append(instance_edge)
+                
+            instance_graph = VectorInstanceGraph(instance_nodes, instance_edges)
+
+            self.logger.info("load instance graph end")
+            self.logger.info("instance graph nodes num: %d", len(instance_nodes))
+            self.logger.info("instance graph edges num: %d", len(instance_edges))
+            return instance_graph
+
+        return None

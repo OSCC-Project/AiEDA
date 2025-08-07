@@ -127,7 +127,7 @@ class DataGeneration(RunFlowBase):
                                       vectors_dir=vectors_dir)
         ieda_flow.generate_vectors(patch_row_step, patch_col_step)
     
-    def generate_patterns(self, vectors_dir:str):
+    def generate_patterns(self, vectors_dir:str=None):
         # create wire patterns
         from ..data import DataPatterns
         data_gen = DataPatterns(workspace=self.workspace)

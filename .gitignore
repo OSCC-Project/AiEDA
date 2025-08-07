@@ -140,4 +140,5 @@ cython_debug/
 *.png
 *.jpg
 *.csv
-vscode/
+.vscode
+.VSCodeCounter/
