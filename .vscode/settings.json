@@ -1,4 +1,13 @@
 {
+    // 禁用Python自动格式化
+    "[python]": {
+        "editor.formatOnSave": false,
+        "editor.formatOnType": false,
+        "editor.formatOnPaste": false,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": false
+        }
+    },
     "cmake.sourceDirectory": "/home/huangzengrong/aieda_fork/aieda_fork",
     "files.associations": {
         "array": "cpp",
@@ -41,6 +50,49 @@
         "*.ipp": "cpp",
         "unordered_set": "cpp",
         "*.inc": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "cctype": "cpp",
+        "clocale": "cpp",
+        "csignal": "cpp",
+        "cstdarg": "cpp",
+        "cwchar": "cpp",
+        "cwctype": "cpp",
+        "any": "cpp",
+        "atomic": "cpp",
+        "strstream": "cpp",
+        "bitset": "cpp",
+        "cfenv": "cpp",
+        "cinttypes": "cpp",
+        "codecvt": "cpp",
+        "complex": "cpp",
+        "condition_variable": "cpp",
+        "forward_list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "algorithm": "cpp",
+        "memory_resource": "cpp",
+        "netfwd": "cpp",
+        "numeric": "cpp",
+        "optional": "cpp",
+        "random": "cpp",
+        "ratio": "cpp",
+        "regex": "cpp",
+        "source_location": "cpp",
+        "system_error": "cpp",
+        "fstream": "cpp",
+        "future": "cpp",
+        "iomanip": "cpp",
+        "iostream": "cpp",
+        "istream": "cpp",
+        "mutex": "cpp",
+        "numbers": "cpp",
+        "scoped_allocator": "cpp",
+        "shared_mutex": "cpp",
+        "sstream": "cpp",
+        "stdexcept": "cpp",
+        "stop_token": "cpp",
+        "streambuf": "cpp",
+        "variant": "cpp",
+        "filesystem": "cpp"
     }
 }
