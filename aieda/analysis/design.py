@@ -32,74 +32,22 @@ class CellTypeAnalyzer(BaseAnalyzer):
     def __init__(self):
         super().__init__()
         self.inst_count = {}
-        self.base_dirs = []
-    
+        self.workspace_dirs = []
+                
     def load(self, 
-            base_dirs: List[Union[str, Path]], 
-            dir_to_display_name: Optional[Dict[str, str]] = None,
-            pattern : Optional[str] = None,
-            verbose: bool = True):
-        """
-        Load data from multiple directories.
-        
-        Args:
-            base_dirs: List of base directories to process
-            dir_to_display_name: Optional mapping from directory name to display name
-            pattern: File pattern to search for
-            verbose: Whether to print progress information
-        """        
-        if pattern is None:
-            raise ValueError("Pattern must be specified for cell type analysis")
-        
-        for base_dir in base_dirs:
-            design_name = os.path.basename(base_dir)
-            display_name = dir_to_display_name.get(design_name, design_name) 
-            
-            json_path = os.path.join(base_dir, pattern)
-            matching_files = glob.glob(json_path)
-            
-            if not matching_files:
-                self.missing_files.append(display_name)
-                continue
-                
-            json_file = matching_files[0]
-            
-            try:
-                with open(json_file, 'r') as f:
-                    data = json.load(f)
-                    
-                if "Instances" in data:
-                    counts = {}
-                    for inst_type in ["clock", "logic", "macros", "iopads"]:
-                        if inst_type in data["Instances"]:
-                            counts[inst_type] = data["Instances"][inst_type]["num"]
-                        else:
-                            counts[inst_type] = 0
-                    
-                    counts["total"] = sum(counts.values())
-                    self.inst_count[display_name] = counts
-                else:
-                    self.missing_files.append(f"{display_name} (No Instances field)")
-                    
-            except Exception as e:
-                self.missing_files.append(f"{display_name} (Error: {str(e)})")
-                
-    def load_workspace(self, 
-            base_dirs: List[Workspace], 
-            dir_to_display_name: Optional[Dict[str, str]] = None,
+            workspace_dirs: List[Workspace], 
             flow : Optional[DbFlow] = None,
-            verbose: bool = True):
+            dir_to_display_name: Optional[Dict[str, str]] = None):
         """
-        Load data from multiple directories.
+        Load data from multiple workspaces.
         
         Args:
-            base_dirs: List of base directories to process
+            workspace_dirs: List of workspace directories to process
+            flow: DbFlow object representing the flow context
             dir_to_display_name: Optional mapping from directory name to display name
-            pattern: File pattern to search for
-            verbose: Whether to print progress information
         """        
-        self.base_dirs = base_dirs
-        for workspace in base_dirs:
+        self.workspace_dirs = workspace_dirs
+        for workspace in workspace_dirs:
             design_name = workspace.design
             display_name = dir_to_display_name.get(design_name, design_name) 
             
@@ -152,8 +100,8 @@ class CellTypeAnalyzer(BaseAnalyzer):
             print("No instance data found")
             return     
         
-        if self.base_dirs.__len__() == 1:
-            save_path = self.base_dirs[0].paths_table.analysis_path
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
             print(f"Only one workspace, using save path: {save_path}")
         
         df = pd.DataFrame.from_dict(self.inst_count, orient='index')
@@ -162,12 +110,12 @@ class CellTypeAnalyzer(BaseAnalyzer):
             
         df_sorted = df.sort_values(by="total", ascending=False)
         
-        # 1. Create heatmap for top 20 designs
+        # 1. Create heatmap for top 10 designs
         plt.figure(figsize=(5,4))
         
-        top20_designs = df_sorted.index[:10]
+        top10_designs = df_sorted.index[:10]
         
-        df_display = df_sorted.loc[top20_designs, ["clock", "logic", "macros", "iopads"]].copy()
+        df_display = df_sorted.loc[top10_designs, ["clock", "logic", "macros", "iopads"]].copy()
         
         ax = sns.heatmap(df_display, 
                     annot=True, 
@@ -188,15 +136,15 @@ class CellTypeAnalyzer(BaseAnalyzer):
         plt.ylabel('Design', fontsize=12)
         plt.tight_layout()
         
-        plt.savefig(save_path + '/instance_count_top20.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_path + '/design_cell_type_top_10.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # 2. create heatmap for bottom 20 designs
         plt.figure(figsize=(5,4))
         
-        bottom20_designs = df_sorted.index[-10:]
+        bottom10_designs = df_sorted.index[-10:]
         
-        df_display = df_sorted.loc[bottom20_designs, ["clock", "logic", "macros", "iopads"]].copy()
+        df_display = df_sorted.loc[bottom10_designs, ["clock", "logic", "macros", "iopads"]].copy()
         
         ax = sns.heatmap(df_display, 
                     annot=True, 
@@ -217,12 +165,12 @@ class CellTypeAnalyzer(BaseAnalyzer):
         plt.ylabel('Design', fontsize=12)
         plt.tight_layout()
         
-        plt.savefig(save_path + '/instance_count_bottom20.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_path + '/design_cell_type_bottom_10.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         print("Saved instance count heatmaps:")
-        print("- 'instance_count_top20.png' (Top 20 designs)")
-        print("- 'instance_count_bottom20.png' (Bottom 20 designs)")
+        print("- 'design_cell_type_top_10.png' (Top 10 designs)")
+        print("- 'design_cell_type_bottom_10.png' (Bottom 10 designs)")
         
     def _custom_format(self, val):
         if val == 0:
@@ -237,63 +185,22 @@ class CoreUsageAnalyzer(BaseAnalyzer):
     def __init__(self):
         super().__init__()
         self.core_usage = {}
-        self.base_dirs = []
+        self.workspace_dirs = []
 
     def load(self, 
-            base_dirs: List[Union[str, Path]], 
-            dir_to_display_name: Optional[Dict[str, str]] = None,
-            pattern: Optional[str] = None,
-            verbose: bool = True):
-        """
-        Load data from multiple directories.
-        
-        Args:
-            base_dirs: List of base directories to process
-            dir_to_display_name: Optional mapping from directory name to display name
-            pattern: File pattern to search for
-            verbose: Whether to print progress information
-        """     
-        if pattern is None:
-            raise ValueError("Pattern must be specified for core usage analysis")   
-        
-        for base_dir in base_dirs:
-            design_name = os.path.basename(base_dir)
-   
-            json_path = os.path.join(base_dir, pattern)
-            matching_files = glob.glob(json_path)
-            
-            if not matching_files:
-                continue
-                
-            json_file = matching_files[0]
-            
-            
-            with open(json_file, 'r') as f:
-                data = json.load(f)
-                
-            # Extract core_usage value
-            if "Design Layout" in data and "core_usage" in data["Design Layout"]:
-                core_usage = data["Design Layout"]["core_usage"]
-                self.core_usage[design_name] = core_usage
-            else:
-                self.missing_files.append(f"{design_name} (No core_usage field)")
-
-    def load_workspace(self, 
-            base_dirs: List[Workspace], 
-            dir_to_display_name: Optional[Dict[str, str]] = None,
+            workspace_dirs: List[Workspace], 
             flow : Optional[DbFlow] = None,
-            verbose: bool = True):
+            dir_to_display_name: Optional[Dict[str, str]] = None):
         """
         Load data from multiple directories.
         
         Args:
-            base_dirs: List of base directories to process
+            workspace_dirs: List of base directories to process
+            flow: DbFlow object representing the flow context
             dir_to_display_name: Optional mapping from directory name to display name
-            pattern: File pattern to search for
-            verbose: Whether to print progress information
         """        
-        self.base_dirs = base_dirs
-        for workspace in base_dirs:
+        self.workspace_dirs = workspace_dirs
+        for workspace in workspace_dirs:
             design_name = workspace.design
             
             feature = DataFeature(workspace=workspace)
@@ -344,8 +251,8 @@ class CoreUsageAnalyzer(BaseAnalyzer):
             print("No core usage data found")
             return      
          
-        if self.base_dirs.__len__() == 1:
-            save_path = self.base_dirs[0].paths_table.analysis_path
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
             print(f"Only one workspace, using save path: {save_path}")
             
         usages = list(self.core_usage.values())
@@ -360,11 +267,11 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         plt.gca().xaxis.set_major_locator(MultipleLocator(0.1))  
         
         plt.tight_layout()
-        plt.savefig(save_path + '/core_usage_hist.png', bbox_inches='tight') 
+        plt.savefig(save_path + '/design_core_usage_hist.png', bbox_inches='tight') 
         plt.close()
         
-        print("Charts saved as separate files:")
-        print("- 'core_usage_hist.png' (Histogram)")
+        print("Saved core usage chart:")
+        print("- 'design_core_usage_hist.png' (Histogram)")
 
 
 class PinDistributionAnalyzer(BaseAnalyzer):
@@ -373,86 +280,22 @@ class PinDistributionAnalyzer(BaseAnalyzer):
     def __init__(self):
         super().__init__()
         self.pin_dist = {}
-        self.base_dirs = []
-    
+        self.workspace_dirs = []
+
     def load(self, 
-            base_dirs: List[Union[str, Path]], 
-            dir_to_display_name: Optional[Dict[str, str]] = None,
-            pattern: Optional[str] = None,
-            verbose: bool = True):
-        """
-        Load data from multiple directories.
-        
-        Args:
-            base_dirs: List of base directories to process
-            dir_to_display_name: Optional mapping from directory name to display name
-            pattern: File pattern to search for
-            verbose: Whether to print progress information
-
-        """        
-        if pattern is None:
-            raise ValueError("Pattern must be specified for pin distribution analysis")
-
-        for base_dir in base_dirs:
-            design_name = os.path.basename(base_dir)
-            
-            json_path = os.path.join(base_dir, pattern)
-            matching_files = glob.glob(json_path)
-            
-            if not matching_files:
-                continue
-                
-            json_file = matching_files[0]
-            
-            with open(json_file, 'r') as f:
-                data = json.load(f)
-                    
-            if "Pins" in data and "pin_distribution" in data["Pins"]:
-                pin_data = []
-                for item in data["Pins"]["pin_distribution"]:
-                    if "pin_num" in item and "net_num" in item and "net_ratio" in item:
-                        pin_num = self._parse_pin_num(item["pin_num"])
-                        
-                        try:
-                            net_num = int(item["net_num"]) if isinstance(item["net_num"], (int, float, str)) else 0
-                        except ValueError:
-                            print(f"Warning: Could not parse net_num '{item['net_num']}', using 0 as default")
-                            net_num = 0
-                            
-                        try:
-                            net_ratio = float(item["net_ratio"]) if isinstance(item["net_ratio"], (int, float, str)) else 0.0
-                        except ValueError:
-                            print(f"Warning: Could not parse net_ratio '{item['net_ratio']}', using 0.0 as default")
-                            net_ratio = 0.0
-                        
-                        pin_data.append({
-                            "pin_num": pin_num,
-                            "net_num": net_num,
-                            "net_ratio": net_ratio,
-                            "original_pin_num": item["pin_num"]  
-                        })
-                
-                pin_data.sort(key=lambda x: x["pin_num"])
-                self.pin_dist[design_name] = pin_data
-            else:
-                self.missing_files.append(f"{design_name} (No pin_distribution field)")
-
-    def load_workspace(self, 
-            base_dirs: List[Workspace], 
-            dir_to_display_name: Optional[Dict[str, str]] = None,
+            workspace_dirs: List[Workspace], 
             flow : Optional[DbFlow] = None,
-            verbose: bool = True):
+            dir_to_display_name: Optional[Dict[str, str]] = None):
         """
         Load data from multiple directories.
         
         Args:
-            base_dirs: List of base directories to process
+            workspace_dirs: List of base directories to process
+            flow: DbFlow object representing the flow context
             dir_to_display_name: Optional mapping from directory name to display name
-            pattern: File pattern to search for
-            verbose: Whether to print progress information
         """        
-        self.base_dirs = base_dirs
-        for workspace in base_dirs:
+        self.workspace_dirs = workspace_dirs
+        for workspace in workspace_dirs:
             design_name = workspace.design
             
             feature = DataFeature(workspace=workspace)
@@ -520,8 +363,8 @@ class PinDistributionAnalyzer(BaseAnalyzer):
             print("No pin_dist data found")
             return      
          
-        if self.base_dirs.__len__() == 1:
-            save_path = self.base_dirs[0].paths_table.analysis_path
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
             print(f"Only one workspace, using save path: {save_path}")
             
         all_data = []
@@ -563,8 +406,8 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         plt.tick_params(axis='both', which='major', direction='out', length=4, width=1)
         
         plt.tight_layout()
-        plt.savefig(save_path + '/pin_vs_net_ratio.png', bbox_inches='tight')
-        print("Saved pin_vs_net_ratio.png")
+        plt.savefig(save_path + '/design_pin_vs_net_ratio.png', bbox_inches='tight')
+        print("Saved design_pin_vs_net_ratio.png")
         plt.close()  
         
     def _parse_pin_num(self, pin_num_str):
@@ -622,19 +465,17 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         self.calc_wire_num = False
     
     def load(self, 
-             base_dirs: List[Union[str, Path]], 
+             workspace_dirs: List[Workspace], 
              dir_to_display_name: Optional[Dict[str, str]] = None,
              pattern: Optional[str] = None,
-             verbose: bool = True,
              calc_wire_num: bool = False):
         """
         Load data from multiple directories.
         
         Args:
-            base_dirs: List of base directories to process
+            workspace_dirs: List of base directories to process
             dir_to_display_name: Optional mapping from directory name to display name
-            pattern: Path pattern to append to base_dirs (required)
-            verbose: Whether to print progress information
+            pattern: Path pattern to append to workspace_dirs (required)
             calc_wire_num: Whether to calculate wire number sum (time-consuming)
         """
         if pattern is None:
@@ -646,13 +487,13 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         design_paths = []
         design_name_mapping = {}
         
-        for base_dir in base_dirs:
-            # Extract design name from base_dir
-            design_name = os.path.basename(base_dir.rstrip('/'))
-            
+        for workspace in workspace_dirs:
             # Build complete path
-            full_path = os.path.join(base_dir, pattern)
+            full_path = workspace.directory + pattern
             design_paths.append(full_path)
+            
+            # Extract design name from workspace
+            design_name = workspace.design
             
             # Establish mapping from path to design name
             design_name_mapping[full_path] = design_name
@@ -692,19 +533,14 @@ class ResultStatisAnalyzer(BaseAnalyzer):
                     self.total_stats['paths_size'] += result['paths'][1]
                     self.total_stats['wire_num_sum'] += result['wire_num_sum']
                 else:
-                    self.missing_files.append(display_name)
+                    print(f"Design {display_name} has no valid files, skipping")
             else:
                 # If processing failed, extract design name from path
-                failed_path = design_paths[results.index(result)] if result is None else "Unknown"
-                design_name = design_name_mapping.get(failed_path, "Unknown")
-                display_name = dir_to_display_name.get(design_name, design_name) if dir_to_display_name else design_name
-                self.missing_files.append(display_name)
+                print(f"Failed to process design at {design_path}, skipping")
+
         
-        if verbose:
-            print(f"Loaded data for {len(self.stats_data)} designs")
-            if self.missing_files:
-                print(f"Missing or inaccessible designs: {len(self.missing_files)}")
-                print(f"Missing designs: {', '.join(self.missing_files)}")
+        print(f"Loaded data for {len(self.stats_data)} designs")
+
     
     def analyze(self):
         """Analyze the loaded statistics data."""
@@ -731,7 +567,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
               f"{self.total_stats['patches_count']} files, {self._format_size(self.total_stats['patches_size']):<10} | "
               f"{self.total_stats['paths_count']} files, {self._format_size(self.total_stats['paths_size']):<10} | "
               f"{self.total_stats['wire_num_sum']:<12}")
-        print(f"Accessible Designs: {self.total_stats['accessible_designs']}/{len(self.stats_data) + len(self.missing_files)}")
+        print(f"Accessible Designs: {self.total_stats['accessible_designs']}/{len(self.stats_data)}")
         
         # Statistical analysis
         print("\n=== Statistical Analysis ===")
@@ -809,7 +645,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         axes[1, 1].grid(axis='y', alpha=0.3)
         
         plt.tight_layout()
-        plt.savefig(save_path + 'result_stats_overview.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_path + 'design_result_stats_overview.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # 2. Heatmap - file counts
@@ -833,7 +669,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         plt.ylabel('Design', fontsize=12)
         plt.setp(ax.get_yticklabels(), style='italic')
         plt.tight_layout()
-        plt.savefig(save_path + 'result_stats_heatmap.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_path + 'design_result_stats_heatmap.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # 3. Wire number distribution charts (if calculated)
@@ -859,7 +695,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             plt.grid(axis='y', alpha=0.3)
             
             plt.tight_layout()
-            plt.savefig(save_path + 'wire_number_analysis.png', dpi=300, bbox_inches='tight')
+            plt.savefig(save_path + 'design_wire_number_analysis.png', dpi=300, bbox_inches='tight')
             plt.close()
             
             print("Saved wire number analysis:")
