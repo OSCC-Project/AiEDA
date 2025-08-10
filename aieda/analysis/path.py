@@ -24,149 +24,13 @@ import random
 from multiprocessing import Pool, cpu_count
 
 from .base import BaseAnalyzer
+from ..workspace import Workspace
 
-# =====================================
-# tool functions
-# =====================================
-def extract_delays_and_stage_from_file(file_path: str) -> Optional[tuple]:
-    """
-    extract delay and stage data from singel YAML file
-    
-    Args:
-        file_path: YAML file path
-        
-    Returns:
-        (inst_delay, net_delay, total_delay, stage, file_name)
-    """
-    try:
-        with open(file_path, 'r') as f:
-            content = f.read()
-            data = yaml.safe_load(content)
-        
-        inst_delay = 0
-        net_delay = 0
-        
-        # extract inst_arc Incr
-        for key, value in data.items():
-            if key.startswith('inst_arc_') and 'Incr' in value:
-                inst_delay += float(value['Incr'])
-            elif key.startswith('net_arc_') and 'Incr' in value:
-                net_delay += float(value['Incr'])
-        
-        # find the last net_arc_
-        net_arc_pattern = r'net_arc_(\d+)'
-        matches = re.findall(net_arc_pattern, content)
-        
-        if matches:
-            last_net_arc_suffix = max([int(match) for match in matches])
-            stage = (last_net_arc_suffix + 1) / 2
-        else:
-            stage = None
-        
-        total_delay = inst_delay + net_delay
-        return inst_delay, net_delay, total_delay, stage, os.path.basename(file_path)
-    except Exception as e:
-        print(f"Error processing {file_path}: {e}")
-        return None
+from aieda import (
+    DbFlow,
+    DataVectors
+)
 
-
-def process_single_directory_for_delay(directory: str, pattern : Optional[str] = None, verbose: bool = False) -> Optional[Dict[str, Any]]:
-    """
-    process delay data from a single directory
-    
-    Args:
-        directory: directory path
-        pattern : file pattern to search for wire path files
-        verbose: whther to show detailed information
-        
-    Returns:
-        dict
-    """
-    if pattern is None:
-        raise ValueError("Pattern must be specified to find wire path files.")
-    
-    design_name = os.path.basename(directory)
-    wire_path_pattern = os.path.join(directory, pattern)
-    
-    files = glob.glob(wire_path_pattern)
-    
-    if not files:
-        if verbose:
-            print(f"No wire path files found in {directory}")
-        return None
-    
-    # if too many files, randomly sample
-    max_files = 10000
-    if len(files) > max_files:
-        files = random.sample(files, max_files)
-    
-    if verbose:
-        print(f"Processing {len(files)} files in {design_name}...")
-    
-    results = []
-    file_iterator = (tqdm(files, desc=f"Processing {design_name}") 
-                    if verbose else files)
-    
-    for file_path in file_iterator:
-        result = extract_delays_and_stage_from_file(file_path)
-        if result:
-            inst_delay, net_delay, total_delay, stage, file_name = result
-            results.append({
-                'inst_delay': inst_delay,
-                'net_delay': net_delay,
-                'total_delay': total_delay,
-                'stage': stage,
-                'file_name': file_name
-            })
-    
-    if not results:
-        return None
-    
-    # transform results into DataFrame
-    df = pd.DataFrame(results)
-    
-    return {
-        'design_name': design_name,
-        'df': df,
-        'file_count': len(results)
-    }
-
-
-def process_single_directory_for_stage(directory: str, pattern : Optional[str] = None, verbose: bool = False) -> Optional[Dict[str, Any]]:
-    """
-    process stage data from a single directory
-    
-    Args:
-        directory: directory path
-        pattern : file pattern to search for wire path files
-        verbose: whether to show detailed information
-        
-    Returns:
-        dict
-    """
-    # reuse process_single_directory_for_delay
-    result = process_single_directory_for_delay(directory, pattern, verbose)
-    
-    if result is None:
-        return None
-    
-    df = result['df']
-    
-    # filter out rows without stage information
-    df_with_stage = df.dropna(subset=['stage'])
-    
-    if df_with_stage.empty:
-        return None
-    
-    return {
-        'design_name': result['design_name'],
-        'df': df_with_stage,
-        'file_count': len(df_with_stage)
-    }
-
-# =====================================
-# analyzer classes
-# =====================================    
 class DelayAnalyzer(BaseAnalyzer):
     """Analyzer for path delay."""
     
@@ -176,58 +40,62 @@ class DelayAnalyzer(BaseAnalyzer):
         self.design_stats = {}
             
     def load(self,
-             base_dirs: List[str],
+             workspace_dirs: List[Workspace],
              dir_to_display_name: Optional[Dict[str, str]] = None,
-             pattern : Optional[str] = None,
-             max_workers: Optional[int] = None,
-             verbose: bool = True) -> None:
+             pattern : Optional[str] = None) -> None:
         """
         Load path data from multiple directories.
         
         Args:
-            base_dirs: List of base directories containing net data
+            workspace_dirs: List of base directories containing net data
             dir_to_display_name: Optional mapping from directory names to display names
             pattern : File pattern to search for wire path files
-            max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
-            verbose: Whether to show progress information
         """        
         self.dir_to_display_name = dir_to_display_name or {}
         
-        if max_workers is None:
-            max_workers = min(8, cpu_count())
+        for workspace in workspace_dirs:
+            design_name = workspace.design
+            
+            vector_loader = DataVectors(workspace)
+            
+            path_dir = workspace.directory + pattern
+            
+            path_db = vector_loader.load_timing_paths_metrics(path_dir)
+            
+            path_list = []
+            for path_metric in path_db:
+                inst_delay = sum(path_metric.inst_delay)
+                net_delay = sum(path_metric.net_delay)
+                total_delay = inst_delay + net_delay
+                stage = path_metric.stage
                 
-        # Process directories in parallel
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory_for_delay, directory, pattern, verbose) 
-                      for directory in base_dirs]
+                path_list.append({
+                    'inst_delay': inst_delay,
+                    'net_delay': net_delay,
+                    'total_delay': total_delay,
+                    'stage': stage,
+                })
             
-            future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 
-                             if verbose else futures)
+            # transform results into DataFrame
+            df = pd.DataFrame(path_list)
             
-            for future in future_iterator:
-                result = future.result()
-                if result:
-                    design_name = result['design_name']
-                    self.path_data[design_name] = result
+            self.path_data[design_name] = {
+                'design_name': design_name,
+                'df': df,
+                'file_count': len(path_list)
+            }
         
         if not self.path_data:
             raise ValueError("No valid results found from any directory.")
         
-        if verbose:
-            print(f"Loaded data from {len(self.path_data)} directories.")
+        print(f"Loaded data from {len(self.path_data)} directories.")
         
-    def analyze(self, verbose: bool = True) -> None:
+    def analyze(self) -> None:
         """
         Analyze the loaded path data.
-        
-        Args:
-            verbose: Whether to show analysis progress
         """
         if not self.path_data:
             raise ValueError("No data loaded. Please call load() first.")
-        
-        if verbose:
-            print("Analyzing delay data...")
         
         # merge all dataframes into a single DataFrame
         all_dfs = []
@@ -235,7 +103,6 @@ class DelayAnalyzer(BaseAnalyzer):
             df = data['df'].copy()
             df['design_name'] = design_name
             all_dfs.append(df)
-        
         
         # compute summary statistics for each design
         for design_name, data in self.path_data.items():
@@ -259,8 +126,7 @@ class DelayAnalyzer(BaseAnalyzer):
             
             self.design_stats[design_name] = stats
         
-        if verbose:
-            print(f"Analysis completed for {len(self.design_stats)} designs.")
+        print(f"Analysis completed for {len(self.design_stats)} designs.")
         
                     
     def visualize(self, 
@@ -324,7 +190,7 @@ class DelayAnalyzer(BaseAnalyzer):
         
         plt.tight_layout()
         
-        output_path = os.path.join(save_path, 'delay_boxplot.png')
+        output_path = os.path.join(save_path, 'path_delay_boxplot.png')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
         
@@ -373,7 +239,7 @@ class DelayAnalyzer(BaseAnalyzer):
         
         plt.tight_layout()
         
-        output_path = os.path.join(save_path, 'delay_scatter.png')
+        output_path = os.path.join(save_path, 'path_delay_scatter.png')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
         
@@ -389,57 +255,66 @@ class StageAnalyzer(BaseAnalyzer):
         self.design_stats = {}
     
     def load(self,
-             base_dirs: List[str],
+             workspace_dirs: List[Workspace],
              dir_to_display_name: Optional[Dict[str, str]] = None,
-             pattern : Optional[str] = None,
-             max_workers: Optional[int] = None,
-             verbose: bool = True) -> None:
+             pattern : Optional[str] = None) -> None:
         """
         load stage data from multiple directories
         
         Args:
-            base_dirs: List of base directories containing stage data
+            workspace_dirs: List of base directories containing stage data
             dir_to_display_name: map directory names to display names
             pattern : File pattern to search for wire path files
-            max_workers:  (default: min(8, cpu_count()))
-            verbose: whether to show progress information
         """
         self.dir_to_display_name = dir_to_display_name or {}
         
-        if max_workers is None:
-            max_workers = min(8, os.cpu_count() or 4)
-        
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory_for_stage, directory, pattern, verbose) 
-                      for directory in base_dirs]
+        for workspace in workspace_dirs:
+            design_name = workspace.design
             
-            future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 
-                             if verbose else futures)
+            vector_loader = DataVectors(workspace)
             
-            for future in future_iterator:
-                result = future.result()
-                if result:
-                    design_name = result['design_name']
-                    self.path_data[design_name] = result
+            path_dir = workspace.directory + pattern
+            
+            path_db = vector_loader.load_timing_paths_metrics(path_dir)
+            
+            path_list = []
+            for path_metric in path_db:
+                inst_delay = sum(path_metric.inst_delay)
+                net_delay = sum(path_metric.net_delay)
+                total_delay = inst_delay + net_delay
+                stage = path_metric.stage
+                
+                path_list.append({
+                    'inst_delay': inst_delay,
+                    'net_delay': net_delay,
+                    'total_delay': total_delay,
+                    'stage': stage,
+                })
+            
+            # transform results into DataFrame
+            df = pd.DataFrame(path_list)
+            
+            # filter out rows without stage information
+            df_with_stage = df.dropna(subset=['stage'])
+            
+            self.path_data[design_name] = {
+                'design_name': design_name,
+                'df': df_with_stage,
+                'file_count': len(path_list)
+            }
         
         if not self.path_data:
             raise ValueError("No valid results found from any directory.")
-        
-        if verbose:
-            print(f"Loaded stage data from {len(self.path_data)} directories.")
     
-    def analyze(self, verbose: bool = True) -> None:
+        
+        print(f"Loaded stage data from {len(self.path_data)} directories.")
+    
+    def analyze(self) -> None:
         """
         analyze the loaded stage data
-        
-        Args:
-            verbose: whether to show analysis progress
         """
         if not self.path_data:
             raise ValueError("No data loaded. Please call load() first.")
-        
-        if verbose:
-            print("Analyzing stage data...")
         
         # merge all dataframes into a single DataFrame
         all_dfs = []
@@ -466,15 +341,12 @@ class StageAnalyzer(BaseAnalyzer):
                 'stage_std': df['stage'].std(),
                 'stage_min': df['stage'].min(),
                 'stage_max': df['stage'].max(),
-                'total_delay_mean': df['total_delay'].mean(),
-                'example_file': example_row['file_name'],
-                'example_stage': example_row['stage']
+                'total_delay_mean': df['total_delay'].mean()
             }
             
             self.design_stats[design_name] = stats
         
-        if verbose:
-            print(f"Analysis completed for {len(self.design_stats)} designs.")
+        print(f"Analysis completed for {len(self.design_stats)} designs.")
     
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -528,7 +400,7 @@ class StageAnalyzer(BaseAnalyzer):
         
         plt.tight_layout()
         
-        output_path = os.path.join(save_path, 'stage_errorbar.png')
+        output_path = os.path.join(save_path, 'path_stage_errorbar.png')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
         
@@ -574,7 +446,7 @@ class StageAnalyzer(BaseAnalyzer):
         
         plt.tight_layout()
         
-        output_path = os.path.join(save_path, 'stage_delay_scatter.png')
+        output_path = os.path.join(save_path, 'path_stage_delay_scatter.png')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
         
