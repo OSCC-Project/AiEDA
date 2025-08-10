@@ -975,3 +975,48 @@ class FeatureParserJson(JsonParser):
             return feature_timing
         
         return None
+    
+    def get_drc(self):
+        if self.read() is False:
+            return None
+
+        drc_distributions = FeatureDrcDistributions()
+        if 'drc' in self.json_data:
+            drc_distributions.number = self.json_data['drc']['number']
+
+            if (drc_distributions.number == 0):
+                return drc_distributions
+
+            for type, value_1 in self.json_data['drc']['distribution'].items():
+                distribution = FeatureDrcDistribution()
+                distribution.type = type
+                distribution.number = value_1['number']
+
+                if (distribution.number == 0):
+                    continue
+
+                for layer, value_2 in value_1['layers'].items():
+                    drc_layer = FeatureDrcLayer()
+                    drc_layer.layer = layer
+                    drc_layer.number = value_2['number']
+
+                    for dict_shape in value_2['list']:
+                        drc_shape = FeatureDrcShape()
+                        drc_shape.llx = dict_shape['llx']
+                        drc_shape.lly = dict_shape['lly']
+                        drc_shape.urx = dict_shape['urx']
+                        drc_shape.ury = dict_shape['ury']
+
+                        for dict_net in dict_shape['net']:
+                            drc_shape.net_ids.append(dict_net)
+
+                        for dict_inst in dict_shape['inst']:
+                            drc_shape.inst_ids.append(dict_inst)
+
+                        drc_layer.shapes.append(drc_shape)
+
+                    distribution.layers.append(drc_layer)
+
+                drc_distributions.drc_list.append(distribution)
+
+        return drc_distributions

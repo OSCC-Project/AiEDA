@@ -11,7 +11,8 @@ from ...flows import DbFlow
 
 class IEDADrc(IEDAIO): 
     """DRC api"""
-    def __init__(self, workspace : Workspace, flow : DbFlow):
+    def __init__(self, workspace : Workspace, flow : DbFlow, output_path : str = None):
+        self.feature_path = output_path
         super().__init__(workspace=workspace, flow=flow)
         
     def __configs__(self):
@@ -19,7 +20,8 @@ class IEDADrc(IEDAIO):
         
         self.ieda_config = self.workspace.paths_table.ieda_config['drc']
         self.report_path = self.workspace.paths_table.ieda_report['drc']
-        self.feature_path = self.workspace.paths_table.ieda_feature_json['route_drc']
+        if self.feature_path is None:
+            self.feature_path = self.workspace.paths_table.ieda_feature_json['route_drc']
         
     def __run_flow__(self):
         self.read_def()

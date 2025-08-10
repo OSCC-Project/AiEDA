@@ -89,6 +89,10 @@ def test_feature_generation(workspace):
                  ]:
         data_gen.generate_feature(step=DbFlow.FlowStep(step))
         print("generate feature summary data in step {}".format(step))
+    
+    # step 3 : test generate drc 
+    data_gen.generate_drc()
+    print("generate feature drc data in step drc")
 
 def test_data_load(workspace):
     # step 1 : init data generation
@@ -107,7 +111,7 @@ def test_data_load(workspace):
         feature_db = feature.load_feature_summary(flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step)))
         print("get feature summary data in step {}".format(step))
         
-    # step 3 : test get feature tool db from iEDA flow
+    # # step 3 : test get feature tool db from iEDA flow
     for step in ["fixFanout", 
                  "place",
                  "CTS",
@@ -120,7 +124,7 @@ def test_data_load(workspace):
         feature_db = feature.load_feature_tool(flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step)))
         print("get feature tool data in step {}".format(step))
         
-    # step 4 : test get feature map db from iEDA flow
+    # # step 4 : test get feature map db from iEDA flow
     for step in ["fixFanout", 
                  "place",
                  "CTS",
@@ -133,6 +137,10 @@ def test_data_load(workspace):
         if step == "place" or step == "CTS":
             feature_db = feature.load_feature_map(flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep(step)))
             print("get feature eval db in step {}".format(step))
+            
+    # step 5 : test get drc db 
+    feature_db = feature.load_drc()
+    print(1)
 
 if __name__ == "__main__":  
     # # step 1 : create workspace

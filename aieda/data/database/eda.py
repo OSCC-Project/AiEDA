@@ -420,6 +420,33 @@ class RouteSummary(object):
     vr_summary: Optional[VRSummary] = None
     # ERSummary er_summary
     er_summary: Optional[ERSummary] = None
+    
+@dataclass
+class FeatureDrcShape(object):
+    llx: float = None
+    lly: float = None
+    urx: float = None
+    ury: float = None
+    net_ids: list = field(default_factory=list)
+    inst_ids: list = field(default_factory=list)
+
+@dataclass
+class FeatureDrcLayer(object):
+    layer: str = None
+    number: int = None
+    shapes: List[FeatureDrcShape] = field(default_factory=list)
+
+@dataclass
+class FeatureDrcDistribution(object):
+    type: str = None
+    number: int = None
+    layers: List[FeatureDrcLayer] = field(default_factory=list)
+
+@dataclass
+class FeatureDrcDistributions(object):
+    number: int = None
+    drc_list: List[FeatureDrcDistribution] = field(default_factory=list)
+
 
 @dataclass
 class FeatureTools(object):

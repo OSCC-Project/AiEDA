@@ -51,7 +51,11 @@ from .eda import (
     VRSummary,
     ERSummary,
     RouteSummary,
-    FeatureTools
+    FeatureTools,
+    FeatureDrcShape,
+    FeatureDrcLayer,
+    FeatureDrcDistribution,
+    FeatureDrcDistributions
 )
 
 # eda evaluation feature data structure from iEDA

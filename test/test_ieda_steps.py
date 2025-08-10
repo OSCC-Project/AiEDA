@@ -20,7 +20,7 @@ from aieda import (
 
 if __name__ == "__main__":  
     # step 1 : create workspace
-    # workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
+    # workspace_dir = "/data/project_share/dataset_baseline/s38584/workspace"
     workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
@@ -43,6 +43,8 @@ if __name__ == "__main__":
     run_ieda.run_routing(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.legalization)))
     
     run_ieda.run_filler(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)))
+    
+    run_ieda.run_drc(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)))
 
     exit(0)
 
