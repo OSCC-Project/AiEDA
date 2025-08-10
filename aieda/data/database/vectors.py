@@ -268,3 +268,9 @@ class VectorInstanceGraphEdge:
 class VectorInstanceGraph(object):
     nodes: List[VectorInstanceGraphNode] = field(default_factory=list)
     edges: List[VectorInstanceGraphEdge] = field(default_factory=list)
+    
+@dataclass
+class VectorPathMetrics:
+    stage: Optional[int] = None
+    inst_delay: List[float] = field(default_factory=list)
+    net_delay: List[float] = field(default_factory=list)

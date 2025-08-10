@@ -149,6 +149,46 @@ class DataVectors:
             read_from_dir()
         
         return wire_paths 
+
+
+    def load_timing_paths_metrics(self, timing_paths_dir:str=None, file_path:str=None): 
+        wire_paths = []   
+        
+        def read_from_dir():
+            # get data from directory
+            for root, dirs, files in os.walk(timing_paths_dir):
+                for _, file in tqdm.tqdm(enumerate(files), total=len(files), desc="timing wire paths"):
+                    if file.endswith(".json"):                    
+                        filepath = os.path.join(root, file)
+                        
+                        parser = VectorsParserJson(json_path=filepath,
+                                                   logger=self.workspace.logger)
+                        vec_paths = parser.get_timing_paths_metrics()
+                        
+                        wire_paths.append(vec_paths)
+                
+        if timing_paths_dir is not None and os.path.isdir(timing_paths_dir):
+            self.workspace.logger.info("read paths from %s", timing_paths_dir)
+            # get timing paths from timing_paths_dir
+            read_from_dir()
+        
+        if file_path is not None and os.path.isfile(file_path):
+            self.workspace.logger.info("read paths from %s", file_path)
+            # get timing paths from file
+            parser = VectorsParserJson(json_path=file_path,
+                                       logger=self.workspace.logger)
+            vec_paths = parser.get_timing_paths_metrics()
+            
+            wire_paths.append(vec_paths)
+            
+        if timing_paths_dir is None and file_path is None:
+            #read paths from output/vectors/wire_paths in workspace
+            timing_paths_dir = self.workspace.paths_table.ieda_vectors['wire_paths']
+            
+            self.workspace.logger.info("read timing paths from workspace %s", timing_paths_dir)
+            read_from_dir()
+        
+        return wire_paths 
     
     def load_instance_graph(self, graph_path : str = None):
         if graph_path is None:
