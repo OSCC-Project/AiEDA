@@ -324,11 +324,106 @@ def create_workspace_sky130_gcd(workspace_dir):
     
     return workspace
 
+def create_workspace_cx55_minirv(workspace_dir):
+    # step 1 : create workspace
+    workspace = workspace_create(directory=workspace_dir, design="minirv")
+    
+    import sys
+    import os
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    root = current_dir.rsplit('/', 1)[0]
+    foundry_dir = "/data2/project_share/cx55/minirv_cx55/lib"
+    
+    # step 2 : set workspace parameters
+    # set def input 
+    workspace.set_def_input("/data2/project_share/cx55/minirv_cx55/workspace_cx55/output/iEDA/result/minirv.def")
+    
+    # set verilog input
+    workspace.set_verilog_input("/data2/project_share/cx55/minirv_cx55/workspace_cx55/output/iEDA/result/minirv.v")
+    
+    # set tech lef
+    workspace.set_tech_lef("/data2/project_share/cx55/minirv_cx55/lib/tlef_1P6M_7T_0530_zzs.lef")
+    
+    # set lefs
+    lefs = [
+            "/data2/project_share/cx55/minirv_cx55/lib/ICSSCA_N55_H7BH.lef",
+            "/data2/project_share/cx55/minirv_cx55/lib/ICSSCA_N55_H7BL.lef",
+            "/data2/project_share/cx55/minirv_cx55/lib/ICSSCA_N55_H7BR.lef"
+        ]
+    workspace.set_lefs(lefs)
+    
+    # set libs
+    libs = [
+        "/data2/project_share/cx55/minirv_cx55/lib/ETSCA_N55_H7BH_DTT_PTYPICAL_V1P2_T25.lib",
+        "/data2/project_share/cx55/minirv_cx55/lib/ETSCA_N55_H7BL_DTT_PTYPICAL_V1P2_T25.lib",
+        "/data2/project_share/cx55/minirv_cx55/lib/ETSCA_N55_H7BR_DTT_PTYPICAL_V1P2_T25.lib"
+        ]
+    workspace.set_libs(libs)
+    
+    # set sdc
+    workspace.set_sdc("/data2/project_share/cx55/minirv_cx55/syn_netlist/default.sdc")
+    
+    # set spef
+    workspace.set_spef("")
+    
+    # set workspace info
+    workspace.set_process_node("cx55")
+    workspace.set_project("minirv")
+    workspace.set_design("minirv")
+    workspace.set_version("V1")
+    workspace.set_task("run_eda")
+    
+    workspace.set_first_routing_layer("MET1")
+    
+    # config iEDA config
+    workspace.set_ieda_fixfanout_buffer("BUFX4H7L")
+    workspace.set_ieda_cts_buffers(
+        [
+        "BUFX4H7L"
+        ]
+    )
+    workspace.set_ieda_cts_root_buffer("BUFX4H7L")
+    workspace.set_ieda_placement_buffers(
+        [
+            "BUFX4H7L"
+        ]
+    )
+    workspace.set_ieda_filler_cells_for_first_iteration(
+        [
+            "FILLCAP32H7H"
+        ]
+    )
+    workspace.set_ieda_filler_cells_for_second_iteration(
+        [
+            "FILLCAP32H7H"
+        ]
+    )
+    workspace.set_ieda_optdrv_buffers(
+        [
+        "BUFX4H7L"
+        ]
+    )
+    workspace.set_ieda_opthold_buffers(
+        [
+        "BUFX4H7L"
+        ]
+    )
+    workspace.set_ieda_optsetup_buffers(
+        [
+        "BUFX4H7L"
+        ]
+    )
+    workspace.set_ieda_router_layer(bottom_layer="MET1", top_layer="MET5")
+    
+    return workspace
+
 if __name__ == "__main__":  
     # workspace_dir = "/data2/huangzengrong/test_aieda/workspace3"
     # workspace = create_workspace_28nm_gcd(workspace_dir)     
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
-    workspace = create_workspace_sky130_gcd(workspace_dir)
+    # workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
+    # workspace = create_workspace_sky130_gcd(workspace_dir)
+    workspace_dir = "/data2/huangzengrong/test_aieda/minirv"
+    workspace = create_workspace_cx55_minirv(workspace_dir)
 
     exit(0)
 

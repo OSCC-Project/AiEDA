@@ -38,7 +38,7 @@ if __name__ == "__main__":
     workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
-    # test_pattern_generation(workspace)
+    test_pattern_generation(workspace)
     test_patterns_load(workspace)
 
     exit(0)

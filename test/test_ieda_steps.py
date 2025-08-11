@@ -20,9 +20,8 @@ from aieda import (
 
 if __name__ == "__main__":  
     # step 1 : create workspace
-    # workspace_dir = "/data/project_share/dataset_baseline/s38584/workspace"
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
-    workspace = workspace_create(directory=workspace_dir, design="gcd")
+    workspace_dir = "/data2/huangzengrong/test_aieda/minirv"
+    workspace = workspace_create(directory=workspace_dir, design="minirv")
     
     # step 2 : init iEDA by workspace
     run_ieda = RunIEDA(workspace)
