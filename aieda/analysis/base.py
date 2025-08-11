@@ -10,6 +10,7 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Any, Optional, Union
 from pathlib import Path
 
+from ..workspace import Workspace
 
 class BaseAnalyzer(ABC):
     """
@@ -27,14 +28,13 @@ class BaseAnalyzer(ABC):
         Subclasses should call super().__init__() and initialize their own
         data structures for storing analysis results and tracking missing files.
         """
-        self.missing_files = []
+        self.dir_to_display_name = {}
     
     @abstractmethod
     def load(self, 
-             base_dirs: List[Union[str, Path]], 
+             workspace_dirs: List[Workspace], 
              dir_to_display_name: Optional[Dict[str, str]] = None,
-             pattern: Optional[str] = None,
-             verbose: bool = True) -> Optional[Dict[str, Any]]:
+             pattern: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
         Load data from multiple directories.
         
@@ -43,10 +43,9 @@ class BaseAnalyzer(ABC):
         data parsing, and error handling for missing or corrupted files.
         
         Args:
-            base_dirs: List of base directories to process
+            workspace_dirs: List of base directories to process
             dir_to_display_name: Optional mapping from directory name to display name
             pattern: File pattern to search for
-            verbose: Whether to print progress information
             
         Returns:
             Dictionary mapping design names to loaded data, or None if no specific
@@ -55,6 +54,12 @@ class BaseAnalyzer(ABC):
         Raises:
             NotImplementedError: If not implemented by subclass
         """
+        self.dir_to_display_name = dir_to_display_name or {}
+        
+        # Subclasses should implement the logic to load data from the specified directories
+        # and handle missing or corrupted files, storing the results in instance variables
+        # and returning a dictionary mapping design names to loaded data, if appropriate.
+        
         pass
     
     @abstractmethod
@@ -73,6 +78,9 @@ class BaseAnalyzer(ABC):
         Raises:
             NotImplementedError: If not implemented by subclass
         """
+        # Subclasses should implement the logic to analyze the loaded data
+        # and return the analysis results, if appropriate.
+        
         pass
     
     @abstractmethod
@@ -92,5 +100,7 @@ class BaseAnalyzer(ABC):
         Raises:
             NotImplementedError: If not implemented by subclass
         """
+        # Subclasses should implement the logic to generate visualizations
+        # for the analyzed data and save them to the specified location, if provided.
+        
         pass
-    

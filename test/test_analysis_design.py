@@ -20,36 +20,36 @@ from aieda import (
 
 BASE_DIRS = [
     "/data2/project_share/dataset_baseline/s713",
-    # "/data2/project_share/dataset_baseline/s44",
-    # "/data2/project_share/dataset_baseline/apb4_rng",
-    # "/data2/project_share/dataset_baseline/gcd",
-    # "/data2/project_share/dataset_baseline/s1238",
-    # "/data2/project_share/dataset_baseline/s1488",
-    # "/data2/project_share/dataset_baseline/apb4_archinfo",
-    # "/data2/project_share/dataset_baseline/apb4_ps2",
-    # "/data2/project_share/dataset_baseline/s9234",
-    # "/data2/project_share/dataset_baseline/apb4_timer",
-    # "/data2/project_share/dataset_baseline/s13207",
-    # "/data2/project_share/dataset_baseline/apb4_i2c",
-    # "/data2/project_share/dataset_baseline/s5378",
-    # "/data2/project_share/dataset_baseline/apb4_pwm",
-    # "/data2/project_share/dataset_baseline/apb4_wdg",
-    # "/data2/project_share/dataset_baseline/apb4_clint",
-    # "/data2/project_share/dataset_baseline/ASIC",
-    # "/data2/project_share/dataset_baseline/s15850",
-    # "/data2/project_share/dataset_baseline/apb4_uart",
-    # "/data2/project_share/dataset_baseline/s38417",
-    # "/data2/project_share/dataset_baseline/s35932",
-    # "/data2/project_share/dataset_baseline/s38584",
-    # "/data2/project_share/dataset_baseline/BM64",
-    # "/data2/project_share/dataset_baseline/picorv32",
-    # "/data2/project_share/dataset_baseline/PPU",
-    # "/data2/project_share/dataset_baseline/blabla",
-    # "/data2/project_share/dataset_baseline/aes_core",
-    # "/data2/project_share/dataset_baseline/aes",
-    # "/data2/project_share/dataset_baseline/salsa20",
-    # "/data2/project_share/dataset_baseline/jpeg_encoder",
-    # "/data2/project_share/dataset_baseline/eth_top",
+    "/data2/project_share/dataset_baseline/s44",
+    "/data2/project_share/dataset_baseline/apb4_rng",
+    "/data2/project_share/dataset_baseline/gcd",
+    "/data2/project_share/dataset_baseline/s1238",
+    "/data2/project_share/dataset_baseline/s1488",
+    "/data2/project_share/dataset_baseline/apb4_archinfo",
+    "/data2/project_share/dataset_baseline/apb4_ps2",
+    "/data2/project_share/dataset_baseline/s9234",
+    "/data2/project_share/dataset_baseline/apb4_timer",
+    "/data2/project_share/dataset_baseline/s13207",
+    "/data2/project_share/dataset_baseline/apb4_i2c",
+    "/data2/project_share/dataset_baseline/s5378",
+    "/data2/project_share/dataset_baseline/apb4_pwm",
+    "/data2/project_share/dataset_baseline/apb4_wdg",
+    "/data2/project_share/dataset_baseline/apb4_clint",
+    "/data2/project_share/dataset_baseline/ASIC",
+    "/data2/project_share/dataset_baseline/s15850",
+    "/data2/project_share/dataset_baseline/apb4_uart",
+    "/data2/project_share/dataset_baseline/s38417",
+    "/data2/project_share/dataset_baseline/s35932",
+    "/data2/project_share/dataset_baseline/s38584",
+    "/data2/project_share/dataset_baseline/BM64",
+    "/data2/project_share/dataset_baseline/picorv32",
+    "/data2/project_share/dataset_baseline/PPU",
+    "/data2/project_share/dataset_baseline/blabla",
+    "/data2/project_share/dataset_baseline/aes_core",
+    "/data2/project_share/dataset_baseline/aes",
+    "/data2/project_share/dataset_baseline/salsa20",
+    "/data2/project_share/dataset_baseline/jpeg_encoder",
+    "/data2/project_share/dataset_baseline/eth_top",
     # "/data2/project_share/dataset_baseline/yadan_riscv_sopc",
     # "/data2/project_share/dataset_baseline/beihai",
     # "/data2/project_share/dataset_baseline/shanghai_MS",
@@ -125,102 +125,54 @@ DISPLAY_NAME = {
 }
 
 
-BASE_DIRS_FOR_STATS = [
-    "/data/project_share/yhqiu/s713",
-    "/data/project_share/yhqiu/s44",
-    "/data/project_share/yhqiu/apb4_rng",
-    "/data/project_share/yhqiu/gcd",
-    "/data/project_share/yhqiu/s1238",
-    "/data/project_share/yhqiu/s1488",
-    "/data/project_share/yhqiu/apb4_archinfo",
-    "/data/project_share/yhqiu/apb4_ps2",
-    "/data/project_share/yhqiu/s9234",
-    "/data/project_share/yhqiu/apb4_timer",
-]
-
-
 def main():
-    # 1. test cell type analysis: load, analyze, visualize
-    cell_analyzer = CellTypeAnalyzer()
-    cell_analyzer.load(
-        base_dirs=BASE_DIRS,
-        dir_to_display_name=DISPLAY_NAME,
-        pattern = "workspace/output/innovus/feature/*route_summary.json",
-        verbose=True
-    )
-    cell_analyzer.analyze()
-    cell_analyzer.visualize(save_path="./")
-    
-    
-    # 2. test core usage analysis: load, analyze, visualize
-    core_analyzer = CoreUsageAnalyzer()
-    core_analyzer.load(
-        base_dirs=BASE_DIRS,
-        pattern = "workspace/output/innovus/feature/*route_summary.json",
-        verbose=True
-    )
-    core_analyzer.analyze()
-    core_analyzer.visualize(save_path="./")
-    
-    
-    # 3. test pin distribution analysis: load, analyze, visualize
-    pin_analyzer = PinDistributionAnalyzer()
-    pin_analyzer.load(
-        base_dirs=BASE_DIRS,
-        pattern = "workspace/output/innovus/feature/*route_summary.json",
-        verbose=True
-    )
-    pin_analyzer.analyze()
-    pin_analyzer.visualize(save_path="./")
-    
-    # 4. test result statistics
-    result_analyzer = ResultStatisAnalyzer()
-    result_analyzer.load(
-        base_dirs=BASE_DIRS_FOR_STATS, 
-        pattern="workspace/output/innovus/feature/large_model",
-        calc_wire_num=False, 
-        verbose=True
-    )
-    result_analyzer.analyze()
-    result_analyzer.visualize(save_path="./")
-    
-    
+    # step 0: create workspace list
     workspace_list = []
     for base_dir in BASE_DIRS:
         workspace = workspace_create(directory=base_dir+"/workspace", design = os.path.basename(base_dir))
         workspace_list.append(workspace)
         
-    # 5. test cell type analysis from workspace and flow
+    # step 1: test cell type analysis
     cell_analyzer = CellTypeAnalyzer()
-    cell_analyzer.load_workspace(
-        base_dirs=workspace_list,
-        dir_to_display_name=DISPLAY_NAME,
+    cell_analyzer.load(
+        workspace_dirs=workspace_list,
         flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
-        verbose=True
-    )
+        dir_to_display_name=DISPLAY_NAME
+        )
     cell_analyzer.analyze()
     cell_analyzer.visualize(save_path="./")
     
-    # 6. test core usage analysis form workspace and flow
+    
+    # step 2: test core usage analysis
     core_analyzer = CoreUsageAnalyzer()
-    core_analyzer.load_workspace(
-        base_dirs=workspace_list,
-        flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
-        verbose=True
+    core_analyzer.load(
+        workspace_dirs=workspace_list,
+        flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
     )
     core_analyzer.analyze()
     core_analyzer.visualize(save_path="./")
     
     
-    # 7. test pin distribution analysis from workspace and flow
+    # step 3: test pin distribution analysis
     pin_analyzer = PinDistributionAnalyzer()
-    pin_analyzer.load_workspace(
-        base_dirs=workspace_list,
-        flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
-        verbose=True
+    pin_analyzer.load(
+        workspace_dirs=workspace_list,
+        flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
     )
     pin_analyzer.analyze()
     pin_analyzer.visualize(save_path="./")
+    
+    
+    # step 4: test result statistics
+    result_analyzer = ResultStatisAnalyzer()
+    result_analyzer.load(
+        workspace_dirs=workspace_list, 
+        pattern="/output/innovus/vectors",
+        dir_to_display_name=DISPLAY_NAME,
+        calc_wire_num=False,  # set to False to avoid calculating wire number
+    )
+    result_analyzer.analyze()
+    result_analyzer.visualize(save_path="./")
     
 
 if __name__ == "__main__":  

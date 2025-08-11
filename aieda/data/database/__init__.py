@@ -113,5 +113,6 @@ from .vectors import (
     VectorInstances,
     VectorInstanceGraphNode,
     VectorInstanceGraphEdge,
-    VectorInstanceGraph
+    VectorInstanceGraph,
+    VectorPathMetrics
 )

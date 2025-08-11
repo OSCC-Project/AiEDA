@@ -13,18 +13,23 @@ import_aieda()
 ######################################################################################
 
 from aieda.analysis import WireDistributionAnalyzer, MetricsCorrelationAnalyzer
+from aieda import (
+    workspace_create,
+    DbFlow
+)
+import os
 
 BASE_DIRS = [
-    "/data/project_share/yhqiu/s713",
-    "/data/project_share/yhqiu/s44",
-    "/data/project_share/yhqiu/apb4_rng",
-    "/data/project_share/yhqiu/gcd",
-    "/data/project_share/yhqiu/s1238",
-    "/data/project_share/yhqiu/s1488",
-    "/data/project_share/yhqiu/apb4_archinfo",
-    "/data/project_share/yhqiu/apb4_ps2",
-    "/data/project_share/yhqiu/s9234",
-    "/data/project_share/yhqiu/apb4_timer",
+    "/data2/project_share/dataset_baseline/s713",
+    "/data2/project_share/dataset_baseline/s44",
+    "/data2/project_share/dataset_baseline/apb4_rng",
+    "/data2/project_share/dataset_baseline/gcd",
+    "/data2/project_share/dataset_baseline/s1238",
+    "/data2/project_share/dataset_baseline/s1488",
+    "/data2/project_share/dataset_baseline/apb4_archinfo",
+    "/data2/project_share/dataset_baseline/apb4_ps2",
+    "/data2/project_share/dataset_baseline/s9234",
+    "/data2/project_share/dataset_baseline/apb4_timer"
 ]
 
 DISPLAY_NAME = {
@@ -42,26 +47,29 @@ DISPLAY_NAME = {
 
 
 def main():
-    
-    # 1. Wire Distribution Analysis
+    # step 0: create workspace list
+    workspace_list = []
+    for base_dir in BASE_DIRS:
+        workspace = workspace_create(directory=base_dir+"/workspace", design = os.path.basename(base_dir))
+        workspace_list.append(workspace)
+        
+    # step 1: Wire Distribution Analysis
     wire_analyzer = WireDistributionAnalyzer()
     wire_analyzer.load(
-        base_dirs=BASE_DIRS,
-        dir_to_display_name=DISPLAY_NAME,
-        pattern = "workspace/output/innovus/feature/large_model/nets/net_*.json",
-        verbose=True
+        workspace_dirs=workspace_list,
+        pattern = "/output/innovus/vectors/nets",
+        dir_to_display_name=DISPLAY_NAME
     )
     wire_analyzer.analyze()
     wire_analyzer.visualize(save_path=".")
     
-    # 2. Metrics Correlation Analysis
+    # step 2: Metrics Correlation Analysis
     metric_analyzer = MetricsCorrelationAnalyzer()
     metric_analyzer.load(
-        base_dirs=BASE_DIRS,
+        workspace_dirs=workspace_list,
         dir_to_display_name=DISPLAY_NAME,
-        pattern = "workspace/output/innovus/feature/large_model/nets/net_*.json",
-        verbose=True
-    )
+        pattern = "/output/innovus/vectors/nets"
+        )
     metric_analyzer.analyze()
     metric_analyzer.visualize(save_path=".")
 

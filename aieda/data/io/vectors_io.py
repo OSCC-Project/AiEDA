@@ -478,6 +478,34 @@ class VectorsParserJson(JsonParser):
         
         return path_hash, wire_path_graph
     
+    
+    def get_timing_paths_metrics(self)-> VectorPathMetrics:  
+        
+        path_data = VectorPathMetrics()
+        if self.read() is True:  
+            for json_item in self.json_data:  
+                for key, json_value in json_item.items():
+                    if key.startswith("node_"):   
+                        break
+
+                    elif key.startswith("net_arc_"):
+                        path_data.net_delay.append(json_value.get("Incr", 0))
+                        # Find the last net_arc_ key
+                        net_arc_keys = [key for key in json_item.keys() if key.startswith("net_arc_")]
+                        
+                    elif key.startswith("inst_arc_"):
+                        path_data.inst_delay.append(json_value.get("Incr", 0))
+        
+
+            if net_arc_keys:
+                last_net_arc_key = max(net_arc_keys, key=lambda x: int(x.split("_")[-1]))
+                path_data.stage = (int(last_net_arc_key.split("_")[-1]) + 1) / 2
+            else:
+                path_data.stage = None
+                
+        return path_data   
+        
+    
     def get_instance_graph(self):
         if self.read() is True:   
             instance_nodes = []

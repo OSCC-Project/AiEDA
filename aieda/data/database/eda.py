@@ -477,6 +477,7 @@ class FeatureTools(object):
 ##########################################################################################
 from enum import Enum
 from typing import List
+import numpy as np
 
 # wirelength
 @dataclass
@@ -490,27 +491,47 @@ class FeatureWirelength(object):
 # density
 @dataclass
 class FeatureDensityCell(object):
+    # csv map path
     allcell_density: str = None
     macro_density: str = None
     stdcell_density: str = None
-
+    # csv map value
+    allcell_density_data: np.ndarray = None
+    macro_density_data: np.ndarray = None
+    stdcell_density_data: np.ndarray = None
+    
 @dataclass
 class FeatureDensityMargin(object):
+    # csv map path
     horizontal: str = None
     union: str = None
     vertical: str = None
+    # csv map value
+    horizontal_data: np.ndarray = None
+    union_data: np.ndarray = None
+    vertical_data: np.ndarray = None
 
 @dataclass
 class FeatureDensityNet(object):
+    # csv map path
     allnet_density: str = None
     global_net_density: str = None
     local_net_density: str = None
+    # csv map value
+    allnet_density_data: np.ndarray = None
+    global_net_density_data: np.ndarray = None
+    local_net_density_data: np.ndarray = None
 
 @dataclass
 class FeatureDensityPin(object):
+    # csv map path
     allcell_pin_density: str = None
     macro_pin_density: str = None
     stdcell_pin_density: str = None
+    # csv map value
+    allcell_pin_density_data: np.ndarray = None
+    macro_pin_density_data: np.ndarray = None
+    stdcell_pin_density_data: np.ndarray = None
 
 @dataclass
 class FeatureDensity(object):
@@ -522,9 +543,14 @@ class FeatureDensity(object):
 # congestion
 @dataclass
 class FeatureCongestionMapBase(object):
+    # csv map path
     horizontal: str = None
     union: str = None
     vertical: str = None
+    # csv map value
+    horizontal_data: np.ndarray = None
+    union_data: np.ndarray = None
+    vertical_data: np.ndarray = None
 
 @dataclass
 class FeatureCongestionMap(object):

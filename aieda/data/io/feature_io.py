@@ -9,6 +9,7 @@
 from ...utility.json_parser import JsonParser
 from ...utility.log import Logger
 from ..database import *
+import numpy as np
 
 class FeatureParserJson(JsonParser):
     
@@ -796,15 +797,21 @@ class FeatureParserJson(JsonParser):
                 feature_density.cell = FeatureDensityCell(
                     allcell_density=cell_data.get('allcell_density', None),
                     macro_density=cell_data.get('macro_density', None),
-                    stdcell_density=cell_data.get('stdcell_density', None)
+                    stdcell_density=cell_data.get('stdcell_density', None),
+                    allcell_density_data=np.loadtxt(cell_data.get('allcell_density', None), delimiter=','),
+                    macro_density_data=np.loadtxt(cell_data.get('macro_density', None), delimiter=','),
+                    stdcell_density_data=np.loadtxt(cell_data.get('stdcell_density', None), delimiter=',')
                 )
-            
+ 
             if 'margin' in dict_density:
                 margin_data = dict_density['margin']
                 feature_density.margin = FeatureDensityMargin(
                     horizontal=margin_data.get('horizontal', None),
                     union=margin_data.get('union', None),
-                    vertical=margin_data.get('vertical', None)
+                    vertical=margin_data.get('vertical', None),
+                    horizontal_data=np.loadtxt(margin_data.get('horizontal', None), delimiter=','),
+                    union_data=np.loadtxt(margin_data.get('union', None), delimiter=','),
+                    vertical_data=np.loadtxt(margin_data.get('vertical', None), delimiter=',')
                 )
             
             if 'net' in dict_density:
@@ -812,7 +819,10 @@ class FeatureParserJson(JsonParser):
                 feature_density.net = FeatureDensityNet(
                     allnet_density=net_data.get('allnet_density', None),
                     global_net_density=net_data.get('global_net_density', None),
-                    local_net_density=net_data.get('local_net_density', None)
+                    local_net_density=net_data.get('local_net_density', None),
+                    allnet_density_data=np.loadtxt(net_data.get('allnet_density', None), delimiter=','),
+                    global_net_density_data=np.loadtxt(net_data.get('global_net_density', None), delimiter=','),
+                    local_net_density_data=np.loadtxt(net_data.get('local_net_density', None), delimiter=',')
                 )
             
             if 'pin' in dict_density:
@@ -820,7 +830,10 @@ class FeatureParserJson(JsonParser):
                 feature_density.pin = FeatureDensityPin(
                     allcell_pin_density=pin_data.get('allcell_pin_density', None),
                     macro_pin_density=pin_data.get('macro_pin_density', None),
-                    stdcell_pin_density=pin_data.get('stdcell_pin_density', None)
+                    stdcell_pin_density=pin_data.get('stdcell_pin_density', None),
+                    allcell_pin_density_data=np.loadtxt(pin_data.get('allcell_pin_density', None), delimiter=','),
+                    macro_pin_density_data=np.loadtxt(pin_data.get('macro_pin_density', None), delimiter=','),
+                    stdcell_pin_density_data=np.loadtxt(pin_data.get('stdcell_pin_density', None), delimiter=',')
                 )
             
             return feature_density
@@ -843,7 +856,11 @@ class FeatureParserJson(JsonParser):
                     feature_congestion.map.egr = FeatureCongestionMapBase(
                         horizontal=egr_data.get('horizontal', None),
                         union=egr_data.get('union', None),
-                        vertical=egr_data.get('vertical', None)
+                        vertical=egr_data.get('vertical', None),
+                        horizontal_data=np.loadtxt(egr_data.get('horizontal', None), delimiter=','),
+                        union_data=np.loadtxt(egr_data.get('union', None), delimiter=','),
+                        vertical_data=np.loadtxt(egr_data.get('vertical', None), delimiter=',')
+                        
                     )
                 
                 if 'lutrudy' in map_data:
@@ -851,7 +868,10 @@ class FeatureParserJson(JsonParser):
                     feature_congestion.map.lutrudy = FeatureCongestionMapBase(
                         horizontal=lutrudy_data.get('horizontal', None),
                         union=lutrudy_data.get('union', None),
-                        vertical=lutrudy_data.get('vertical', None)
+                        vertical=lutrudy_data.get('vertical', None),
+                        horizontal_data= np.loadtxt(lutrudy_data.get('horizontal', None), delimiter=','),
+                        union_data= np.loadtxt(lutrudy_data.get('union', None), delimiter=','),
+                        vertical_data= np.loadtxt(lutrudy_data.get('vertical', None), delimiter=',')
                     )
                 
                 if 'rudy' in map_data:
@@ -859,7 +879,10 @@ class FeatureParserJson(JsonParser):
                     feature_congestion.map.rudy = FeatureCongestionMapBase(
                         horizontal=rudy_data.get('horizontal', None),
                         union=rudy_data.get('union', None),
-                        vertical=rudy_data.get('vertical', None)
+                        vertical=rudy_data.get('vertical', None),
+                        horizontal_data=np.loadtxt(rudy_data.get('horizontal', None), delimiter=','),
+                        union_data= np.loadtxt(rudy_data.get('union', None), delimiter=','),
+                        vertical_data= np.loadtxt(rudy_data.get('vertical', None), delimiter=',')
                     )
             
             if 'overflow' in dict_congestion:
