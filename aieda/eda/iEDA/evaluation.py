@@ -67,7 +67,13 @@ class IEDAEvaluation(IEDAIO):
                      bin_cnt_y : int = 256, 
                      save_path : str = ""):
         self.read_output_def()
+        
+        if not save_path:
+            save_path = self.workspace.paths_table.analysis_path + "/cell_density.csv"
+            print(f"Using the default save path: {save_path}")
+        
         max_density, avg_density = self.ieda.cell_density(bin_cnt_x, bin_cnt_y, save_path)
+        
         return max_density, avg_density
     
     # pin density (pin count)
@@ -76,7 +82,13 @@ class IEDAEvaluation(IEDAIO):
                      bin_cnt_y : int = 256, 
                      save_path : str = ""):
         self.read_output_def()
+        
+        if not save_path:
+            save_path = self.workspace.paths_table.analysis_path + "/pin_density.csv"
+            print(f"Using the default save path: {save_path}")
+            
         max_density, avg_density = self.ieda.pin_density(bin_cnt_x, bin_cnt_y, save_path)
+        
         return max_density, avg_density
     
     # net density (net count)
@@ -85,7 +97,13 @@ class IEDAEvaluation(IEDAIO):
                      bin_cnt_y : int = 256, 
                      save_path : str = ""):
         self.read_output_def()
+        
+        if not save_path:
+            save_path = self.workspace.paths_table.analysis_path + "/net_density.csv"
+            print(f"Using the default save path: {save_path}")
+            
         max_density, avg_density = self.ieda.net_density(bin_cnt_x, bin_cnt_y, save_path)
+        
         return max_density, avg_density
     
 #######################################################################################
@@ -97,7 +115,13 @@ class IEDAEvaluation(IEDAIO):
                         bin_cnt_y : int = 256,
                         save_path : str = ""):
         self.read_output_def()
+        
+        if not save_path:
+            save_path = self.workspace.paths_table.analysis_path + "/rudy_congestion.csv"
+            print(f"Using the default save path: {save_path}")
+        
         max_congestion, total_congestion = self.ieda.rudy_congestion(bin_cnt_x, bin_cnt_y, save_path)
+        
         return max_congestion, total_congestion
     
     # LUT-RUDY congesiton
@@ -106,14 +130,26 @@ class IEDAEvaluation(IEDAIO):
                             bin_cnt_y : int = 256,
                             save_path : str = ""):
         self.read_output_def()
+        
+        if not save_path:
+            save_path = self.workspace.paths_table.analysis_path + "/lut_rudy_congestion.csv"
+            print(f"Using the default save path: {save_path}")
+            
         max_congestion, total_congestion = self.ieda.lut_rudy_congestion(bin_cnt_x, bin_cnt_y, save_path)
+        
         return max_congestion, total_congestion
     
     # EGR congestion, calling iRT
     def egr_congestion(self,
                        save_path : str = ""):
         self.read_output_def()
+        
+        if not save_path:
+            save_path = self.workspace.paths_table.analysis_path + "/egr_congestion.csv"
+            print(f"Using the default save path: {save_path}")
+            
         max_congestion, total_congestion = self.ieda.egr_congestion(save_path)
+        
         return max_congestion, total_congestion
 
 
