@@ -418,12 +418,12 @@ def create_workspace_cx55_minirv(workspace_dir):
     return workspace
 
 if __name__ == "__main__":  
-    # workspace_dir = "/data2/huangzengrong/test_aieda/workspace3"
+    # workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
     # workspace = create_workspace_28nm_gcd(workspace_dir)     
-    # workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
-    # workspace = create_workspace_sky130_gcd(workspace_dir)
-    workspace_dir = "/data2/huangzengrong/test_aieda/minirv"
-    workspace = create_workspace_cx55_minirv(workspace_dir)
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_3"
+    workspace = create_workspace_sky130_gcd(workspace_dir)
+    # workspace_dir = "/data2/huangzengrong/test_aieda/minirv"
+    # workspace = create_workspace_cx55_minirv(workspace_dir)
 
     exit(0)
 

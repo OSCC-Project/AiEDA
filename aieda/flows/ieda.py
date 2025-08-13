@@ -20,6 +20,7 @@ class RunIEDA(RunFlowBase):
         # physical design flow order for iEDA
         self.default_flows = [
             "floorplan",
+            "pdn",
             "fixFanout",
             "place",
             "CTS",
@@ -39,6 +40,12 @@ class RunIEDA(RunFlowBase):
                 case DbFlow.FlowStep.floorplan:
                     from ..eda import IEDAFloorplan
                     ieda_flow = IEDAFloorplan(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow.run_flow()
+                    
+                case DbFlow.FlowStep.pdn:
+                    from ..eda import IEDAPdn
+                    ieda_flow = IEDAPdn(workspace=self.workspace,
                                               flow=flow)
                     ieda_flow.run_flow()
                     

@@ -107,6 +107,11 @@ class Workspace:
         parser = ConfigIEDAFloorplanParser(self.paths_table.ieda_config['floorplan'], self.logger)
         parser.create_json_default()
         
+        # create pnp_default_config.json
+        from .config import ConfigIEDAPNPParser
+        parser = ConfigIEDAPNPParser(self.paths_table.ieda_config['pnp'], self.logger)
+        parser.create_json_default(self.paths_table)
+        
         # create no_default_config_fixfanout.json
         from .config import ConfigIEDAFixFanoutParser
         parser = ConfigIEDAFixFanoutParser(self.paths_table.ieda_config['fixFanout'], self.logger)
@@ -488,6 +493,7 @@ class Workspace:
                      'initFlow' : "{}/config/iEDA_config/flow_config.json".format(self.directory),
                        'initDB' : "{}/config/iEDA_config/db_default_config.json".format(self.directory),
                     'floorplan' : "{}/config/iEDA_config/fp_default_config.json".format(self.directory),
+                          'pnp' : "{}/config/iEDA_config/pnp_default_config.json".format(self.directory),
                     'fixFanout' : "{}/config/iEDA_config/no_default_config_fixfanout.json".format(self.directory),
                         'place' : "{}/config/iEDA_config/pl_default_config.json".format(self.directory),
                           'CTS' : "{}/config/iEDA_config/cts_default_config.json".format(self.directory),
@@ -508,6 +514,7 @@ class Workspace:
                     'result' : "{}/output/iEDA/result".format(self.directory),
                       'data' : "{}/output/iEDA/data".format(self.directory),
                         'fp' : "{}/output/iEDA/data/fp".format(self.directory),
+                        'pnp' : "{}/output/iEDA/data/pnp".format(self.directory),
                         'pl' : "{}/output/iEDA/data/pl".format(self.directory),
                        'cts' : "{}/output/iEDA/data/cts".format(self.directory),
                         'no' : "{}/output/iEDA/data/no".format(self.directory),

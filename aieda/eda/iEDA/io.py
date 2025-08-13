@@ -18,6 +18,9 @@ class IEDAIO(IEDABase):
         super().__init__(workspace=workspace, flow=flow)
         self.inited_flag = False
         
+    def set_exclude_cell_names(self, cell_names : set):
+        self.cell_names = cell_names
+        
     def run_flow(self):
         p = Process(target=self.__run_flow__, args=())
         p.start()

@@ -16,6 +16,16 @@ class IEDAPdn(IEDAIO):
         
     def __configs__(self):
         super().__configs__()
+        
+        self.ieda_config = self.workspace.paths_table.ieda_config['pnp']
     
-    def run_pdn(self):
-        pass
+    def __run_flow__(self):     
+        self.read_def()
+        
+        self.ieda.run_pnp(self.ieda_config)
+        
+        self.def_save()
+        self.verilog_save(self.cell_names)
+    
+    def run_pnp(self):       
+        self.ieda.run_pnp(self.ieda_config)    

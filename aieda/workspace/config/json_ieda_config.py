@@ -18,19 +18,6 @@ class ConfigIEDAFlowParser(JsonParser):
     def default_json(self):
         dict_data = \
         {
-            "Tools": {
-                "TCL": "ON"
-            },
-            "Flow": {
-                "Synthesis": "OFF",
-                "Floorplan": "OFF",
-                "Placer": "OFF",
-                "CTS": "OFF",
-                "TO": "OFF",
-                "Router": "OFF",
-                "DRC": "OFF",
-                "GUI": "OFF"
-            },
             "ConfigPath": {
                 "idb_path": "./iEDA_config/db_default_config.json",
                 "ifp_path": "./iEDA_config/fp_default_config.json",
@@ -38,7 +25,8 @@ class ConfigIEDAFlowParser(JsonParser):
                 "irt_path": "./iEDA_config/rt_default_config.json",
                 "idrc_path": "./iEDA_config/drc_default_config.json",
                 "icts_path": "./iEDA_config/cts_default_config.json",
-                "ito_path": "./iEDA_config/to_default_config.json"
+                "ito_path": "./iEDA_config/to_default_config.json",
+                "ipnp_path": "./iEDA_config/pnp_default_config.json"
             }
         }
         
@@ -699,3 +687,93 @@ class ConfigIEDADrcParser(JsonParser):
             self.json_data = self.default_json
         
         return self.write()   
+    
+
+class ConfigIEDAPNPParser(JsonParser):
+    """config iEDA json"""
+    def __init__(self, json_path: str, logger):
+        super().__init__(json_path, logger)
+    
+    @property    
+    def default_json(self):
+        dict_data = \
+        {
+            "timing": {
+              "design_workspace": ""
+            },
+            "power": {
+              "power_net_name": "VDD"
+            },
+            "egr":{
+              "map_path":""
+            },
+            "grid": {
+              "power_layers": [9,8,7,6,5,4,3],
+              "ho_region_num": 2,
+              "ver_region_num": 2
+            },
+            "simulated_annealing": {
+              "initial_temp": 100.0,
+              "cooling_rate": 0.95,
+              "min_temp": 0.1,
+              "iterations_per_temp": 10,
+              "ir_drop_weight": 0.6,
+              "overflow_weight": 0.4,
+              "modifiable_layer_min": 3,
+              "modifiable_layer_max": 6
+            },
+            "templates":{
+              "horizontal": [
+                {
+                  "width": 8000.0,
+                  "pg_offset": 1600.0,
+                  "space": 19200.0,
+                  "offset": 8000.0
+                },
+                {
+                  "width": 8000.0,
+                  "pg_offset": 1600.0,
+                  "space": 38400.0,
+                  "offset": 8000.0
+                },
+                {
+                  "width": 8000.0,
+                  "pg_offset": 1600.0,
+                  "space": 38400.0,
+                  "offset": 27200.0
+                }
+              ],
+              "vertical": [
+                {
+                  "width": 8000.0,
+                  "pg_offset": 1600.0,
+                  "space": 19200.0,
+                  "offset": 8000.0
+                },
+                {
+                  "width": 8000.0,
+                  "pg_offset": 1600.0,
+                  "space": 38400.0,
+                  "offset": 8000.0
+                },
+                {
+                  "width": 8000.0,
+                  "pg_offset": 1600.0,
+                  "space": 38400.0,
+                  "offset": 27200.0
+                }
+              ]
+            }
+        }
+        
+        return dict_data
+    
+    def create_json_default(self, paths_table):
+        # create json
+        if self.read_create():                   
+            self.json_data = self.default_json
+            
+            self.json_data['timing']['design_workspace'] = "{}".format(paths_table.ieda_output['pnp'])
+            self.json_data['egr']['map_path'] = "{}".format(paths_table.ieda_output['pnp'])
+        
+        return self.write()    

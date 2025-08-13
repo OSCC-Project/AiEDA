@@ -34,3 +34,10 @@ class IEDABase():
         
     def get_ieda(self):
         return self.ieda
+    
+    ######################################################################
+    #data operation
+    ######################################################################
+    def set_net(self, net_name : str, net_type : str):
+        return self.ieda.set_net(net_name=net_name,
+                                 net_type=net_type)

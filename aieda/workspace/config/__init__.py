@@ -26,5 +26,6 @@ from .json_ieda_config import (
     ConfigIEDARouterParser,
     ConfigIEDATimingOptParser,
     ConfigIEDAFloorplanParser,
-    ConfigIEDADrcParser
+    ConfigIEDADrcParser,
+    ConfigIEDAPNPParser
 )
