@@ -207,6 +207,26 @@ class Workspace:
         parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_libs(libs=libs)
         
+    def set_max_libs(self, libs : list[str]):
+        # update data
+        self.configs.paths.max_lib_paths = libs
+        
+        # update libs in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path, self.logger)
+        parser.set_max_libs(libs)
+        
+    def set_min_libs(self, libs : list[str]):
+        # update data
+        self.configs.paths.min_lib_paths = libs
+        
+        # update libs in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path, self.logger)
+        parser.set_min_libs(libs)
+        
     def set_sdc(self, sdc_path : str):
         # update data
         self.configs.paths.sdc_path = sdc_path
@@ -238,6 +258,26 @@ class Workspace:
         json_path = self.paths_table.ieda_config['initDB']
         parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_spef(spef_path=spef_path)
+        
+    def set_rcworst(self, rcworst_path : str):
+        # update data
+        self.configs.paths.rcworst_path = rcworst_path
+        
+        # update sdc in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path, self.logger)
+        parser.set_rcworst(rcworst_path)
+        
+    def set_rcbest(self, rcbest_path : str):
+        # update data
+        self.configs.paths.rcbest_path = rcbest_path
+        
+        # update sdc in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path, self.logger)
+        parser.set_rcbest(rcbest_path)
     
     def set_def_input(self, def_input : str):
         # update data
@@ -596,7 +636,9 @@ class Workspace:
         def scripts(self):
             scirpt_paths = {
                            'main'       : "{}/script/main.tcl".format(self.directory),
-                           'definition' : "{}/script/definition.tcl".format(self.directory)
+                           'definition' : "{}/script/definition.tcl".format(self.directory),
+                           'sta'        : "{}/script/sta.tcl".format(self.directory),
+                           'mmmc'        : "{}/script/mmmc.tcl".format(self.directory)
                            }
             return scirpt_paths
             

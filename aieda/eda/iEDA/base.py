@@ -6,7 +6,7 @@
 @Desc : iEDA base framework
 '''
 import os
-if os.environ.get('iEDA') == "on":
+if os.environ.get('iEDA') == "ON":
     from ...third_party.iEDA.bin import ieda_py as ieda
 else:
     ieda = None
