@@ -131,7 +131,7 @@ class RunFlowBase:
         # physical design flow order
         self.default_flows = None
     
-    def __get_workspace_flows__(self):
+    def _get_workspace_flows(self):
         flows = self.workspace.configs.flows
         for i in range(0, len(flows)):
             if i == 0:
@@ -163,7 +163,7 @@ class RunFlowBase:
             if reset:
                 #reset flow state to unstart
                 self.workspace.configs.reset_flow_states()
-            flows = self.__get_workspace_flows__()
+            flows = self._get_workspace_flows()
         else:
             if reset:
                 for flow in flows:

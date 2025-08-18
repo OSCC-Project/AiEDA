@@ -34,7 +34,7 @@ class RunIEDA(RunFlowBase):
             
     def run_flow(self, flow : DbFlow, output_path:str=None):
         """run flow"""            
-        def __run_eda__(flow : DbFlow):
+        def _run_eda(flow : DbFlow):
             """run eda tool""" 
             match flow.step:
                 case DbFlow.FlowStep.floorplan:
@@ -125,7 +125,7 @@ class RunIEDA(RunFlowBase):
         self.workspace.configs.save_flow_state(flow)
              
         #run eda tool
-        __run_eda__(flow)
+        _run_eda(flow)
         
         #save flow state
         is_success = False

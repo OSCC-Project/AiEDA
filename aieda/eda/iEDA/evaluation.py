@@ -24,8 +24,8 @@ class IEDAEvaluation(IEDAIO):
         self.is_wirelength_eval = False
         self.wirelength_dict = {}
     
-    def __configs__(self):
-        super().__configs__()
+    def _configs(self):
+        super()._configs()
 #######################################################################################
 #                      wirelength evaluation                                          # 
 #######################################################################################

@@ -15,15 +15,15 @@ class IEDADrc(IEDAIO):
         self.feature_path = output_path
         super().__init__(workspace=workspace, flow=flow)
         
-    def __configs__(self):
-        super().__configs__()
+    def _configs(self):
+        super()._configs()
         
         self.ieda_config = self.workspace.paths_table.ieda_config['drc']
         self.report_path = self.workspace.paths_table.ieda_report['drc']
         if self.feature_path is None:
             self.feature_path = self.workspace.paths_table.ieda_feature_json['route_drc']
         
-    def __run_flow__(self):
+    def _run_flow(self):
         self.read_def()
         
         self.ieda.init_drc(temp_directory_path = self.workspace.paths_table.ieda_output['drc'], 

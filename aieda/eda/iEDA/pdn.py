@@ -14,12 +14,12 @@ class IEDAPdn(IEDAIO):
     def __init__(self, workspace : Workspace, flow : DbFlow):
         super().__init__(workspace=workspace, flow=flow)
         
-    def __configs__(self):
-        super().__configs__()
+    def _configs(self):
+        super()._configs()
         
         self.ieda_config = self.workspace.paths_table.ieda_config['pnp']
     
-    def __run_flow__(self):     
+    def _run_flow(self):     
         self.read_def()
         
         self.ieda.run_pnp(self.ieda_config)
