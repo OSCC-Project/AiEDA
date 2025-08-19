@@ -7,7 +7,6 @@ from .enum import (
     NetType,
     CongestionType,
     RudyType,
-    InstanceStatus,
     WirelengthType,
     Direction,
     FeatureOption,
@@ -52,7 +51,11 @@ from .eda import (
     VRSummary,
     ERSummary,
     RouteSummary,
-    FeatureTools
+    FeatureTools,
+    FeatureDrcShape,
+    FeatureDrcLayer,
+    FeatureDrcDistribution,
+    FeatureDrcDistributions
 )
 
 # eda evaluation feature data structure from iEDA
@@ -107,5 +110,9 @@ from .vectors import (
     VectorCell,
     VectorCells,
     VectorInstance,
-    VectorInstances
+    VectorInstances,
+    VectorInstanceGraphNode,
+    VectorInstanceGraphEdge,
+    VectorInstanceGraph,
+    VectorPathMetrics
 )

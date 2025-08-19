@@ -9,6 +9,7 @@
 from ...utility.json_parser import JsonParser
 from ...utility.log import Logger
 from ..database import *
+import numpy as np
 
 class FeatureParserJson(JsonParser):
     
@@ -793,34 +794,66 @@ class FeatureParserJson(JsonParser):
             
             if 'cell' in dict_density:
                 cell_data = dict_density['cell']
+                
+                allcell_path = cell_data.get('allcell_density', None)
+                macro_path = cell_data.get('macro_density', None)
+                stdcell_path = cell_data.get('stdcell_density', None)
+                
                 feature_density.cell = FeatureDensityCell(
-                    allcell_density=cell_data.get('allcell_density', None),
-                    macro_density=cell_data.get('macro_density', None),
-                    stdcell_density=cell_data.get('stdcell_density', None)
+                    allcell_density=allcell_path,
+                    macro_density=macro_path,
+                    stdcell_density=stdcell_path,
+                    allcell_density_data=np.loadtxt(allcell_path, delimiter=',') if allcell_path and allcell_path.strip() else None,
+                    macro_density_data=np.loadtxt(macro_path, delimiter=',') if macro_path and macro_path.strip() else None,
+                    stdcell_density_data=np.loadtxt(stdcell_path, delimiter=',') if stdcell_path and stdcell_path.strip() else None
                 )
-            
+ 
             if 'margin' in dict_density:
                 margin_data = dict_density['margin']
+                
+                horizontal_path = margin_data.get('horizontal', None)
+                union_path = margin_data.get('union', None)
+                vertical_path = margin_data.get('vertical', None)
+                
                 feature_density.margin = FeatureDensityMargin(
-                    horizontal=margin_data.get('horizontal', None),
-                    union=margin_data.get('union', None),
-                    vertical=margin_data.get('vertical', None)
+                    horizontal=horizontal_path,
+                    union=union_path,
+                    vertical=vertical_path,
+                    horizontal_data=np.loadtxt(horizontal_path, delimiter=',') if horizontal_path and horizontal_path.strip() else None,
+                    union_data=np.loadtxt(union_path, delimiter=',') if union_path and union_path.strip() else None,
+                    vertical_data=np.loadtxt(vertical_path, delimiter=',') if vertical_path and vertical_path.strip() else None
                 )
             
             if 'net' in dict_density:
                 net_data = dict_density['net']
+                
+                allnet_path = net_data.get('allnet_density', None)
+                global_net_path = net_data.get('global_net_density', None)
+                local_net_path = net_data.get('local_net_density', None)           
+                     
                 feature_density.net = FeatureDensityNet(
-                    allnet_density=net_data.get('allnet_density', None),
-                    global_net_density=net_data.get('global_net_density', None),
-                    local_net_density=net_data.get('local_net_density', None)
+                    allnet_density=allnet_path,
+                    global_net_density=global_net_path,
+                    local_net_density=local_net_path,
+                    allnet_density_data=np.loadtxt(allnet_path, delimiter=',') if allnet_path and allnet_path.strip() else None,
+                    global_net_density_data=np.loadtxt(global_net_path, delimiter=',') if global_net_path and global_net_path.strip() else None,
+                    local_net_density_data=np.loadtxt(local_net_path, delimiter=',') if local_net_path and local_net_path.strip() else None
                 )
             
             if 'pin' in dict_density:
                 pin_data = dict_density['pin']
+                
+                allcell_pin_path = pin_data.get('allcell_pin_density', None)
+                macro_pin_path = pin_data.get('macro_pin_density', None)
+                stdcell_pin_path = pin_data.get('stdcell_pin_density', None)             
+                   
                 feature_density.pin = FeatureDensityPin(
-                    allcell_pin_density=pin_data.get('allcell_pin_density', None),
-                    macro_pin_density=pin_data.get('macro_pin_density', None),
-                    stdcell_pin_density=pin_data.get('stdcell_pin_density', None)
+                    allcell_pin_density=allcell_pin_path,
+                    macro_pin_density=macro_pin_path,
+                    stdcell_pin_density=stdcell_pin_path,
+                    allcell_pin_density_data=np.loadtxt(allcell_pin_path, delimiter=',') if allcell_pin_path and allcell_pin_path.strip() else None,
+                    macro_pin_density_data=np.loadtxt(macro_pin_path, delimiter=',') if macro_pin_path and macro_pin_path.strip() else None,
+                    stdcell_pin_density_data=np.loadtxt(stdcell_pin_path, delimiter=',') if stdcell_pin_path and stdcell_pin_path.strip() else None
                 )
             
             return feature_density
@@ -840,26 +873,50 @@ class FeatureParserJson(JsonParser):
                 
                 if 'egr' in map_data:
                     egr_data = map_data['egr']
+                    
+                    horizontal_path = egr_data.get('horizontal', None)
+                    union_path = egr_data.get('union', None)
+                    vertical_path = egr_data.get('vertical', None)
+
                     feature_congestion.map.egr = FeatureCongestionMapBase(
-                        horizontal=egr_data.get('horizontal', None),
-                        union=egr_data.get('union', None),
-                        vertical=egr_data.get('vertical', None)
+                        horizontal=horizontal_path,
+                        union=union_path,
+                        vertical=vertical_path,
+                        horizontal_data=np.loadtxt(horizontal_path, delimiter=',') if horizontal_path and horizontal_path.strip() else None,
+                        union_data=np.loadtxt(union_path, delimiter=',') if union_path and union_path.strip() else None,
+                        vertical_data=np.loadtxt(vertical_path, delimiter=',') if vertical_path and vertical_path.strip() else None
                     )
                 
                 if 'lutrudy' in map_data:
                     lutrudy_data = map_data['lutrudy']
+                    
+                    horizontal_path = lutrudy_data.get('horizontal', None)
+                    union_path = lutrudy_data.get('union', None)
+                    vertical_path = lutrudy_data.get('vertical', None)
+                    
                     feature_congestion.map.lutrudy = FeatureCongestionMapBase(
-                        horizontal=lutrudy_data.get('horizontal', None),
-                        union=lutrudy_data.get('union', None),
-                        vertical=lutrudy_data.get('vertical', None)
+                        horizontal=horizontal_path,
+                        union=union_path,
+                        vertical=vertical_path,
+                        horizontal_data=np.loadtxt(horizontal_path, delimiter=',') if horizontal_path and horizontal_path.strip() else None,
+                        union_data=np.loadtxt(union_path, delimiter=',') if union_path and union_path.strip() else None,
+                        vertical_data=np.loadtxt(vertical_path, delimiter=',') if vertical_path and vertical_path.strip() else None
                     )
                 
                 if 'rudy' in map_data:
                     rudy_data = map_data['rudy']
+                    
+                    horizontal_path = rudy_data.get('horizontal', None)
+                    union_path = rudy_data.get('union', None)
+                    vertical_path = rudy_data.get('vertical', None)
+                    
                     feature_congestion.map.rudy = FeatureCongestionMapBase(
-                        horizontal=rudy_data.get('horizontal', None),
-                        union=rudy_data.get('union', None),
-                        vertical=rudy_data.get('vertical', None)
+                        horizontal=horizontal_path,
+                        union=union_path,
+                        vertical=vertical_path,
+                        horizontal_data=np.loadtxt(horizontal_path, delimiter=',') if horizontal_path and horizontal_path.strip() else None,
+                        union_data=np.loadtxt(union_path, delimiter=',') if union_path and union_path.strip() else None,
+                        vertical_data=np.loadtxt(vertical_path, delimiter=',') if vertical_path and vertical_path.strip() else None
                     )
             
             if 'overflow' in dict_congestion:
@@ -975,3 +1032,48 @@ class FeatureParserJson(JsonParser):
             return feature_timing
         
         return None
+    
+    def get_drc(self):
+        if self.read() is False:
+            return None
+
+        drc_distributions = FeatureDrcDistributions()
+        if 'drc' in self.json_data:
+            drc_distributions.number = self.json_data['drc']['number']
+
+            if (drc_distributions.number == 0):
+                return drc_distributions
+
+            for type, value_1 in self.json_data['drc']['distribution'].items():
+                distribution = FeatureDrcDistribution()
+                distribution.type = type
+                distribution.number = value_1['number']
+
+                if (distribution.number == 0):
+                    continue
+
+                for layer, value_2 in value_1['layers'].items():
+                    drc_layer = FeatureDrcLayer()
+                    drc_layer.layer = layer
+                    drc_layer.number = value_2['number']
+
+                    for dict_shape in value_2['list']:
+                        drc_shape = FeatureDrcShape()
+                        drc_shape.llx = dict_shape['llx']
+                        drc_shape.lly = dict_shape['lly']
+                        drc_shape.urx = dict_shape['urx']
+                        drc_shape.ury = dict_shape['ury']
+
+                        for dict_net in dict_shape['net']:
+                            drc_shape.net_ids.append(dict_net)
+
+                        for dict_inst in dict_shape['inst']:
+                            drc_shape.inst_ids.append(dict_inst)
+
+                        drc_layer.shapes.append(drc_shape)
+
+                    distribution.layers.append(drc_layer)
+
+                drc_distributions.drc_list.append(distribution)
+
+        return drc_distributions

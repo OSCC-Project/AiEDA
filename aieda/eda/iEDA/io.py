@@ -18,45 +18,48 @@ class IEDAIO(IEDABase):
         super().__init__(workspace=workspace, flow=flow)
         self.inited_flag = False
         
+    def set_exclude_cell_names(self, cell_names : set):
+        self.cell_names = cell_names
+        
     def run_flow(self):
-        p = Process(target=self.__run_flow__, args=())
+        p = Process(target=self._run_flow, args=())
         p.start()
         p.join()
        
-    def __run_flow__(self):
+    def _run_flow(self):
         pass
         
     def generate_feature_summary(self, json_path:str=None):    
         if self.inited_flag:
-            self.__generate_feature_summary__(json_path=json_path)
+            self._generate_feature_summary(json_path=json_path)
         else:
-            p = Process(target=self.__generate_feature_summary__, args=(json_path,))
+            p = Process(target=self._generate_feature_summary, args=(json_path,))
             p.start()
             p.join()
     
-    def __generate_feature_summary__(self, json_path:str=None):
+    def _generate_feature_summary(self, json_path:str=None):
         pass
     
     def generate_feature_tool(self):
         if self.inited_flag:
-            self.__generate_feature_tool__()
+            self._generate_feature_tool()
         else:
-            p = Process(target=self.__generate_feature_tool__, args=())
+            p = Process(target=self._generate_feature_tool, args=())
             p.start()
             p.join()
     
-    def __generate_feature_tool__(self):
+    def _generate_feature_tool(self):
         pass
     
     def generate_feature_map(self,map_grid_size=1):
         if self.inited_flag:
-            self.__generate_feature_map__()
+            self._generate_feature_map()
         else:
-            p = Process(target=self.__generate_feature_map__, args=(map_grid_size,))
+            p = Process(target=self._generate_feature_map, args=(map_grid_size,))
             p.start()
             p.join()
     
-    def __generate_feature_map__(self):
+    def _generate_feature_map(self):
         pass
         
     def init_config(self):
@@ -64,7 +67,8 @@ class IEDAIO(IEDABase):
         self.ieda.flow_init(flow_config=self.workspace.paths_table.ieda_config['initFlow'])
         
         self.ieda.db_init(config_path = self.workspace.paths_table.ieda_config['initDB'],
-                          output_path=self.workspace.paths_table.ieda_output['data']
+                          output_path=self.workspace.paths_table.ieda_output['data'],
+                          feature_path=self.workspace.paths_table.ieda_output['feature']
                           )
                         #   lib_paths = self.workspace.json_path.lib_paths, 
                         #   sdc_path = self.workspace.json_path.sdc_path)

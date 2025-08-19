@@ -6,5 +6,4 @@ def import_aieda():
     sys.path.append(root)
     
     # set EDA tools working environment
-    # option : iEDA
-    os.environ['iEDA'] = "on"
+    os.environ['iEDA'] = "ON"

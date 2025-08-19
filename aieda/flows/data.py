@@ -100,6 +100,23 @@ class DataGeneration(RunFlowBase):
                 ieda_flow = IEDAPlacement(workspace=self.workspace,
                                             flow=flow)
                 ieda_flow.generate_feature_summary(json_path=output_path)
+                
+    def generate_drc(self, 
+                    input_def:str=None, 
+                    input_verilog:str=None,
+                    drc_path : str = None):
+        from ..eda import IEDADrc
+        if input_def is None:
+            input_def = self.workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route))
+        
+        flow = DbFlow(eda_tool="iEDA", 
+                      step=DbFlow.FlowStep.drc,
+                      input_def=input_def,
+                      input_verilog=input_verilog)
+        ieda_flow = IEDADrc(workspace=self.workspace,
+                            flow=flow,
+                            output_path=drc_path)
+        ieda_flow.run_flow()
     
     def generate_vectors(self, 
                 input_def:str=None, 
@@ -127,7 +144,7 @@ class DataGeneration(RunFlowBase):
                                       vectors_dir=vectors_dir)
         ieda_flow.generate_vectors(patch_row_step, patch_col_step)
     
-    def generate_patterns(self, vectors_dir:str):
+    def generate_patterns(self, vectors_dir:str=None):
         # create wire patterns
         from ..data import DataPatterns
         data_gen = DataPatterns(workspace=self.workspace)

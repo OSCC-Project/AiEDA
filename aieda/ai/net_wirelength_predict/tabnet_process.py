@@ -21,6 +21,11 @@ import logging
 import time
 
 from tabnet_config import DataConfig
+from aieda import (
+    workspace_create,
+    DbFlow,
+    DataVectors
+)
 
 # Configure logging
 logging.basicConfig(
@@ -81,56 +86,39 @@ class DataProcessor:
         self.logger.info("Starting feature extraction and combination")
         all_dataframes = []
 
-        for input_dir in self.config.raw_input_dirs:
-            self.logger.info(f"Processing directory: {input_dir}")
-
+        for workspace in self.config.raw_input_dirs:
+            
+            self.logger.info(f"Processing workspace: {workspace.directory}")
+            
+            design_name = workspace.design
+            
+            vector_loader = DataVectors(workspace)
+            
+            net_dir = workspace.directory + self.config.pattern
+            
+            net_db = vector_loader.load_nets(net_dir)
+            
             # Collect all data from single directory
-            directory_data = []
-            processed_count = 0
-            error_count = 0
-
-            # Get all JSON files
-            json_files = [f for f in os.listdir(
-                input_dir) if f.endswith('.json')]
-            total_files = len(json_files)
-
-            self.logger.info(f"Found {total_files} JSON files")
-
-            for i, filename in enumerate(json_files):
-                filepath = os.path.join(input_dir, filename)
-
-                try:
-                    with open(filepath, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-
-                        # Extract feature data
-                        row_data = {
-                            'id': data.get('id', 'N/A'),
-                            'wire_len': data.get('feature', {}).get('wire_len', 0),
-                            'width': data.get('feature', {}).get('width', 0),
-                            'height': data.get('feature', {}).get('height', 0),
-                            'fanout': data.get('feature', {}).get('fanout', 0),
-                            'aspect_ratio': data.get('feature', {}).get('aspect_ratio', 0),
-                            'l_ness': data.get('feature', {}).get('l_ness', 0.0),
-                            'rsmt': data.get('feature', {}).get('rsmt', 0.0),
-                            'via_num': data.get('feature', {}).get('via_num', 0.0)
-                        }
-
-                        directory_data.append(row_data)
-                        processed_count += 1
-
-                except Exception as e:
-                    error_count += 1
-                    self.logger.error(f"Error processing file {filename}: {str(e)}")
-
-                # Show progress
-                if (i + 1) % 1000 == 0 or (i + 1) == total_files:
-                    self.logger.info(
-                        f"Progress: {i + 1}/{total_files} ({(i + 1)/total_files*100:.1f}%)")
+            net_list = []
+            
+            for vec_net in net_db:
+                # Extract feature data
+                row_data = {
+                    'id': vec_net.id,
+                    'wire_len': vec_net.feature.wire_len,
+                    'width': vec_net.feature.width,
+                    'height': vec_net.feature.height,
+                    'fanout': vec_net.feature.fanout,
+                    'aspect_ratio': vec_net.feature.aspect_ratio,
+                    'l_ness': vec_net.feature.l_ness,
+                    'rsmt': vec_net.feature.rsmt,
+                    'via_num': vec_net.feature.via_num
+                }
+                net_list.append(row_data)
 
             # Convert current directory data to DataFrame
-            if directory_data:
-                df = pd.DataFrame(directory_data)
+            if net_list:
+                df = pd.DataFrame(net_list)
                 # Remove id column (if exists)
                 if 'id' in df.columns:
                     df = df.drop('id', axis=1)
@@ -141,9 +129,10 @@ class DataProcessor:
                 all_dataframes.append(df)
 
                 self.logger.info(
-                    f"Directory {input_dir} processing completed: {processed_count} files successful, {error_count} errors")
+                    f"Directory {workspace.directory} processing completed")
             else:
-                self.logger.warning(f"No valid data found in directory {input_dir}")
+                self.logger.warning(f"No valid data found in directory {workspace.directory}")
+
 
         if not all_dataframes:
             self.logger.error("No valid data found")
@@ -511,40 +500,48 @@ class DataProcessor:
 
 # Usage example
 if __name__ == "__main__":
-    INPUT_DIRECTORYS = [
-        "/data/project_share/yhqiu/aes/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/aes_core/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_i2c/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_ps2/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_pwm/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_rng/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_timer/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_uart/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_wdg/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/blabla/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/BM64/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/gcd/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/jpeg_encoder/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/picorv32/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/PPU/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s13207/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_archinfo/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/apb4_clint/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s1238/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s1488/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s15850/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s35932/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s38417/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s38584/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s44/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s5378/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s713/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/s9234/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/salsa20/workspace/output/innovus/feature/large_model/nets",
-        "/data/project_share/yhqiu/eth_top/workspace/output/innovus/feature/large_model/nets",
+    BASE_DIRS = [
+        "/data2/project_share/dataset_baseline/s713",
+        "/data2/project_share/dataset_baseline/s44",
+        "/data2/project_share/dataset_baseline/apb4_rng",
+        "/data2/project_share/dataset_baseline/gcd",
+        "/data2/project_share/dataset_baseline/s1238",
+        "/data2/project_share/dataset_baseline/s1488",
+        "/data2/project_share/dataset_baseline/apb4_archinfo",
+        "/data2/project_share/dataset_baseline/apb4_ps2",
+        "/data2/project_share/dataset_baseline/s9234",
+        "/data2/project_share/dataset_baseline/apb4_timer",
+        "/data2/project_share/dataset_baseline/s13207",
+        "/data2/project_share/dataset_baseline/apb4_i2c",
+        "/data2/project_share/dataset_baseline/s5378",
+        "/data2/project_share/dataset_baseline/apb4_pwm",
+        "/data2/project_share/dataset_baseline/apb4_wdg",
+        "/data2/project_share/dataset_baseline/apb4_clint",
+        "/data2/project_share/dataset_baseline/ASIC",
+        "/data2/project_share/dataset_baseline/s15850",
+        "/data2/project_share/dataset_baseline/apb4_uart",
+        "/data2/project_share/dataset_baseline/s38417",
+        "/data2/project_share/dataset_baseline/s35932",
+        "/data2/project_share/dataset_baseline/s38584",
+        "/data2/project_share/dataset_baseline/BM64",
+        "/data2/project_share/dataset_baseline/picorv32",
+        "/data2/project_share/dataset_baseline/PPU",
+        "/data2/project_share/dataset_baseline/blabla",
+        "/data2/project_share/dataset_baseline/aes_core",
+        "/data2/project_share/dataset_baseline/aes",
+        "/data2/project_share/dataset_baseline/salsa20",
+        "/data2/project_share/dataset_baseline/jpeg_encoder",
+        "/data2/project_share/dataset_baseline/eth_top"
     ]
+    # step 0: create workspace list
+    workspace_list = []
+    for base_dir in BASE_DIRS:
+        workspace = workspace_create(directory=base_dir+"/workspace", design = os.path.basename(base_dir))
+        workspace_list.append(workspace)
+        
     data_config = DataConfig(
-        raw_input_dirs=INPUT_DIRECTORYS,
+        raw_input_dirs=workspace_list,
+        pattern = "/output/innovus/vectors/nets",
         model_input_file="./iEDA_combined_nets_cleaned.csv",
         plot_dir="./analysis_plots",
         extracted_feature_columns=['id', 'wire_len', 'width', 'height',

@@ -107,6 +107,11 @@ class Workspace:
         parser = ConfigIEDAFloorplanParser(self.paths_table.ieda_config['floorplan'], self.logger)
         parser.create_json_default()
         
+        # create pnp_default_config.json
+        from .config import ConfigIEDAPNPParser
+        parser = ConfigIEDAPNPParser(self.paths_table.ieda_config['pnp'], self.logger)
+        parser.create_json_default(self.paths_table)
+        
         # create no_default_config_fixfanout.json
         from .config import ConfigIEDAFixFanoutParser
         parser = ConfigIEDAFixFanoutParser(self.paths_table.ieda_config['fixFanout'], self.logger)
@@ -202,6 +207,26 @@ class Workspace:
         parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_libs(libs=libs)
         
+    def set_max_libs(self, libs : list[str]):
+        # update data
+        self.configs.paths.max_lib_paths = libs
+        
+        # update libs in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path, self.logger)
+        parser.set_max_libs(libs)
+        
+    def set_min_libs(self, libs : list[str]):
+        # update data
+        self.configs.paths.min_lib_paths = libs
+        
+        # update libs in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path, self.logger)
+        parser.set_min_libs(libs)
+        
     def set_sdc(self, sdc_path : str):
         # update data
         self.configs.paths.sdc_path = sdc_path
@@ -233,6 +258,26 @@ class Workspace:
         json_path = self.paths_table.ieda_config['initDB']
         parser = ConfigIEDADbParser(json_path, self.logger)
         parser.set_spef(spef_path=spef_path)
+        
+    def set_rcworst(self, rcworst_path : str):
+        # update data
+        self.configs.paths.rcworst_path = rcworst_path
+        
+        # update sdc in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path, self.logger)
+        parser.set_rcworst(rcworst_path)
+        
+    def set_rcbest(self, rcbest_path : str):
+        # update data
+        self.configs.paths.rcbest_path = rcbest_path
+        
+        # update sdc in path.json 
+        from .config import PathParser
+        json_path = self.paths_table.path
+        parser = PathParser(json_path, self.logger)
+        parser.set_rcbest(rcbest_path)
     
     def set_def_input(self, def_input : str):
         # update data
@@ -488,6 +533,7 @@ class Workspace:
                      'initFlow' : "{}/config/iEDA_config/flow_config.json".format(self.directory),
                        'initDB' : "{}/config/iEDA_config/db_default_config.json".format(self.directory),
                     'floorplan' : "{}/config/iEDA_config/fp_default_config.json".format(self.directory),
+                          'pnp' : "{}/config/iEDA_config/pnp_default_config.json".format(self.directory),
                     'fixFanout' : "{}/config/iEDA_config/no_default_config_fixfanout.json".format(self.directory),
                         'place' : "{}/config/iEDA_config/pl_default_config.json".format(self.directory),
                           'CTS' : "{}/config/iEDA_config/cts_default_config.json".format(self.directory),
@@ -508,6 +554,7 @@ class Workspace:
                     'result' : "{}/output/iEDA/result".format(self.directory),
                       'data' : "{}/output/iEDA/data".format(self.directory),
                         'fp' : "{}/output/iEDA/data/fp".format(self.directory),
+                        'pnp' : "{}/output/iEDA/data/pnp".format(self.directory),
                         'pl' : "{}/output/iEDA/data/pl".format(self.directory),
                        'cts' : "{}/output/iEDA/data/cts".format(self.directory),
                         'no' : "{}/output/iEDA/data/no".format(self.directory),
@@ -575,7 +622,9 @@ class Workspace:
                 'wire_graph' : "{}/wire_graph".format(self.ieda_output['vectors']),
                 'wire_paths' : "{}/wire_paths".format(self.ieda_output['vectors']),
                 'patterns' : "{}/patterns".format(self.ieda_output['vectors']),
-                'timing_wire_graph' : "{}/wire_graph/timing_wire_graph.yaml".format(self.ieda_output['vectors']),
+                'instance_graph' : "{}/instance_graph".format(self.ieda_output['vectors']),
+                'timing_instance_graph' : "{}/instance_graph/timing_instance_graph.json".format(self.ieda_output['vectors']),
+                'timing_wire_graph' : "{}/wire_graph/timing_wire_graph.json".format(self.ieda_output['vectors']),
                 'wire_patterns' : "{}/patterns/wire_patterns.csv".format(self.ieda_output['vectors']),
                 'wire_sequences' : "{}/patterns/wire_sequences.json".format(self.ieda_output['vectors'])
             }
@@ -587,7 +636,9 @@ class Workspace:
         def scripts(self):
             scirpt_paths = {
                            'main'       : "{}/script/main.tcl".format(self.directory),
-                           'definition' : "{}/script/definition.tcl".format(self.directory)
+                           'definition' : "{}/script/definition.tcl".format(self.directory),
+                           'sta'        : "{}/script/sta.tcl".format(self.directory),
+                           'mmmc'        : "{}/script/mmmc.tcl".format(self.directory)
                            }
             return scirpt_paths
             

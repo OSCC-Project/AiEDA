@@ -24,177 +24,13 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.ticker as ticker 
 
 from .base import BaseAnalyzer
+from ..workspace import Workspace
 
-# =====================================
-# tool functions
-# =====================================
-def process_patch_file(filepath: str) -> Optional[Dict[str, Any]]:
-    """
-    Process a single patch JSON file to extract features and layer information
-    
-    Args:
-        filepath: Path to the patch JSON file
-        
-    Returns:
-        Dictionary containing patch features and layer data, or None if error
-    """
-    try:
-        with open(filepath, 'r') as f:
-            data = json.load(f)
-        
-        # Extract basic patch features
-        patch_features = {
-            'CellDensity': data['cell_density'],
-            'PinDensity': data['pin_density'],
-            'NetDensity': data['net_density'],
-            'RUDY': data['RUDY_congestion'],
-            'Congestion': data['EGR_congestion'],
-            'Timing': data['timing'],
-            'Power': data['power'],
-            'IRDrop': data['IR_drop']
-        }
-        
-        # Extract per-layer congestion and wire density information
-        layer_congestion = []
-        layer_wire_density = []
-        
-        for layer in data['patch_layer']:
-            if 'feature' in layer and 'congestion' in layer['feature']:
-                layer_congestion.append(layer['feature']['congestion'])
-                layer_wire_density.append(layer['feature']['wire_density'])
-            else:
-                layer_congestion.append(0.0)
-                layer_wire_density.append(0.0)
-        
-        # Ensure consistent list length (should have 20 layers)
-        while len(layer_congestion) < 20:
-            layer_congestion.append(0.0)
-            layer_wire_density.append(0.0)
-        
-        # Keep only first 20 layers
-        layer_congestion = layer_congestion[:20]
-        layer_wire_density = layer_wire_density[:20]
-        
-        return {
-            'features': patch_features,
-            'layer_congestion': layer_congestion,
-            'layer_wire_density': layer_wire_density,
-            'filename': os.path.basename(filepath)
-        }
-    
-    except Exception as e:
-        print(f"Error processing {filepath}: {e}")
-        return None
-    
-    
-def process_patch_file_with_position(filepath: str) -> Optional[Dict]:
-    """
-    Process a single patch file and extract position information and features.
-    
-    Args:
-        filepath: Path to the patch JSON file
-        
-    Returns:
-        Dictionary containing patch data with position information
-    """
-    try:
-        with open(filepath, 'r') as f:
-            data = json.load(f)
-        
-        # Extract row and column information
-        row_id = data.get('patch_id_row', 0)
-        col_id = data.get('patch_id_col', 0)
-        
-        # Extract patch features
-        patch_features = {
-            'row_id': row_id,
-            'col_id': col_id,
-            'Cell Density': data['cell_density'],
-            'Pin Density': data['pin_density'],
-            'Congestion': data['EGR_congestion'],
-            'Timing': data['timing'],
-            'Power': data['power'],
-            'IR Drop': data['IR_drop'],
-            'net density': data['net_density'],
-            'RUDY': data['RUDY_congestion']
-        }
-        
-        return patch_features
-    
-    except Exception as e:
-        print(f"Error processing {filepath}: {e}")
-        return None
+from aieda import (
+    DbFlow,
+    DataVectors
+)
 
-
-def process_single_directory_for_patches(directory: str, pattern: str, verbose: bool = False) -> Optional[Dict[str, Any]]:
-    """
-    Process all patch files in a single directory
-    
-    Args:
-        directory: Directory path containing patch files
-        pattern : Pattern to match patch files
-        verbose: Whether to show detailed progress
-        
-    Returns:
-        Dictionary containing processed results, or None if error
-    """
-    if pattern is None:
-        raise ValueError("Pattern must be specified to find patch files.")
-    
-    design_name = os.path.basename(directory)
-    patch_files_pattern = os.path.join(directory, pattern)
-    
-    patch_files = glob.glob(patch_files_pattern)
-    
-    if not patch_files:
-        if verbose:
-            print(f"No patch files found in {directory}")
-        return None
-    
-    # Limit number of files for faster analysis
-    max_files = 200000
-    if len(patch_files) > max_files:
-        random.shuffle(patch_files)
-        patch_files = patch_files[:max_files]
-    
-    if verbose:
-        print(f"Processing {len(patch_files)} patch files in {design_name}...")
-    
-    # Process files with progress bar
-    results = []
-    file_iterator = (tqdm(patch_files, desc=f"Processing {design_name} patches") 
-                    if verbose else patch_files)
-    
-    for filepath in file_iterator:
-        result = process_patch_file(filepath)
-        if result:
-            results.append(result)
-    
-    if not results:
-        return None
-    
-    # Create features DataFrame
-    features_df = pd.DataFrame([r['features'] for r in results])
-    
-    # Calculate average layer congestion and wire density
-    avg_layer_congestion = np.mean([r['layer_congestion'] for r in results], axis=0)
-    avg_layer_wire_density = np.mean([r['layer_wire_density'] for r in results], axis=0)
-    
-    return {
-        'design_name': design_name,
-        'df': features_df,
-        'avg_layer_congestion': avg_layer_congestion,
-        'avg_layer_wire_density': avg_layer_wire_density,
-        'file_count': len(results),
-        'raw_layer_data': {
-            'congestion': [r['layer_congestion'] for r in results],
-            'wire_density': [r['layer_wire_density'] for r in results]
-        }
-    }
-
-# =====================================
-# analyzer classes
-# =====================================    
 class WireDensityAnalyzer(BaseAnalyzer):
     """Analyzer for wire density and congestion analysis"""
     
@@ -205,16 +41,14 @@ class WireDensityAnalyzer(BaseAnalyzer):
         self.valid_layers = [2, 4, 6, 8, 10, 12]  # Important layers for analysis
     
     def load(self,
-             base_dirs: List[str],
+             workspace_dirs: List[Workspace],
              dir_to_display_name: Optional[Dict[str, str]] = None,
-             pattern: Optional[str] = None,
-             max_workers: Optional[int] = None,
-             verbose: bool = True) -> None:
+             pattern: Optional[str] = None) -> None:
         """
         Load wire density data from multiple directories
         
         Args:
-            base_dirs: List of base directories containing patch data
+            workspace_dirs: List of base directories containing patch data
             dir_to_display_name: Optional mapping from directory names to display names
             pattern : Pattern to match patch files
             max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
@@ -222,41 +56,86 @@ class WireDensityAnalyzer(BaseAnalyzer):
         """
         self.dir_to_display_name = dir_to_display_name or {}
         
-        if max_workers is None:
-            max_workers = min(8, os.cpu_count() or 4)
-        
-        # Process directories in parallel
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory_for_patches, directory, pattern, verbose) 
-                      for directory in base_dirs]
+        for workspace in workspace_dirs:
+            design_name = workspace.design
             
-            future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 
-                             if verbose else futures)
+            vector_loader = DataVectors(workspace)
             
-            for future in future_iterator:
-                result = future.result()
-                if result:
-                    design_name = result['design_name']
-                    self.patch_data[design_name] = result
+            patch_dir = workspace.directory + pattern
+            
+            patch_db = vector_loader.load_patchs(patch_dir)
+            
+            patch_list = [] 
+            for vec_patch in patch_db:
+                # Extract basic patch features
+                patch_features = {
+                    'CellDensity': vec_patch.cell_density,
+                    'PinDensity': vec_patch.pin_density,
+                    'NetDensity': vec_patch.net_density,
+                    'RUDY': vec_patch.RUDY_congestion,
+                    'Congestion': vec_patch.EGR_congestion,
+                    'Timing': vec_patch.timing_map,
+                    'Power': vec_patch.power_map,
+                    'IRDrop': vec_patch.ir_drop_map
+                }
+                
+                # Extract per-layer congestion and wire density information
+                layer_congestion = []
+                layer_wire_density = []
+                
+                for layer in vec_patch.patch_layer:
+                    if layer.congestion is not None and layer.wire_density is not None:
+                        layer_congestion.append(layer.congestion)
+                        layer_wire_density.append(layer.wire_density)
+                    else:
+                        layer_congestion.append(0.0)
+                        layer_wire_density.append(0.0)
+                
+                # Ensure consistent list length (should have 20 layers)
+                while len(layer_congestion) < 20:
+                    layer_congestion.append(0.0)
+                    layer_wire_density.append(0.0)
+                
+                # Keep only first 20 layers
+                layer_congestion = layer_congestion[:20]
+                layer_wire_density = layer_wire_density[:20]
+                
+                patch_list.append({
+                    'features': patch_features,
+                    'layer_congestion': layer_congestion,
+                    'layer_wire_density': layer_wire_density
+                })
+            
+            # create features DataFrame
+            features_df = pd.DataFrame([p['features'] for p in patch_list])
+            
+            # calculate average layer congestion and wire density
+            avg_layer_congestion = np.mean([p['layer_congestion'] for p in patch_list], axis=0)
+            avg_layer_wire_density = np.mean([p['layer_wire_density'] for p in patch_list], axis=0)
+            
+            self.patch_data[design_name] = {
+                'design_name': design_name,
+                'df': features_df,
+                'avg_layer_congestion': avg_layer_congestion,
+                'avg_layer_wire_density': avg_layer_wire_density,
+                'file_count': len(patch_list),
+                'raw_layer_data': {
+                    'congestion': [p['layer_congestion'] for p in patch_list],
+                    'wire_density': [p['layer_wire_density'] for p in patch_list]
+                }
+            }
+            
         
         if not self.patch_data:
             raise ValueError("No valid results found from any directory.")
-        
-        if verbose:
-            print(f"Loaded data from {len(self.patch_data)} directories.")
+
     
-    def analyze(self, verbose: bool = True) -> None:
+    def analyze(self) -> None:
         """
         Analyze loaded wire density data
-        
-        Args:
-            verbose: Whether to show analysis progress
         """
         if not self.patch_data:
             raise ValueError("No data loaded. Please call load() first.")
-        
-        if verbose:
-            print("Analyzing wire density data...")
         
         # Calculate statistics for each design
         for design_name, data in self.patch_data.items():
@@ -280,8 +159,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
             
             self.design_stats[design_name] = stats
         
-        if verbose:
-            print(f"Analysis completed for {len(self.design_stats)} designs.")
+        print(f"Analysis completed for {len(self.design_stats)} designs.")
     
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -364,7 +242,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
         
         plt.tight_layout()
         
-        output_path = os.path.join(save_path, 'congestion_wire_density_regression.png')
+        output_path = os.path.join(save_path, 'patch_congestion_wire_density_regression.png')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
         
@@ -422,7 +300,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
         
         plt.tight_layout()
         
-        output_path = os.path.join(save_path, 'layer_comparison.png')
+        output_path = os.path.join(save_path, 'patch_layer_comparison.png')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
         
@@ -443,58 +321,99 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         ]
     
     def load(self,
-             base_dirs: List[str],
+             workspace_dirs: List[Workspace],
              dir_to_display_name: Optional[Dict[str, str]] = None,
-             pattern : Optional[str] = None,
-             max_workers: Optional[int] = None,
-             verbose: bool = True) -> None:
+             pattern : Optional[str] = None) -> None:
         """
         Load patch feature data from multiple directories
         
         Args:
-            base_dirs: List of base directories containing patch data
+            workspace_dirs: List of base directories containing patch data
             dir_to_display_name: Optional mapping from directory names to display names
             pattern : Pattern to match patch files
-            max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
-            verbose: Whether to show progress information
         """
         self.dir_to_display_name = dir_to_display_name or {}
         
-        if max_workers is None:
-            max_workers = min(8, os.cpu_count() or 4)
-        
-        # Process directories in parallel
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(process_single_directory_for_patches, directory, pattern, verbose) 
-                      for directory in base_dirs]
+        for workspace in workspace_dirs:
+            design_name = workspace.design
             
-            future_iterator = (tqdm(futures, total=len(base_dirs), desc="Processing directories") 
-                             if verbose else futures)
+            vector_loader = DataVectors(workspace)
             
-            for future in future_iterator:
-                result = future.result()
-                if result:
-                    design_name = result['design_name']
-                    self.patch_data[design_name] = result
-        
+            patch_dir = workspace.directory + pattern
+            
+            patch_db = vector_loader.load_patchs(patch_dir)
+            
+            patch_list = [] 
+            for vec_patch in patch_db:
+                # Extract basic patch features
+                patch_features = {
+                    'CellDensity': vec_patch.cell_density,
+                    'PinDensity': vec_patch.pin_density,
+                    'NetDensity': vec_patch.net_density,
+                    'RUDY': vec_patch.RUDY_congestion,
+                    'Congestion': vec_patch.EGR_congestion,
+                    'Timing': vec_patch.timing_map,
+                    'Power': vec_patch.power_map,
+                    'IRDrop': vec_patch.ir_drop_map
+                }
+                
+                # Extract per-layer congestion and wire density information
+                layer_congestion = []
+                layer_wire_density = []
+                
+                for layer in vec_patch.patch_layer:
+                    if layer.congestion is not None and layer.wire_density is not None:
+                        layer_congestion.append(layer.congestion)
+                        layer_wire_density.append(layer.wire_density)
+                    else:
+                        layer_congestion.append(0.0)
+                        layer_wire_density.append(0.0)
+                
+                # Ensure consistent list length (should have 20 layers)
+                while len(layer_congestion) < 20:
+                    layer_congestion.append(0.0)
+                    layer_wire_density.append(0.0)
+                
+                # Keep only first 20 layers
+                layer_congestion = layer_congestion[:20]
+                layer_wire_density = layer_wire_density[:20]
+                
+                patch_list.append({
+                    'features': patch_features,
+                    'layer_congestion': layer_congestion,
+                    'layer_wire_density': layer_wire_density
+                })
+            
+            # create features DataFrame
+            features_df = pd.DataFrame([p['features'] for p in patch_list])
+            
+            # calculate average layer congestion and wire density
+            avg_layer_congestion = np.mean([p['layer_congestion'] for p in patch_list], axis=0)
+            avg_layer_wire_density = np.mean([p['layer_wire_density'] for p in patch_list], axis=0)
+            
+            self.patch_data[design_name] = {
+                'design_name': design_name,
+                'df': features_df,
+                'avg_layer_congestion': avg_layer_congestion,
+                'avg_layer_wire_density': avg_layer_wire_density,
+                'file_count': len(patch_list),
+                'raw_layer_data': {
+                    'congestion': [p['layer_congestion'] for p in patch_list],
+                    'wire_density': [p['layer_wire_density'] for p in patch_list]
+                }
+            }
+
         if not self.patch_data:
             raise ValueError("No valid results found from any directory.")
         
-        if verbose:
-            print(f"Loaded feature data from {len(self.patch_data)} directories.")
+        print(f"Loaded feature data from {len(self.patch_data)} directories.")
     
-    def analyze(self, verbose: bool = True) -> None:
+    def analyze(self) -> None:
         """
         Analyze feature correlations
-        
-        Args:
-            verbose: Whether to show analysis progress
         """
         if not self.patch_data:
             raise ValueError("No data loaded. Please call load() first.")
-        
-        if verbose:
-            print("Analyzing feature correlations...")
         
         # Combine all design data
         all_dfs = []
@@ -532,8 +451,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
             
             self.feature_stats[design_name] = stats
         
-        if verbose:
-            print(f"Correlation analysis completed for {len(self.feature_stats)} designs.")
+        print(f"Correlation analysis completed for {len(self.feature_stats)} designs.")
     
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -613,7 +531,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         
         plt.tight_layout()
         
-        output_path = os.path.join(save_path, 'feature_distributions.png')
+        output_path = os.path.join(save_path, 'patch_feature_distributions.png')
         plt.savefig(output_path, bbox_inches='tight')
         plt.close()
         
@@ -635,12 +553,15 @@ class MapAnalyzer(BaseAnalyzer):
         self.features = ['Cell Density', 'Pin Density', 'Congestion', 
                         'Timing', 'Power', 'IR Drop', 'net density', 'RUDY']
     
-    def load(self, base_dirs: List[str], dir_to_display_name: Dict[str, str], pattern : Optional[str]) -> None:
+    def load(self, 
+             workspace_dirs: List[Workspace], 
+             dir_to_display_name: Dict[str, str], 
+             pattern : Optional[str]) -> None:
         """
         Load patch data with spatial position information from multiple directories.
         
         Args:
-            base_dirs: List of base directory paths
+            workspace_dirs: List of base directory paths
             dir_to_display_name: Mapping from directory names to display names
 
         """
@@ -649,43 +570,39 @@ class MapAnalyzer(BaseAnalyzer):
         if pattern is None:
             raise ValueError("Pattern must be specified to find patch files.")
         
-        all_patches_data = []
+        self.dir_to_display_name = dir_to_display_name or {}
         
-        for base_dir in base_dirs:
-            if not os.path.exists(base_dir):
-                print(f"Warning: Directory {base_dir} does not exist, skipping...")
-                continue
+        for workspace in workspace_dirs:
+            design_name = workspace.design
             
-            # Find patch files in the directory
-            patch_files_pattern = os.path.join(base_dir, pattern)
-            patch_files = glob.glob(patch_files_pattern)
+            vector_loader = DataVectors(workspace)
             
-            if not patch_files:
-                print(f"No patch files found in {base_dir}")
-                continue
+            patch_dir = workspace.directory + pattern
             
-            print(f"Processing {len(patch_files)} patch files in {base_dir}...")
+            patch_db = vector_loader.load_patchs(patch_dir)
             
-            # Process files in parallel
-            with ProcessPoolExecutor(max_workers=min(8, cpu_count())) as executor:
-                results = list(tqdm(executor.map(process_patch_file_with_position, patch_files), 
-                                   total=len(patch_files), 
-                                   desc=f"Loading {os.path.basename(base_dir)}"))
-                valid_results = [r for r in results if r is not None]
-
-                # Add design name to each patch
-                design_name = dir_to_display_name.get(os.path.basename(base_dir), os.path.basename(base_dir))
-                for patch in valid_results:
-                    patch['design'] = design_name
+            patch_list = [] 
+            for vec_patch in patch_db:
+                # Extract basic patch features
+                patch_features = {
+                    'design' : design_name,
+                    'row_id' : vec_patch.patch_id_row,
+                    'col_id' : vec_patch.patch_id_col,
+                    'Cell Density': vec_patch.cell_density,
+                    'Pin Density': vec_patch.pin_density,
+                    'Congestion': vec_patch.EGR_congestion,
+                    'Timing': vec_patch.timing_map,
+                    'Power': vec_patch.power_map,
+                    'IR Drop': vec_patch.ir_drop_map,
+                    'net density': vec_patch.net_density,
+                    'RUDY': vec_patch.RUDY_congestion,
+                }
                 
-                all_patches_data.extend(valid_results)
-                        
-        if not all_patches_data:
-            raise ValueError("No valid patch data found in any directory")
-        
-        # Convert to DataFrame
-        self.data = pd.DataFrame(all_patches_data)
-        print(f"Loaded {len(self.data)} patches from {len(base_dirs)} designs")
+                patch_list.extend([patch_features])
+
+        # create features DataFrame
+        self.data = pd.DataFrame(patch_list) 
+        print(f"Loaded {len(self.data)} patches from {len(workspace_dirs)} designs")
         
     
     def analyze(self) -> None:
@@ -760,7 +677,7 @@ class MapAnalyzer(BaseAnalyzer):
     def _create_individual_feature_maps(self, save_path: str, cmap: str) -> None:
         """Create individual heatmaps for each feature and design."""
         for design, results in self.analysis_results.items():
-            design_dir = os.path.join(save_path, f"{design}_individual_maps")
+            design_dir = os.path.join(save_path, f"patch_{design}_individual_maps")
             os.makedirs(design_dir, exist_ok=True)
             
             layouts = results['layouts']
@@ -799,7 +716,7 @@ class MapAnalyzer(BaseAnalyzer):
                 plt.grid(True, alpha=0.3, linewidth=0.5)
                 
                 plt.tight_layout()
-                plt.savefig(os.path.join(design_dir, f'{feature.replace(" ", "_")}_layout.png'))
+                plt.savefig(os.path.join(design_dir, f'patch_{feature.replace(" ", "_")}_layout.png'))
                 plt.close()
     
     def _create_feature_comparison_grid(self, save_path: str, cmap: str) -> None:
@@ -843,6 +760,6 @@ class MapAnalyzer(BaseAnalyzer):
                 ax.set_yticks([])
             
             plt.tight_layout()
-            plt.savefig(os.path.join(save_path, f'{design}_feature_grid.png'))
+            plt.savefig(os.path.join(save_path, f'patch_{design}_feature_grid.png'))
             plt.close()
     

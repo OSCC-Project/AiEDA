@@ -198,12 +198,14 @@ class VectorNetSeq:
 
 @dataclass
 class VectorTimingWireGraphNode:
+    id : str = None
     name: str = None
     is_pin: bool = False
     is_port: bool = False
     
 @dataclass
 class VectorTimingWireGraphEdge:
+    id : str = None
     from_node: int = None
     to_node: int = None
     is_net_edge : bool = False
@@ -250,3 +252,25 @@ class VectorInstance:
 class VectorInstances(object):
     instance_num : int = None
     instances: List[VectorInstance] = field(default_factory=list)
+    
+@dataclass
+class VectorInstanceGraphNode:
+    id : str = None
+    name: str = None
+    
+@dataclass
+class VectorInstanceGraphEdge:
+    id : str = None
+    from_node: int = None
+    to_node: int = None
+    
+@dataclass
+class VectorInstanceGraph(object):
+    nodes: List[VectorInstanceGraphNode] = field(default_factory=list)
+    edges: List[VectorInstanceGraphEdge] = field(default_factory=list)
+    
+@dataclass
+class VectorPathMetrics:
+    stage: Optional[int] = None
+    inst_delay: List[float] = field(default_factory=list)
+    net_delay: List[float] = field(default_factory=list)

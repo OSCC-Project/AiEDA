@@ -13,21 +13,82 @@ import_aieda()
 ######################################################################################
 
 from aieda import (
+    Workspace,
     workspace_create,
     RunIEDA,
     DbFlow
 )
 
+def run_floorplan_sky130_gcd(workspace : Workspace):
+    def run_floorplan():
+        from aieda import IEDAFloorplan
+        
+        flow = DbFlow(eda_tool="iEDA", 
+                      step=DbFlow.FlowStep.floorplan,
+                      input_def=workspace.configs.paths.def_input_path,
+                      input_verilog=workspace.configs.paths.verilog_input_path)
+        #set state running
+        # flow.set_state_running()
+        # workspace.configs.save_flow_state(flow)
+    
+        # run floorplan
+        ieda_fp = IEDAFloorplan(workspace, flow)
+        ieda_fp.read_verilog()
+        
+        ieda_fp.init_floorplan_by_area(die_area="0.0    0.0   149.96   150.128",
+                                      core_area="9.996 10.08 139.964  140.048",
+                                      core_site="unit",
+                                      io_site="unit",
+                                      corner_site="unit")
+        
+        ieda_fp.gern_track(layer="li1", x_start=240, x_step=480, y_start=185, y_step=370)
+        ieda_fp.gern_track(layer="met1", x_start=185, x_step=370, y_start=185, y_step=370)
+        ieda_fp.gern_track(layer="met2", x_start=240, x_step=480, y_start=240, y_step=480)
+        ieda_fp.gern_track(layer="met3", x_start=370, x_step=740, y_start=370, y_step=740)
+        ieda_fp.gern_track(layer="met4", x_start=480, x_step=960, y_start=480, y_step=960)
+        ieda_fp.gern_track(layer="met5", x_start=185, x_step=3330, y_start=185, y_step=3330)
+        
+        ieda_fp.add_pdn_io(net_name="VDD", direction="INOUT", is_power=True)
+        ieda_fp.add_pdn_io(net_name="VSS", direction="INOUT", is_power=False)
+        
+        ieda_fp.auto_place_pins(layer="met5", width=2000, height=2000)
+        
+        ieda_fp.tapcell(tapcell="sky130_fd_sc_hs__tap_1",
+                        distance=14,
+                        endcap="sky130_fd_sc_hs__fill_1")
+        
+        ieda_fp.set_net(net_name="clk", net_type="CLOCK")
+        
+        ieda_fp.pnp()
+        
+        ieda_fp.def_save()
+        ieda_fp.verilog_save()
+        
+        #save flow state
+        # flow.set_state_finished()
+        # workspace.configs.save_flow_state(flow)
+    
+         
+    #run eda tool
+    from multiprocessing import Process
+    p = Process(target=run_floorplan, args=())
+    p.start()
+    p.join()
+    
+
 if __name__ == "__main__":  
     # step 1 : create workspace
-    # workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
-    workspace_dir = "/data2/huangzengrong/test_aieda/workspace2"
+    # workspace_dir = "/data2/huangzengrong/test_aieda/minirv"
+    # workspace = workspace_create(directory=workspace_dir, design="minirv")
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_3"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : init iEDA by workspace
     run_ieda = RunIEDA(workspace)
     
     # step 3 : run each step of physical flow by iEDA 
+    run_floorplan_sky130_gcd(workspace)
+    
     run_ieda.run_fix_fanout(input_def=workspace.configs.paths.def_input_path)
     
     run_ieda.run_placement(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)))
@@ -43,6 +104,8 @@ if __name__ == "__main__":
     run_ieda.run_routing(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.legalization)))
     
     run_ieda.run_filler(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)))
+    
+    run_ieda.run_drc(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)))
 
     exit(0)
 

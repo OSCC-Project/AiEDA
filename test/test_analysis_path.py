@@ -13,6 +13,11 @@ import_aieda()
 ######################################################################################
 
 from aieda.analysis import DelayAnalyzer, StageAnalyzer
+from aieda import (
+    workspace_create,
+    DbFlow
+)
+import os
 
 BASE_DIRS = [
     "/data2/project_share/dataset_baseline/s713",
@@ -41,22 +46,28 @@ DISPLAY_NAME = {
 }
 
 def main():
-    # 1. Path Delay Analysis
+    # step 0: create workspace list
+    workspace_list = []
+    for base_dir in BASE_DIRS:
+        workspace = workspace_create(directory=base_dir+"/workspace", design = os.path.basename(base_dir))
+        workspace_list.append(workspace)
+        
+    # step 1: Path Delay Analysis
     delay_analyzer = DelayAnalyzer()
     delay_analyzer.load(
-        base_dirs=BASE_DIRS,
-        dir_to_display_name=DISPLAY_NAME,
-        pattern = "workspace/output/innovus/feature/large_model/wire_paths/wire_path_*.yml"
+        workspace_dirs=workspace_list,
+        pattern = "/output/innovus/vectors/wire_paths",
+        dir_to_display_name=DISPLAY_NAME
     )
     delay_analyzer.analyze()
     delay_analyzer.visualize(save_path = '.')
     
-    # 2. Path Stage Analysis
+    # step 2: Path Stage Analysis
     stage_analyzer = StageAnalyzer()
     stage_analyzer.load(
-        base_dirs=BASE_DIRS,
-        dir_to_display_name=DISPLAY_NAME,
-        pattern = "workspace/output/innovus/feature/large_model/wire_paths/wire_path_*.yml"
+        workspace_dirs=workspace_list,
+        pattern = "/output/innovus/vectors/wire_paths",
+        dir_to_display_name=DISPLAY_NAME
     )
     stage_analyzer.analyze()
     stage_analyzer.visualize(save_path = '.')

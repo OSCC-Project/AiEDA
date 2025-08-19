@@ -20,7 +20,7 @@ from aieda import (
 if __name__ == "__main__":  
     # step 1 : create workspace
     # workspace_dir = "/data2/huangzengrong/test_aieda/workspace1"
-    workspace_dir = "/data2/huangzengrong/test_aieda/workspace2"
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_1"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     workspace.print_paramters()
     

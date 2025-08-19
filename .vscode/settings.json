@@ -1,4 +1,13 @@
 {
+    // 禁用Python自动格式化
+    "[python]": {
+        "editor.formatOnSave": false,
+        "editor.formatOnType": false,
+        "editor.formatOnPaste": false,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "never"
+        }
+    },
     "cmake.sourceDirectory": "/home/huangzengrong/aieda_fork/aieda_fork",
     "files.associations": {
         "array": "cpp",
@@ -41,6 +50,10 @@
         "*.ipp": "cpp",
         "unordered_set": "cpp",
         "*.inc": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "bitset": "cpp",
+        "regex": "cpp",
+        "iostream": "cpp",
+        "optional": "cpp"
     }
 }

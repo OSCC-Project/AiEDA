@@ -131,7 +131,7 @@ class RunFlowBase:
         # physical design flow order
         self.default_flows = None
     
-    def __get_workspace_flows__(self):
+    def _get_workspace_flows(self):
         flows = self.workspace.configs.flows
         for i in range(0, len(flows)):
             if i == 0:
@@ -146,9 +146,15 @@ class RunFlowBase:
                     flows[i].input_def = flows[i-1].output_def
                 if flows[i].input_verilog is None:
                     flows[i].input_verilog = flows[i-1].output_verilog
-            
-            flows[i].output_def = self.workspace.configs.get_output_def(flows[i])
-            flows[i].output_verilog = self.workspace.configs.get_output_verilog(flows[i])
+
+            match flows[i].step:
+                # if step is drc and vectorization, flow do not output def and v, so set output path as preview step   
+                case DbFlow.FlowStep.drc | DbFlow.FlowStep.vectorization:
+                    flows[i].output_def = flows[i].input_def
+                    flows[i].output_verilog = flows[i].input_verilog
+                case _:
+                    flows[i].output_def = self.workspace.configs.get_output_def(flows[i])
+                    flows[i].output_verilog = self.workspace.configs.get_output_verilog(flows[i])
         
         return flows  
     
@@ -157,7 +163,7 @@ class RunFlowBase:
             if reset:
                 #reset flow state to unstart
                 self.workspace.configs.reset_flow_states()
-            flows = self.__get_workspace_flows__()
+            flows = self._get_workspace_flows()
         else:
             if reset:
                 for flow in flows:
@@ -180,7 +186,13 @@ class RunFlowBase:
         """check state"""
         #check flow success if output def & verilog file exist
         import os
-        output_def = self.workspace.configs.get_output_def(flow=flow, compressed=True)
-        output_verilog = self.workspace.configs.get_output_verilog(flow=flow, compressed=True)
         
-        return (os.path.exists(output_def) and os.path.exists(output_verilog))
+        match flow.step:
+            case DbFlow.FlowStep.drc | DbFlow.FlowStep.vectorization:
+                return True
+            case _:
+                # tool step flow, check output def
+                output_def = self.workspace.configs.get_output_def(flow=flow, compressed=True)
+                output_verilog = self.workspace.configs.get_output_verilog(flow=flow, compressed=True)
+                
+                return (os.path.exists(output_def) and os.path.exists(output_verilog))

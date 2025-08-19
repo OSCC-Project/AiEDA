@@ -14,13 +14,13 @@ class IEDARouting(IEDAIO):
     def __init__(self, workspace : Workspace, flow : DbFlow):
         super().__init__(workspace=workspace, flow=flow)
 
-    def __configs__(self):
-        super().__configs__()
+    def _configs(self):
+        super()._configs()
         
         self.ieda_config = self.workspace.paths_table.ieda_config['route']
         self.rt_sta_dir = self.workspace.paths_table.ieda_output['rt_sta']
          
-    def __run_flow__(self):
+    def _run_flow(self):
         import os
         import json
         from .sta import IEDASta
@@ -51,13 +51,13 @@ class IEDARouting(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
-        self.__generate_feature_summary__()
-        self.__generate_feature_tool__()
+        self._generate_feature_summary()
+        self._generate_feature_tool()
         
     def close_routing(self):
         self.ieda.destroy_rt()
     
-    def __generate_feature_summary__(self, json_path:str=None):
+    def _generate_feature_summary(self, json_path:str=None):
         if json_path is None:
             # use default feature path in workspace
             json_path = self.workspace.paths_table.ieda_feature_json['route_summary']
@@ -69,7 +69,7 @@ class IEDARouting(IEDAIO):
         # generate feature summary data
         self.ieda.feature_summary(json_path)
 
-    def __generate_feature_tool__(self):
+    def _generate_feature_tool(self):
         self.read_output_def()
 
         ieda_feature_json = self.workspace.paths_table.ieda_feature_json

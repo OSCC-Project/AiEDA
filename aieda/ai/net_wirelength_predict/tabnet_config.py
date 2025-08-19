@@ -5,20 +5,28 @@
 @Author : yhqiu
 @Desc : configuration module for data and model
 '''
-import json
+import sys
 import os
+import json
 from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 import torch
 
-# TODO: from ..net_utils import workspace_data
+# import aieda
+current_dir = os.path.split(os.path.abspath(__file__))[0]
+root = current_dir.rsplit('/', 3)[0]
+sys.path.append(root)
 
-class DataConfig:
+from aieda.ai import ConfigBase
+from aieda.workspace import Workspace
+
+class DataConfig(ConfigBase):
     """Tabnet data config"""
     def __init__(
         self,
         # Data paths: raw data directories, model input file, visualization file storage directory
-        raw_input_dirs: Optional[List[str]] = None,
+        raw_input_dirs: List[Workspace],
+        pattern : Optional[str] = None,
         model_input_file: str = "dataset.csv",
         plot_dir : str = "./plots",
         
@@ -49,8 +57,10 @@ class DataConfig:
         # Other parameters
         **kwargs
     ):
+        super().__init__(**kwargs)
         # Data paths
         self.raw_input_dirs = raw_input_dirs
+        self.pattern = pattern
         self.model_input_file = model_input_file
         self.plot_dir = plot_dir
         
@@ -76,10 +86,7 @@ class DataConfig:
             0, 0.8, 0.9, 1.0, 1.1, 1.2, float('inf')]
         self.target_labels = target_labels or [
             '<0.8', '0.8-0.9', '0.9-1.0', '1.0-1.1', '1.1-1.2', '>1.2']
-        
-        # Other parameters
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+
 
     def _get_extracted_feature_columns(self) -> List[str]:
         return ['id', 'wire_len', 'width', 'height', 'fanout', 'aspect_ratio', 'l_ness', 'rsmt', 'via_num']
@@ -93,40 +100,8 @@ class DataConfig:
     def _get_default_wl_with_via_feature_columns(self) -> List[str]:
         return ['width', 'height', 'pin_num', 'aspect_ratio', 'l_ness', 'rsmt', 'area', 'route_ratio_x', 'route_ratio_y', 'via_num']
 
-    @classmethod
-    def from_dict(cls, config_dict: Dict[str, Any]) -> "DataConfig":
-        """Create configuration from dictionary"""
-        return cls(**config_dict)
 
-    @classmethod
-    def from_json_file(cls, json_file: Union[str, Path]) -> "DataConfig":
-        """Load configuration from JSON file"""
-        with open(json_file, 'r', encoding='utf-8') as f:
-            config_dict = json.load(f)
-        return cls.from_dict(config_dict)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
-        return {key: value for key, value in self.__dict__.items()
-                if not key.startswith('_')}
-
-    def to_json_file(self, json_file: Union[str, Path]) -> None:
-        """Save configuration to JSON file"""
-        os.makedirs(os.path.dirname(json_file), exist_ok=True)
-        with open(json_file, 'w', encoding='utf-8') as f:
-            json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
-
-    def update(self, **kwargs) -> None:
-        """Update configuration parameters"""
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-    def copy(self) -> "DataConfig":
-        """Copy configuration"""
-        return DataConfig.from_dict(self.to_dict())
-
-
-class ModelConfig:
+class ModelConfig(ConfigBase):
     """TabNet model config"""
     def __init__(
         self,
@@ -168,6 +143,7 @@ class ModelConfig:
         # Other additional parameters
         **kwargs
     ):
+        super().__init__(**kwargs)
         # TabNet core architecture parameters
         self.n_d = n_d  # Decision layer dimension
         self.n_a = n_a  # Attention layer dimension
@@ -248,44 +224,6 @@ class ModelConfig:
             'pin_memory': True
         }
         
-        # Other additional parameters
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-    @classmethod
-    def from_dict(cls, config_dict: Dict[str, Any]) -> "ModelConfig":
-        """Create configuration from dictionary"""
-        return cls(**config_dict)
-
-    @classmethod
-    def from_json_file(cls, json_file: Union[str, Path]) -> "ModelConfig":
-        """Load configuration from JSON file"""
-        with open(json_file, 'r', encoding='utf-8') as f:
-            config_dict = json.load(f)
-        return cls.from_dict(config_dict)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary"""
-        return {key: value for key, value in self.__dict__.items()
-                if not key.startswith('_')}
-
-    def to_json_file(self, json_file: Union[str, Path]) -> None:
-        """Save configuration to JSON file"""
-        os.makedirs(os.path.dirname(json_file), exist_ok=True)
-        with open(json_file, 'w', encoding='utf-8') as f:
-            json.dump(self.to_dict(), f, indent=2, ensure_ascii=False)
-
-    def update(self, **kwargs) -> None:
-        """Update configuration parameters"""
-        for key, value in kwargs.items():
-            setattr(self, key, value)
-
-    def copy(self) -> "ModelConfig":
-        """Copy configuration"""
-        return ModelConfig.from_dict(self.to_dict())
-
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.to_dict()})"
 
 # Usage examples
 if __name__ == "__main__":
