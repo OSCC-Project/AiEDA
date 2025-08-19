@@ -14,13 +14,13 @@ class IEDACts(IEDAIO):
     def __init__(self, workspace : Workspace, flow : DbFlow):
         super().__init__(workspace=workspace, flow=flow)
         
-    def __configs__(self):
-        super().__configs__()
+    def _configs(self):
+        super()._configs()
         
         self.ieda_config = self.workspace.paths_table.ieda_config['CTS']
         self.result_dir = self.workspace.paths_table.ieda_output['cts']
     
-    def __run_flow__(self):     
+    def _run_flow(self):     
         self.read_def()
         
         self.ieda.run_cts(self.ieda_config, self.result_dir)
@@ -32,11 +32,11 @@ class IEDACts(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
         
-        self.__generate_feature_summary__()
-        self.__generate_feature_map__()
-        self.__generate_feature_tool__()
+        self._generate_feature_summary()
+        self._generate_feature_map()
+        self._generate_feature_tool()
         
-    def __generate_feature_summary__(self, json_path:str=None):
+    def _generate_feature_summary(self, json_path:str=None):
         if json_path is None:
             # use default feature path in workspace
             json_path = self.workspace.paths_table.ieda_feature_json['CTS_summary']
@@ -46,7 +46,7 @@ class IEDACts(IEDAIO):
         # generate feature summary data
         self.ieda.feature_summary(json_path)
         
-    def __generate_feature_tool__(self):
+    def _generate_feature_tool(self):
         self.read_output_def()
 
         ieda_feature_json = self.workspace.paths_table.ieda_feature_json
@@ -54,7 +54,7 @@ class IEDACts(IEDAIO):
         # generate feature CTS data
         self.ieda.feature_tool(ieda_feature_json['CTS_tool'], DbFlow.FlowStep.cts.value)
         
-    def __generate_feature_map__(self, map_grid_size = 1):
+    def _generate_feature_map(self, map_grid_size = 1):
         self.read_output_def()
 
         ieda_feature_json = self.workspace.paths_table.ieda_feature_json

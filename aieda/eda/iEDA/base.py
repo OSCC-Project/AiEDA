@@ -23,9 +23,9 @@ class IEDABase():
         self.ieda = ieda #iEDA 
         self.workspace = workspace
         self.flow = flow
-        self.__configs__()
+        self._configs()
         
-    def __configs__(self):
+    def _configs(self):
         if self.flow.output_def is None:
             self.flow.output_def = self.workspace.configs.get_output_def(self.flow)
         

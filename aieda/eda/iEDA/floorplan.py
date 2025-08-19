@@ -15,16 +15,16 @@ class IEDAFloorplan(IEDAIO):
     def __init__(self, workspace : Workspace, flow : DbFlow):
         super().__init__(workspace=workspace, flow=flow)
         
-    def __configs__(self):
-        super().__configs__()
+    def _configs(self):
+        super()._configs()
         
         self.ieda_config_floorplan = self.workspace.paths_table.ieda_config['floorplan']
         self.ieda_config_pnp = self.workspace.paths_table.ieda_config['pnp']
     
-    def __run_flow__(self):
+    def _run_flow(self):
         pass
     
-    def __generate_feature_summary__(self, json_path:str=None):
+    def _generate_feature_summary(self, json_path:str=None):
         if json_path is None:
             # use default feature path in workspace
             json_path = self.workspace.paths_table.ieda_feature_json['floorplan_summary']

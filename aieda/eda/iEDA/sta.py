@@ -15,14 +15,14 @@ class IEDASta(IEDAIO):
         self.output_dir = output_dir
         super().__init__(workspace=workspace, flow=flow)
         
-    def __configs__(self):
-        super().__configs__()
+    def _configs(self):
+        super()._configs()
         
         if(self.output_dir == None):
             self.output_dir = self.workspace.paths_table.ieda_output['sta']
         self.rpt_dir = self.workspace.paths_table.ieda_output['rpt']
         
-    def __run_flow__(self):
+    def _run_flow(self):
         self.read_def()
         
         self.ieda.run_sta(self.output_dir)
