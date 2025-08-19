@@ -214,7 +214,7 @@ class VectorsParserJson(JsonParser):
                 vec_patch.EGR_congestion = json_patch.get('EGR_congestion')
                 vec_patch.timing_map = json_patch.get('timing_map')
                 vec_patch.power_map = json_patch.get('power_map')
-                vec_patch.ir_drop_map = json_patch.get('ir_drop_map')   
+                vec_patch.ir_drop_map = json_patch.get('IR_drop')   
         
                 # patch layer
                 json_patch_layers = json_patch.get('patch_layer', [])
