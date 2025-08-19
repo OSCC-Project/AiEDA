@@ -28,8 +28,8 @@ def run_floorplan_sky130_gcd(workspace : Workspace):
                       input_def=workspace.configs.paths.def_input_path,
                       input_verilog=workspace.configs.paths.verilog_input_path)
         #set state running
-        # flow.set_state_running()
-        # workspace.configs.save_flow_state(flow)
+        flow.set_state_running()
+        workspace.configs.save_flow_state(flow)
     
         # run floorplan
         ieda_fp = IEDAFloorplan(workspace, flow)
@@ -51,6 +51,13 @@ def run_floorplan_sky130_gcd(workspace : Workspace):
         ieda_fp.add_pdn_io(net_name="VDD", direction="INOUT", is_power=True)
         ieda_fp.add_pdn_io(net_name="VSS", direction="INOUT", is_power=False)
         
+        ieda_fp.global_net_connect(net_name="VDD", instance_pin_name="VPWR", is_power=True)
+        ieda_fp.global_net_connect(net_name="VDD", instance_pin_name="VPB", is_power=True)
+        ieda_fp.global_net_connect(net_name="VDD", instance_pin_name="vdd", is_power=True)
+        ieda_fp.global_net_connect(net_name="VSS", instance_pin_name="VGND", is_power=False)
+        ieda_fp.global_net_connect(net_name="VSS", instance_pin_name="VNB", is_power=False)
+        ieda_fp.global_net_connect(net_name="VSS", instance_pin_name="VNB", is_power=False)
+        
         ieda_fp.auto_place_pins(layer="met5", width=2000, height=2000)
         
         ieda_fp.tapcell(tapcell="sky130_fd_sc_hs__tap_1",
@@ -59,14 +66,14 @@ def run_floorplan_sky130_gcd(workspace : Workspace):
         
         ieda_fp.set_net(net_name="clk", net_type="CLOCK")
         
-        ieda_fp.pnp()
+        # ieda_fp.pnp()
         
         ieda_fp.def_save()
         ieda_fp.verilog_save()
         
         #save flow state
-        # flow.set_state_finished()
-        # workspace.configs.save_flow_state(flow)
+        flow.set_state_finished()
+        workspace.configs.save_flow_state(flow)
     
          
     #run eda tool
@@ -78,9 +85,9 @@ def run_floorplan_sky130_gcd(workspace : Workspace):
 
 if __name__ == "__main__":  
     # step 1 : create workspace
-    # workspace_dir = "/data2/huangzengrong/test_aieda/minirv"
+    # workspace_dir = "/data2/huangzengrong/test_aieda/minirv3"
     # workspace = workspace_create(directory=workspace_dir, design="minirv")
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_3"
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_4"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : init iEDA by workspace
@@ -89,7 +96,10 @@ if __name__ == "__main__":
     # step 3 : run each step of physical flow by iEDA 
     run_floorplan_sky130_gcd(workspace)
     
-    run_ieda.run_fix_fanout(input_def=workspace.configs.paths.def_input_path)
+    run_ieda.run_pdn(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan)))
+    
+    run_ieda.run_fix_fanout(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.pdn)))
+    # run_ieda.run_fix_fanout(input_def="/home/taosimin/tosujianrong/0816/iPNP_result2.def")
     
     run_ieda.run_placement(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)))
     

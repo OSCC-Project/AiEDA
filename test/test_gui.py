@@ -114,7 +114,7 @@ def test_instance_visualization(workspace_dir: str):
     print(f"design name: {design}")
     
     # construct file paths automatically
-    vectors_dir = f"{workspace_dir}/output/innovus/vectors"
+    vectors_dir = f"{workspace_dir}/output/iEDA/vectors"
     instance_graph_path = f"{vectors_dir}/instance_graph/timing_instance_graph.json"
     instances_path = f"{vectors_dir}/instances/instances.json"
     cells_path = f"{vectors_dir}/cells/cells.json"
@@ -413,12 +413,13 @@ if __name__ == "__main__":
     # step 1 : create workspace
     # workspace_dir = "/data/project_share/dataset_baseline/eth_top/workspace"
     # workspace_dir = "/data2/project_share/dataset_baseline/s713/workspace"
-    workspace_dir = "/data/wangrui/aieda/workspace"
-    workspace = workspace_create(directory=workspace_dir, design="apb4_i2c")
+    # workspace_dir = "/data/wangrui/aieda/workspace"
+    # workspace = workspace_create(directory=workspace_dir, design="apb4_i2c")
     
     # test with a specific workspace
-    workspace_dir = "/data2/project_share/dataset_baseline/apb4_i2c/workspace"
-    test_instance_visualization(workspace_dir)
+    # workspace_dir = "/data2/project_share/dataset_baseline/apb4_i2c/workspace"
+    
+    test_instance_visualization("/data2/huangzengrong/test_aieda/sky130_1")
     
     # # define workspaces to process
     # DESIGNS_T28 = [

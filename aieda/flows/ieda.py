@@ -397,3 +397,18 @@ class RunIEDA(RunFlowBase):
                       input_verilog=input_verilog)
                
         return self.run_flow(flow, output_path=drc_path)
+    
+    def run_pdn(self, 
+                input_def:str, 
+                input_verilog:str=None):   
+        """ run instances filling flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        drc_path : output def path, optional variable, if not set, use default path in workspace
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.pdn,
+                      input_def=input_def,
+                      input_verilog=input_verilog)
+               
+        return self.run_flow(flow)

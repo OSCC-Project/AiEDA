@@ -121,6 +121,14 @@ class IEDAFloorplan(IEDAIO):
                                     direction=direction,
                                     is_power=is_power)
         
+    def global_net_connect(self,
+                           net_name : str,
+                           instance_pin_name : str,
+                           is_power : bool):
+        return self.ieda.global_net_connect(net_name=net_name,
+                                    instance_pin_name=instance_pin_name,
+                                    is_power=is_power)
+        
     def auto_place_pins(self, 
                         layer : str, 
                         width : int, 

@@ -5,10 +5,10 @@
 import os
 from ..utility import create_logger
 
-def workspace_create(directory : str, design : str):
+def workspace_create(directory : str, design : str, flow_list=None):
     ws = Workspace(directory=directory, design=design)
     
-    ws.create_wrokspace()
+    ws.create_wrokspace(flow_list=flow_list)
     
     return ws
     
@@ -27,7 +27,7 @@ class Workspace:
             self.configs = None
     
     
-    def create_wrokspace(self):
+    def create_wrokspace(self, flow_list = None):
         """check if workspace exist, if not exist, create workspace
         """
         #########################################################################
@@ -54,6 +54,7 @@ class Workspace:
             file.write("\n start AiEDA logging for design {} ...".format(self.design))
         self.logger = create_logger(name=self.design, log_file=self.paths_table.log)
         self.configs = self.Configs(paths_table=self.paths_table, logger=self.logger)
+        self.configs.flows = flow_list
         
         #########################################################################
         # step 3, create flow.json

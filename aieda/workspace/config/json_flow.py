@@ -14,17 +14,17 @@ class FlowParser(JsonParser):
     def ieda_default_flows(self):
         default_steps = [
             # DbFlow.FlowStep.floorplan,
-            DbFlow.FlowStep.fixFanout,
+            # DbFlow.FlowStep.fixFanout,
             DbFlow.FlowStep.place,
             DbFlow.FlowStep.cts,
-            DbFlow.FlowStep.optDrv,
-            DbFlow.FlowStep.optHold,
+            # DbFlow.FlowStep.optDrv,
+            # DbFlow.FlowStep.optHold,
             # DbFlow.FlowStep.optSetup,
             DbFlow.FlowStep.legalization,
-            DbFlow.FlowStep.route,
-            DbFlow.FlowStep.drc,
-            DbFlow.FlowStep.vectorization,
-            DbFlow.FlowStep.filler
+            DbFlow.FlowStep.route
+            # DbFlow.FlowStep.drc,
+            # DbFlow.FlowStep.vectorization,
+            # DbFlow.FlowStep.filler
         ]
         
         flow_db_list = []
