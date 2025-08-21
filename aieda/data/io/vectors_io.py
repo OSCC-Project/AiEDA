@@ -6,7 +6,6 @@
 @Desc : parser for vectors
 '''
 import os
-from attr import dataclass
 from tqdm import tqdm
 
 from ...utility.json_parser import JsonParser

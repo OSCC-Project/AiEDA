@@ -588,8 +588,12 @@ class Workspace:
                 'floorplan_tool'       : "{}/{}_floorplan_tool.json".format(self.ieda_output['feature'], self.design),
                 'place_summary'        : "{}/{}_place_summary.json".format(self.ieda_output['feature'], self.design),
                 'place_tool'           : "{}/{}_place_tool.json".format(self.ieda_output['feature'], self.design),
+                'place_power'            : "{}/{}_place_power.json".format(self.ieda_output['feature'], self.design),
+                'place_timing'            : "{}/{}_place_timing.json".format(self.ieda_output['feature'], self.design),
                 'CTS_summary'          : "{}/{}_CTS_summary.json".format(self.ieda_output['feature'], self.design),
                 'CTS_tool'             : "{}/{}_CTS_tool.json".format(self.ieda_output['feature'], self.design),
+                'CTS_power'            : "{}/{}_CTS_power.json".format(self.ieda_output['feature'], self.design),
+                'CTS_timing'            : "{}/{}_CTS_timing.json".format(self.ieda_output['feature'], self.design),
                 'fixFanout_summary'    : "{}/{}_fixFanout_summary.json".format(self.ieda_output['feature'], self.design),
                 'fixFanout_tool'       : "{}/{}_fixFanout_tool.json".format(self.ieda_output['feature'], self.design),
                 'optDrv_summary'       : "{}/{}_optDrv_summary.json".format(self.ieda_output['feature'], self.design),
@@ -605,12 +609,24 @@ class Workspace:
                 'route_summary'        : "{}/{}_route_summary.json".format(self.ieda_output['feature'], self.design),
                 'route_tool'           : "{}/{}_route_tool.json".format(self.ieda_output['feature'], self.design),      
                 'route_drc'            : "{}/{}_route_drc.json".format(self.ieda_output['feature'], self.design),
+                'route_power'            : "{}/{}_route_power.json".format(self.ieda_output['feature'], self.design),
+                'route_timing'            : "{}/{}_route_timing.json".format(self.ieda_output['feature'], self.design),
 
                 'place_map' : "{}/{}_place_map.json".format(self.ieda_output['feature'], self.design),    
                 'CTS_map' : "{}/{}_CTS_map.json".format(self.ieda_output['feature'], self.design),
             }
             
             return feature_json
+        
+        def ieda_feature_power_json(self, flow):
+            power_key = "{}_power".format(flow.step.value)
+            json_path = self.ieda_feature_json.get(power_key, None)
+            return json_path
+        
+        def ieda_feature_timing_json(self, flow):
+            timing_key = "{}_timing".format(flow.step.value)
+            json_path = self.ieda_feature_json.get(timing_key, None)
+            return json_path
 
     
         @property
@@ -639,7 +655,10 @@ class Workspace:
                            'main'       : "{}/script/main.tcl".format(self.directory),
                            'definition' : "{}/script/definition.tcl".format(self.directory),
                            'sta'        : "{}/script/sta.tcl".format(self.directory),
-                           'mmmc'        : "{}/script/mmmc.tcl".format(self.directory)
+                           'power'        : "{}/script/power.tcl".format(self.directory),
+                           'mmmc'        : "{}/script/mmmc.tcl".format(self.directory),
+                           'drc'        : "{}/script/drc.tcl".format(self.directory),
+                           'timing'        : "{}/script/timing.tcl".format(self.directory)
                            }
             return scirpt_paths
             
