@@ -25,10 +25,10 @@ class DataConfig(ConfigBase):
     def __init__(
         self,
         # Data paths: raw data directories, model input file, visualization file storage directory
-        raw_input_dirs: List[Workspace],
-        pattern : Optional[str] = None,
+        raw_input_dirs: Optional[List[Workspace]] = None,
+        pattern: Optional[str] = None,
         model_input_file: str = "dataset.csv",
-        plot_dir : str = "./plots",
+        plot_dir: str = "./plots",
         
         # Data features: features extracted from raw data directories
         extracted_feature_columns: Optional[List[str]] = None,

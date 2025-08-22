@@ -130,21 +130,21 @@ class TabNetTrainer:
 
         if self.model_config.do_train:
             # Train via_num prediction model
-            X_via_train, y_via_train = data_dict['via_train']
-            self.train_via_model(X_via_train, y_via_train)
+            # X_via_train, y_via_train = data_dict['via_train']
+            # self.train_via_model(X_via_train, y_via_train)
 
-            # Train baseline wirelength ratio model
+            # # Train baseline wirelength ratio model
             X_wl_baseline_train, y_wl_train = data_dict['wl_baseline_train']
             self.train_baseline_model(X_wl_baseline_train, y_wl_train)
 
-            # Train wirelength ratio model with real via_num
-            X_wl_with_real_via_train, y_wl_train_real = data_dict['wl_with_real_via_train']
-            self.train_with_via_model(X_wl_with_real_via_train, y_wl_train_real)
+            # # Train wirelength ratio model with real via_num
+            # X_wl_with_real_via_train, y_wl_train_real = data_dict['wl_with_real_via_train']
+            # self.train_with_via_model(X_wl_with_real_via_train, y_wl_train_real)
 
-            # Use predicted via num to replace real via num, then train wirelength ratio model with predicted via_num
-            X_wl_with_pred_via_train = X_wl_with_real_via_train.copy()
-            X_wl_with_pred_via_train[:, -1] = self.via_model.predict(X_via_train).reshape(-1)
-            self.train_with_pred_via_model(X_wl_with_pred_via_train, y_wl_train_real)
+            # # Use predicted via num to replace real via num, then train wirelength ratio model with predicted via_num
+            # X_wl_with_pred_via_train = X_wl_with_real_via_train.copy()
+            # X_wl_with_pred_via_train[:, -1] = self.via_model.predict(X_via_train).reshape(-1)
+            # self.train_with_pred_via_model(X_wl_with_pred_via_train, y_wl_train_real)
 
         return data_dict
 
@@ -441,24 +441,24 @@ class TabNetTrainer:
         
         Args:
             save_dir: Directory to save models
-        """
+        """ 
         save_dir = Path(save_dir)
         save_dir.mkdir(parents=True, exist_ok=True)
         
         if self.via_model is not None:
-            via_path = save_dir / "via_model.zip"
+            via_path = save_dir / "via_model"
             self.via_model.save_model(str(via_path))
             
         if self.baseline_model is not None:
-            baseline_path = save_dir / "baseline_model.zip"
+            baseline_path = save_dir / "baseline_model"
             self.baseline_model.save_model(str(baseline_path))
             
         if self.with_via_model is not None:
-            with_via_path = save_dir / "with_via_model.zip"
+            with_via_path = save_dir / "with_via_model"
             self.with_via_model.save_model(str(with_via_path))
             
         if self.with_pred_via_model is not None:
-            with_pred_via_path = save_dir / "with_pred_via_model.zip"
+            with_pred_via_path = save_dir / "with_pred_via_model"
             self.with_pred_via_model.save_model(str(with_pred_via_path))
         
         self.logger.info(f"All models saved to {save_dir}")
@@ -571,7 +571,7 @@ if __name__ == "__main__":
         'max_epochs': 100,
         'patience': 20,
         'device': torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
-        'num_workers': 0,
+        'num_workers': 4,
         'pin_memory': True
     }
     baseline_model_config = {
@@ -587,7 +587,7 @@ if __name__ == "__main__":
         'max_epochs': 100,
         'patience': 20,
         'device': torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
-        'num_workers': 0,
+        'num_workers': 4,
         'pin_memory': True
     }
     model_config = ModelConfig(
@@ -609,7 +609,7 @@ if __name__ == "__main__":
     data_dict = trainer.train()
 
     # Evaluate model
-    results = trainer.evaluate(data_dict)
+    # results = trainer.evaluate(data_dict)
     
     # Save models
     trainer.save_models("./saved_models")

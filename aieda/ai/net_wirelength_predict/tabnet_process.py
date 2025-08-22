@@ -33,8 +33,10 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
+
 class DataProcessor:
     """Data processor class"""
+
     def __init__(self, config: DataConfig):
         self.config = config
         # Configure logger
@@ -79,7 +81,8 @@ class DataProcessor:
         # Show final data information
         self._show_final_data_info(combined_df)
 
-        self.logger.info(f"Data processing pipeline completed, final file: {final_file}")
+        self.logger.info(
+            f"Data processing pipeline completed, final file: {final_file}")
 
     def _extract_and_combine_features(self) -> pd.DataFrame:
         """Extract features from JSON files and combine all data"""
@@ -87,20 +90,20 @@ class DataProcessor:
         all_dataframes = []
 
         for workspace in self.config.raw_input_dirs:
-            
+
             self.logger.info(f"Processing workspace: {workspace.directory}")
-            
+
             design_name = workspace.design
-            
+
             vector_loader = DataVectors(workspace)
-            
+
             net_dir = workspace.directory + self.config.pattern
-            
+
             net_db = vector_loader.load_nets(net_dir)
-            
+
             # Collect all data from single directory
             net_list = []
-            
+
             for vec_net in net_db:
                 # Extract feature data
                 row_data = {
@@ -131,8 +134,8 @@ class DataProcessor:
                 self.logger.info(
                     f"Directory {workspace.directory} processing completed")
             else:
-                self.logger.warning(f"No valid data found in directory {workspace.directory}")
-
+                self.logger.warning(
+                    f"No valid data found in directory {workspace.directory}")
 
         if not all_dataframes:
             self.logger.error("No valid data found")
@@ -141,7 +144,8 @@ class DataProcessor:
         # Combine all data
         self.logger.info("Starting data combination")
         combined_df = pd.concat(all_dataframes, ignore_index=True)
-        self.logger.info(f"Combination completed, total {len(combined_df)} rows of data")
+        self.logger.info(
+            f"Combination completed, total {len(combined_df)} rows of data")
 
         return combined_df
 
@@ -189,7 +193,8 @@ class DataProcessor:
             columns={'fanout': 'pin_num', 'wire_len': 'drwl'}, inplace=True)
 
         self.logger.info("Feature engineering completed")
-        self.logger.info(f"Number of columns after adding new features: {len(df_engineered.columns)}")
+        self.logger.info(
+            f"Number of columns after adding new features: {len(df_engineered.columns)}")
 
         return df_engineered
 
@@ -219,7 +224,8 @@ class DataProcessor:
         # Plot distribution charts
         self._plot_distribution_charts(target_series)
 
-        self.logger.info(f"Analysis charts saved to {self.config.plot_dir} directory")
+        self.logger.info(
+            f"Analysis charts saved to {self.config.plot_dir} directory")
 
     def _plot_distribution_charts(self, target_series: pd.Series) -> None:
         """
@@ -301,7 +307,8 @@ class DataProcessor:
         lower_bound = Q1 - self.config.outlier_multiplier * IQR
         upper_bound = Q3 + self.config.outlier_multiplier * IQR
 
-        self.logger.info(f"Outlier boundaries: lower bound {lower_bound:.4f}, upper bound {upper_bound:.4f}")
+        self.logger.info(
+            f"Outlier boundaries: lower bound {lower_bound:.4f}, upper bound {upper_bound:.4f}")
 
         # Remove outliers
         outlier_mask = (target_series >= lower_bound) & (
@@ -322,7 +329,8 @@ class DataProcessor:
         self.logger.info("Saving final cleaned file")
         df.to_csv(self.config.model_input_file, index=False)
 
-        self.logger.info(f"Final dataset contains {len(df)} rows, {len(df.columns)} columns")
+        self.logger.info(
+            f"Final dataset contains {len(df)} rows, {len(df.columns)} columns")
         return self.config.model_input_file
 
     def _show_final_data_info(self, df: pd.DataFrame) -> None:
@@ -387,6 +395,54 @@ class DataProcessor:
 
         return X_enhanced
 
+    def save_normalization_params(self, output_dir: str = "./normalization_params"):
+        """
+        Save normalization parameters to files
+        """
+        import pickle
+        import json
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Save via scaler parameters
+        if hasattr(self.via_scaler, 'data_min_') and hasattr(self.via_scaler, 'data_max_'):
+            via_params = {
+                'feature_names': self.via_feature_names,
+                'data_min': self.via_scaler.data_min_.tolist(),
+                'data_max': self.via_scaler.data_max_.tolist(),
+                'scale': self.via_scaler.scale_.tolist(),
+                'min': self.via_scaler.min_.tolist()
+            }
+
+            # Save as JSON (for C++ reading)
+            with open(os.path.join(output_dir, 'via_normalization_params.json'), 'w') as f:
+                json.dump(via_params, f, indent=2)
+
+            # Save as pickle (for Python backup)
+            with open(os.path.join(output_dir, 'via_scaler.pkl'), 'wb') as f:
+                pickle.dump(self.via_scaler, f)
+
+            self.logger.info(
+                f"Via normalization parameters saved to {output_dir}")
+
+        # Save wirelength baseline scaler parameters
+        if hasattr(self.wl_baseline_scaler, 'data_min_') and hasattr(self.wl_baseline_scaler, 'data_max_'):
+            wl_baseline_params = {
+                'feature_names': self.wl_baseline_feature_names,
+                'data_min': self.wl_baseline_scaler.data_min_.tolist(),
+                'data_max': self.wl_baseline_scaler.data_max_.tolist(),
+                'scale': self.wl_baseline_scaler.scale_.tolist(),
+                'min': self.wl_baseline_scaler.min_.tolist()
+            }
+
+            with open(os.path.join(output_dir, 'wl_baseline_normalization_params.json'), 'w') as f:
+                json.dump(wl_baseline_params, f, indent=2)
+
+            with open(os.path.join(output_dir, 'wl_baseline_scaler.pkl'), 'wb') as f:
+                pickle.dump(self.wl_baseline_scaler, f)
+
+            self.logger.info(
+                f"Wirelength baseline normalization parameters saved to {output_dir}")
 
     def load_and_preprocess_data(self, data_path: str) -> Dict[str, Any]:
         """
@@ -429,13 +485,14 @@ class DataProcessor:
         X_wl_with_via = df[self.config.wl_with_via_feature_columns]
 
         # Enhance features
-        X_via_enhanced = self.enhance_features(X_via)
-        X_wl_baseline_enhanced = self.enhance_features(X_wl_baseline)
-        X_wl_with_via_enhanced = self.enhance_features(X_wl_with_via)
+        # X_via_enhanced = self.enhance_features(X_via)
+        # X_wl_baseline_enhanced = self.enhance_features(X_wl_baseline)
+        # X_wl_with_via_enhanced = self.enhance_features(X_wl_with_via)
 
-        # Data splitting
+        # Data splitting ()
         X_wl_baseline_train, X_wl_baseline_test, y_wl_train, y_wl_test, train_bins, test_bins = train_test_split(
-            X_wl_baseline_enhanced, y_wl, df['target_bin'],
+            # use X_wl_baseline rather than X_wl_baseline_enhanced
+            X_wl_baseline, y_wl, df['target_bin'],
             test_size=self.config.test_size,
             random_state=self.config.random_state,
             stratify=df['target_bin']
@@ -445,11 +502,12 @@ class DataProcessor:
         train_indices = y_wl_train.index
         test_indices = y_wl_test.index
 
-        X_wl_with_via_train = X_wl_with_via_enhanced.loc[train_indices]
-        X_wl_with_via_test = X_wl_with_via_enhanced.loc[test_indices]
+        # use original features
+        X_wl_with_via_train = X_wl_with_via.loc[train_indices]
+        X_wl_with_via_test = X_wl_with_via.loc[test_indices]
 
-        X_via_train = X_via_enhanced.loc[train_indices]
-        X_via_test = X_via_enhanced.loc[test_indices]
+        X_via_train = X_via.loc[train_indices]  # use original features
+        X_via_test = X_via.loc[test_indices]
         y_via_train = y_via.loc[train_indices]
         y_via_test = y_via.loc[test_indices]
 
@@ -471,13 +529,16 @@ class DataProcessor:
         X_wl_with_via_test_scaled = self.wl_with_via_scaler.transform(
             X_wl_with_via_test)
 
-        # Save feature names
-        self.via_feature_names = list(X_via_enhanced.columns)
-        self.wl_baseline_feature_names = list(X_wl_baseline_enhanced.columns)
-        self.wl_with_via_feature_names = list(X_wl_with_via_enhanced.columns)
+        # Save feature names (save original feature)
+        self.via_feature_names = list(X_via.columns)
+        self.wl_baseline_feature_names = list(X_wl_baseline.columns)
+        self.wl_with_via_feature_names = list(X_wl_with_via.columns)
 
         end_time = time.time()
-        self.logger.info(f"Data preprocessing completed! Time elapsed: {end_time - start_time:.2f} seconds")
+        self.logger.info(
+            f"Data preprocessing completed! Time elapsed: {end_time - start_time:.2f} seconds")
+
+        self.save_normalization_params()
 
         return {
             'via_train': (X_via_train_scaled, y_via_train.values),
@@ -536,17 +597,18 @@ if __name__ == "__main__":
     # step 0: create workspace list
     workspace_list = []
     for base_dir in BASE_DIRS:
-        workspace = workspace_create(directory=base_dir+"/workspace", design = os.path.basename(base_dir))
+        workspace = workspace_create(
+            directory=base_dir+"/workspace", design=os.path.basename(base_dir))
         workspace_list.append(workspace)
-        
+
     data_config = DataConfig(
         raw_input_dirs=workspace_list,
-        pattern = "/output/innovus/vectors/nets",
+        pattern="/output/innovus/vectors/nets",
         model_input_file="./iEDA_combined_nets_cleaned.csv",
         plot_dir="./analysis_plots",
         extracted_feature_columns=['id', 'wire_len', 'width', 'height',
-                                'fanout', 'aspect_ratio', 'l_ness', 'rsmt',
-                                'via_num'],
+                                   'fanout', 'aspect_ratio', 'l_ness', 'rsmt',
+                                   'via_num'],
     )
     data_processor = DataProcessor(data_config)
     data_processor.run_pipeline()
