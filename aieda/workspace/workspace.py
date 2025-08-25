@@ -648,6 +648,14 @@ class Workspace:
             
             return vectors_paths
         
+        @property
+        def ieda_gui(self):
+            gui_paths = {
+                'instance_graph' : "{}/instance_graph/instance_graph.png".format(self.ieda_output['vectors'])
+            }
+            
+            return gui_paths
+        
         
         @property
         def scripts(self):

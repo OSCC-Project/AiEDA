@@ -87,7 +87,7 @@ if __name__ == "__main__":
     # step 1 : create workspace
     # workspace_dir = "/data2/huangzengrong/test_aieda/minirv3"
     # workspace = workspace_create(directory=workspace_dir, design="minirv")
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_4"
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_5"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : init iEDA by workspace

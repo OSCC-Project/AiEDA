@@ -14,8 +14,6 @@
 from import_aieda import import_aieda
 import_aieda()
 ######################################################################################
-import os
-os.environ['eda_tool'] = "iEDA"
 
 from aieda.ai.DSE.dse_facade import DSEFacade
 from aieda.data.database.enum import DSEMethod
