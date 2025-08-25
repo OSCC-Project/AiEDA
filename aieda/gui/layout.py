@@ -41,19 +41,18 @@ class GuiLayout():
         
         # create image with larger size to accommodate legend
         fig, ax = plt.subplots(figsize=(20, 14))
-        ax.set_title(f"{self.workspace.design} - Instance Layout Visualization (Total: {len(vec_instances.instances)} instances)", fontsize=16)
+        ax.set_title(f"{self.workspace.design} - Instance Graph", fontsize=16)
         
-
         # calculate image range
         x_coords = [inst.x for inst in vec_instances.instances]
         y_coords = [inst.y for inst in vec_instances.instances]  
         widths = [inst.width for inst in vec_instances.instances]
         heights = [inst.height for inst in vec_instances.instances]
         
-        min_x = min([x - w/2 for x, w in zip(x_coords, widths)])
-        max_x = max([x + w/2 for x, w in zip(x_coords, widths)])
-        min_y = min([y - h/2 for y, h in zip(y_coords, heights)])
-        max_y = max([y + h/2 for y, h in zip(y_coords, heights)])
+        min_x = min([x for x, w in zip(x_coords, widths)])
+        max_x = max([x + w for x, w in zip(x_coords, widths)])
+        min_y = min([y for y, h in zip(y_coords, heights)])
+        max_y = max([y + h for y, h in zip(y_coords, heights)])
         
         # categorize instances by cell_id for better color coding
         cell_id_to_color = {}
@@ -80,8 +79,8 @@ class GuiLayout():
         
         for instance in vec_instances.instances:
             # calculate rectangle parameters
-            x = instance.x - instance.width / 2
-            y = instance.y - instance.height / 2
+            x = instance.x
+            y = instance.y
             width = instance.width
             height = instance.height
             
@@ -102,8 +101,6 @@ class GuiLayout():
                 legend_handles.append(patches.Patch(color=color, label=f"{cell_name} ({cell_id_count[cell_id]} instances)"))
                 legend_labels.append(f"{cell_name} ({cell_id_count[cell_id]} instances)")
                 used_cell_ids.add(cell_id)
-        
-        print(f"draw {drawn_count} instances with {len(used_cell_ids)} different cell types")
         
         # draw node connection relations (improved edge drawing)
         edges_drawn = 0
@@ -147,14 +144,14 @@ class GuiLayout():
                 if from_name in instance_name_to_data and to_name in instance_name_to_data:
                     valid_edges.append(edge)
         
-        print(f"found {len(valid_edges)} valid edges connecting instances")
+        self.workspace.logger.info("found {} valid edges connecting instances".format(len(valid_edges)))
         
         # limit display edge number, avoid too many edges affecting visualization
         max_edges = 2000  # increased limit
         if len(valid_edges) > max_edges:
             # random select edges for display
             selected_edges = random.sample(valid_edges, max_edges)
-            print(f"edge number too many({len(valid_edges)}), random select {max_edges} edges for display")
+            self.workspace.logger.info(f"edge number too many({len(valid_edges)}), random select {max_edges} edges for display")
         else:
             selected_edges = valid_edges
         
@@ -192,12 +189,12 @@ class GuiLayout():
                 
                 if from_instance and to_instance:
                     # draw connection line with better visibility
-                    ax.plot([from_instance.x, to_instance.x], 
-                           [from_instance.y, to_instance.y], 
+                    ax.plot([from_instance.x + from_instance.width / 2, to_instance.x + to_instance.width / 2], 
+                           [from_instance.y + from_instance.height / 2, to_instance.y + to_instance.height / 2], 
                            '-', linewidth=0.5, alpha=0.4, color='blue')
                     edges_drawn += 1
         
-        print(f"draw {edges_drawn} connection lines")
+        self.workspace.logger.info(f"draw {edges_drawn} connection lines")
         
         # set axis range
         margin = max(max_x - min_x, max_y - min_y) * 0.05
@@ -225,7 +222,7 @@ class GuiLayout():
         # place legend outside the plot
         ax.legend(handles=legend_handles, labels=legend_labels, 
                  loc='center left', bbox_to_anchor=(1.02, 0.5), 
-                 fontsize=10, title="Instance Types", title_fontsize=12)
+                 fontsize=10, title="Cell Distribution", title_fontsize=12)
         
         # add info text above the legend
         info_text = (
@@ -238,7 +235,7 @@ class GuiLayout():
             f"Layout Range: {max_x-min_x:.0f} x {max_y-min_y:.0f}"
         )
         # place info text above the legend
-        fig.text(0.78, 0.95, info_text, fontsize=10,
+        fig.text(0.78, 0.95, info_text, fontsize=13,
                 verticalalignment='top', bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
         
         # save image with adjusted layout to accommodate legend
@@ -247,4 +244,4 @@ class GuiLayout():
         plt.savefig(fig_path, dpi=300, bbox_inches='tight')
         plt.close(fig)
         
-        print(f"visualization done, image saved to: {fig_path}")
+        self.workspace.logger.info(f"instance graph image is saved to: {fig_path}")
