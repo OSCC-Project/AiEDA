@@ -142,3 +142,8 @@ cython_debug/
 *.csv
 .vscode/
 .VSCodeCounter/
+
+*.json
+*.pkl
+*.onnx
+*.zip

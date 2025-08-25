@@ -14,7 +14,7 @@ from typing import Dict, Any, Tuple, Optional, Union, List
 import logging
 
 
-class TabNetModel:
+class TabNetBaseModel:
     """TabNet model wrapper"""
 
     def __init__(self, config: Dict[str, Any], model_name: str = "TabNet"):
@@ -232,7 +232,7 @@ class TabNetModel:
         return predictions[0]
 
 
-class ViaPredictor(TabNetModel):
+class ViaPredictor(TabNetBaseModel):
     """Via number prediction model"""
 
     def __init__(self, config: Dict[str, Any]):
@@ -292,7 +292,7 @@ class ViaPredictor(TabNetModel):
         return results
 
 
-class WirelengthPredictor(TabNetModel):
+class WirelengthPredictor(TabNetBaseModel):
     """Wirelength ratio prediction model"""
 
     def __init__(self, config: Dict[str, Any], model_name: str = "Wirelength Predictor"):

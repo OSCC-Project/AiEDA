@@ -148,6 +148,26 @@ class IEDAPlacement(IEDAIO):
     def run_refinement(self, tcl_path=""):
         self.ieda.runRef(tcl_path)
         
+    def _run_ai_placement(self, onnx_path: str, normalization_path: str):
+        """
+        Run AI-guided placement using ONNX model
+        
+        Args:
+            onnx_path: Path to the ONNX model file
+            normalization_path: Path to the normalization parameters JSON file
+        """
+        
+        self.read_def()
+        
+        self.ieda.run_ai_placement(self.ieda_config, onnx_path, normalization_path)
+        
+        self.def_save()
+        self.verilog_save(self.cell_names)
+        
+        # self._generate_placement_feature_summary()
+        # self._generate_placement_feature_tool()
+        # self._generate_feature_map()
+        
     # build macro drc distribution
     def feature_macro_drc_distribution(self, path: str, drc_path: str):
         self.ieda.feature_macro_drc(path=path, drc_path=drc_path)
