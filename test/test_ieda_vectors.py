@@ -52,7 +52,7 @@ def test_vectors_load(workspace):
     
 if __name__ == "__main__":  
     # step 1 : create workspace
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_4"
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_6"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     test_vectors_generation(workspace, patch_row_step=9, patch_col_step=9)

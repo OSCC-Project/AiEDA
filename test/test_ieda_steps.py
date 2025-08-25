@@ -35,11 +35,18 @@ def run_floorplan_sky130_gcd(workspace : Workspace):
         ieda_fp = IEDAFloorplan(workspace, flow)
         ieda_fp.read_verilog()
         
-        ieda_fp.init_floorplan_by_area(die_area="0.0    0.0   149.96   150.128",
-                                      core_area="9.996 10.08 139.964  140.048",
-                                      core_site="unit",
-                                      io_site="unit",
-                                      corner_site="unit")
+        ieda_fp.init_floorplan_by_core_utilization(core_site="unit",
+                                                   io_site="unit",
+                                                   corner_site="unit",
+                                                   core_util=0.4,
+                                                   x_margin=0,
+                                                   y_margin=0,
+                                                   xy_ratio=1)
+        # ieda_fp.init_floorplan_by_area(die_area="0.0    0.0   149.96   150.128",
+        #                               core_area="9.996 10.08 139.964  140.048",
+        #                               core_site="unit",
+        #                               io_site="unit",
+        #                               corner_site="unit")
         
         ieda_fp.gern_track(layer="li1", x_start=240, x_step=480, y_start=185, y_step=370)
         ieda_fp.gern_track(layer="met1", x_start=185, x_step=370, y_start=185, y_step=370)
@@ -87,7 +94,7 @@ if __name__ == "__main__":
     # step 1 : create workspace
     # workspace_dir = "/data2/huangzengrong/test_aieda/minirv3"
     # workspace = workspace_create(directory=workspace_dir, design="minirv")
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_4"
+    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_6"
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : init iEDA by workspace
