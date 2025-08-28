@@ -52,7 +52,8 @@ class WireDistributionAnalyzer(BaseAnalyzer):
             pattern: File pattern to search for
         """        
         self.dir_to_display_name = dir_to_display_name or {}
-            
+        self.workspace_dirs = workspace_dirs
+        
         for workspace in workspace_dirs:
             design_name = workspace.design
             
@@ -172,7 +173,10 @@ class WireDistributionAnalyzer(BaseAnalyzer):
         # Set up output directory
         if save_path is None:
             save_path = "."
-        
+            
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
         # Generate stacked bar chart for layer wire length proportions
         plt.figure(figsize=(5, 4))
         
@@ -238,7 +242,8 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
             pattern: File pattern to search for
         """      
         self.dir_to_display_name = dir_to_display_name or {}
-  
+        self.workspace_dirs = workspace_dirs
+        
         for workspace in workspace_dirs:
             design_name = workspace.design
             
@@ -384,6 +389,9 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
         # Set up output directory
         if save_path is None:
             save_path = "."
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")    
             
         plt.figure(figsize=(5, 4))
         

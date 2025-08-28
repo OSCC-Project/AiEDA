@@ -5,11 +5,7 @@
 @Author : yell
 @Desc : test pattern
 '''
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
+
 
 from aieda import (
     workspace_create,
@@ -22,7 +18,7 @@ def test_pattern_generation(workspace):
     data_gen = DataGeneration(workspace)
     
     # step 2 : generate vectors
-    # vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors"
+    # vectors_dir="/data/project_share/dataset_baseline/eth_top/workspace/output/iEDA/vectors"
     # data_gen.generate_patterns(vectors_dir=vectors_dir)
     data_gen.generate_patterns()
 

@@ -6,12 +6,6 @@
 @Desc : test patch_level data ananlysis
 '''
 
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
-
 from aieda.analysis import WireDensityAnalyzer, FeatureCorrelationAnalyzer, MapAnalyzer
 from aieda import (
     workspace_create,
@@ -49,7 +43,7 @@ def main():
         dir_to_display_name=DISPLAY_NAME
     )
     wire_analyzer.analyze()
-    wire_analyzer.visualize(save_path = '.')
+    wire_analyzer.visualize()
     
     # step 2: Feature Correlation Analysis
     feature_analyzer = FeatureCorrelationAnalyzer()
@@ -60,15 +54,13 @@ def main():
         
     )
     feature_analyzer.analyze()
-    feature_analyzer.visualize(save_path = '.')
+    feature_analyzer.visualize()
     
     # step 3: Map Analysis
     import os
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit('/', 1)[0]
-
     workspace_dir = "{}/example/sky130_test".format(root)
-    
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     map_analyzer = MapAnalyzer()
@@ -78,7 +70,7 @@ def main():
         dir_to_display_name={"gcd": "GCD"}
     )
     map_analyzer.analyze()
-    map_analyzer.visualize(save_path = '.')
+    map_analyzer.visualize(save_path=workspace_dir)
     
 
 if __name__ == "__main__":  

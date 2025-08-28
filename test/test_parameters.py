@@ -6,11 +6,7 @@
 @Desc : test all parameters in AiEDA
 '''
 
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
+
 
 from aieda import (
     workspace_create,

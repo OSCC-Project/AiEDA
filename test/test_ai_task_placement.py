@@ -11,9 +11,8 @@
 import os
 import torch
 
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
+# set EDA tools working environment
+os.environ['iEDA'] = "ON"
 
 from aieda.workspace import workspace_create
 from aieda.flows import DbFlow, RunIEDA, DataGeneration
@@ -22,22 +21,25 @@ from aieda.analysis import CellTypeAnalyzer, WireDistributionAnalyzer
 from aieda.ai import TabNetDataConfig, TabNetDataProcess, TabNetModelConfig, TabNetTrainer
 
 ######################################################################################
+current_dir = os.path.split(os.path.abspath(__file__))[0]
+root = current_dir.rsplit('/', 1)[0]
+workspace_dir = "{}/example/sky130_test".format(root)
 
-BASE_DIRS = [
-    
-]
-
-DISPLAY_NAME = {
-    
+# all workspace directory
+WORKSPACES = {
+    "gcd" : workspace_dir
 }
 
+# name map
+DISPLAY_NAME = {
+    "gcd" : "GCD"
+}
 
 if __name__ == "__main__":
     workspace_list = []
-    for base_dir in BASE_DIRS:
+    for design, dir in WORKSPACES.items():
         # step 1: create workspace list
-        workspace = workspace_create(
-            directory=base_dir+"/workspace", design=os.path.basename(base_dir))
+        workspace = workspace_create(directory=dir, design = design)
         workspace_list.append(workspace)
 
         # step 2 : init iEDA by workspace and run flows (✔)
@@ -59,22 +61,22 @@ if __name__ == "__main__":
         dir_to_display_name=DISPLAY_NAME
     )
     cell_analyzer.analyze()
-    cell_analyzer.visualize(save_path="./")
+    cell_analyzer.visualize(save_path=workspace_dir)
     
     # step 4.2: net-level analysis (✔)
     wire_analyzer = WireDistributionAnalyzer()
     wire_analyzer.load(
         workspace_dirs=workspace_list,
-        pattern = "/output/innovus/vectors/nets",
+        pattern = "/output/iEDA/vectors/nets",
         dir_to_display_name=DISPLAY_NAME
     )
     wire_analyzer.analyze()
-    wire_analyzer.visualize(save_path=".")
+    wire_analyzer.visualize(save_path=workspace_dir)
 
     # step 5.1: data config and sub-dataset generation (✔)
     data_config = TabNetDataConfig(
         raw_input_dirs=workspace_list,
-        pattern="/output/innovus/vectors/nets",
+        pattern="/output/iEDA/vectors/nets",
         model_input_file="./net_dataset.csv",
         plot_dir="./analysis_fig",
         normalization_params_file="./normalization_params/wl_baseline_normalization_params.json",
@@ -133,8 +135,6 @@ if __name__ == "__main__":
     
 
     # step 6: model inference for specific design  (✔)
-    # onnx_path = "/home/yhqiu/aieda_fork/test/saved_models/baseline_model.onnx"
-    # normalization_path = "/home/yhqiu/aieda_fork/test/normalization_params/wl_baseline_normalization_params.json"
     run_ieda = RunIEDA(workspace_list[0])
     run_ieda.run_ai_placement(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)),
                                onnx_path=onnx_path, 

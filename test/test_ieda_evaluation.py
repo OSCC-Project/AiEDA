@@ -7,9 +7,8 @@
 '''
 
 ######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
+import os
+os.environ['iEDA'] = "ON"
 ######################################################################################
 
 
@@ -46,25 +45,25 @@ if __name__ == "__main__":
 
     
     # step 4: run iEDA density evaluation
-    max_density, avg_density = run_eval.cell_density(bin_cnt_x=256, bin_cnt_y=256, save_path="./cell_density.csv")
+    max_density, avg_density = run_eval.cell_density(bin_cnt_x=256, bin_cnt_y=256)
     print("Max cell density: {}, Avg cell density: {}".format(max_density, avg_density))
     
-    max_density, avg_density = run_eval.pin_density(bin_cnt_x=256, bin_cnt_y=256, save_path="./pin_density.csv")
+    max_density, avg_density = run_eval.pin_density(bin_cnt_x=256, bin_cnt_y=256)
     print("Max pin density: {}, Avg pin density: {}".format(max_density, avg_density))
     
-    max_density, avg_density = run_eval.net_density(bin_cnt_x=256, bin_cnt_y=256, save_path="./net_density.csv")
+    max_density, avg_density = run_eval.net_density(bin_cnt_x=256, bin_cnt_y=256)
     print("Max net density: {}, Avg net density: {}".format(max_density, avg_density))
     
     
     
     # step 5: run iEDA congestion evaluation
-    max_congestion, total_congestion = run_eval.rudy_congestion(bin_cnt_x=256, bin_cnt_y=256, save_path="./rudy_congestion.csv")
+    max_congestion, total_congestion = run_eval.rudy_congestion(bin_cnt_x=256, bin_cnt_y=256)
     print("Max RUDY congestion: {}, Total RUDY congestion: {}".format(max_congestion, total_congestion))
     
-    max_congestion, total_congestion = run_eval.lut_rudy_congestion(bin_cnt_x=256, bin_cnt_y=256, save_path="./lut_rudy_congestion.csv")
+    max_congestion, total_congestion = run_eval.lut_rudy_congestion(bin_cnt_x=256, bin_cnt_y=256)
     print("Max LUT RUDY congestion: {}, Total LUT RUDY congestion: {}".format(max_congestion, total_congestion))
     
-    max_congestion, total_congestion = run_eval.egr_congestion(save_path="./egr_congestion.csv")
+    max_congestion, total_congestion = run_eval.egr_congestion()
     print("Max EGR congestion: {}, Total EGR congestion: {}".format(max_congestion, total_congestion))
     
     

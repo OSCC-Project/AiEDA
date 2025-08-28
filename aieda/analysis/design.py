@@ -480,7 +480,8 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         """
         if pattern is None:
             raise ValueError("Pattern must be specified for result statistics analysis")
-            
+        
+        self.workspace_dirs = workspace_dirs
         self.calc_wire_num = calc_wire_num
         
         # Build complete design path list
@@ -613,7 +614,11 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         
         if save_path is None:
             save_path = ""
-        
+            
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
+            
         df = pd.DataFrame.from_dict(self.stats_data, orient='index')
         
         # 1. File count distribution charts
@@ -645,7 +650,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         axes[1, 1].grid(axis='y', alpha=0.3)
         
         plt.tight_layout()
-        plt.savefig(save_path + 'design_result_stats_overview.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_path + '/design_result_stats_overview.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # 2. Heatmap - file counts
@@ -669,7 +674,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         plt.ylabel('Design', fontsize=12)
         plt.setp(ax.get_yticklabels(), style='italic')
         plt.tight_layout()
-        plt.savefig(save_path + 'design_result_stats_heatmap.png', dpi=300, bbox_inches='tight')
+        plt.savefig(save_path + '/design_result_stats_heatmap.png', dpi=300, bbox_inches='tight')
         plt.close()
         
         # 3. Wire number distribution charts (if calculated)
