@@ -12,15 +12,10 @@ from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 import torch
 
-# import aieda
-current_dir = os.path.split(os.path.abspath(__file__))[0]
-root = current_dir.rsplit('/', 3)[0]
-sys.path.append(root)
+from ..config_base import ConfigBase
+from ...workspace import Workspace
 
-from aieda.ai import ConfigBase
-from aieda.workspace import Workspace
-
-class DataConfig(ConfigBase):
+class TabNetDataConfig(ConfigBase):
     """Tabnet data config"""
     def __init__(
         self,
@@ -29,6 +24,7 @@ class DataConfig(ConfigBase):
         pattern: Optional[str] = None,
         model_input_file: str = "dataset.csv",
         plot_dir: str = "./plots",
+        normalization_params_file: Optional[Dict[str, Any]] = None,
         
         # Data features: features extracted from raw data directories
         extracted_feature_columns: Optional[List[str]] = None,
@@ -63,6 +59,7 @@ class DataConfig(ConfigBase):
         self.pattern = pattern
         self.model_input_file = model_input_file
         self.plot_dir = plot_dir
+        self.normalization_params_file = normalization_params_file
         
         # Data features
         self.extracted_feature_columns = extracted_feature_columns or self._get_extracted_feature_columns()
@@ -101,7 +98,7 @@ class DataConfig(ConfigBase):
         return ['width', 'height', 'pin_num', 'aspect_ratio', 'l_ness', 'rsmt', 'area', 'route_ratio_x', 'route_ratio_y', 'via_num']
 
 
-class ModelConfig(ConfigBase):
+class TabNetModelConfig(ConfigBase):
     """TabNet model config"""
     def __init__(
         self,
@@ -223,36 +220,3 @@ class ModelConfig(ConfigBase):
             'num_workers': 8,
             'pin_memory': True
         }
-        
-
-# Usage examples
-if __name__ == "__main__":
-    # 1. Use default configuration
-    config = ModelConfig()
-    print("Default config:", config.n_d, config.learning_rate)
-
-    # 2. Create configuration with direct parameters
-    config = ModelConfig(
-        n_d=32,
-        learning_rate=0.005,
-        batch_size=1024
-    )
-    print("Custom config:", config.n_d, config.learning_rate)
-
-    # 3. Create configuration from dictionary
-    config_dict = {
-        "n_d": 48,
-        "n_a": 96,
-        "learning_rate": 0.008
-    }
-    config = ModelConfig.from_dict(config_dict)
-    print("From dictionary:", config.n_d, config.n_a)
-
-    # 4. Dynamically modify configuration
-    config.update(learning_rate=0.001, batch_size=512)
-    print("After modification:", config.learning_rate, config.batch_size)
-
-    # 5. Save and load configuration
-    config.to_json_file("./config.json")
-    loaded_config = ModelConfig.from_json_file("./config.json")
-    print("Loaded config:", loaded_config.learning_rate)

@@ -20,7 +20,8 @@ from sklearn.preprocessing import MinMaxScaler
 import logging
 import time
 
-from tabnet_config import DataConfig
+from .tabnet_config import TabNetDataConfig
+
 from aieda import (
     workspace_create,
     DbFlow,
@@ -34,10 +35,10 @@ logging.basicConfig(
 )
 
 
-class DataProcessor:
+class TabNetDataProcess:
     """Data processor class"""
 
-    def __init__(self, config: DataConfig):
+    def __init__(self, config: TabNetDataConfig):
         self.config = config
         # Configure logger
         self.logger = logging.getLogger(__name__)
@@ -359,7 +360,7 @@ class DataProcessor:
         else:
             self.logger.info("No missing values found")
 
-    def enhance_features(self, X: pd.DataFrame) -> pd.DataFrame:
+    def _enhance_features(self, X: pd.DataFrame) -> pd.DataFrame:
         """
         Feature enhancement
 
@@ -395,55 +396,7 @@ class DataProcessor:
 
         return X_enhanced
 
-    def save_normalization_params(self, output_dir: str = "./normalization_params"):
-        """
-        Save normalization parameters to files
-        """
-        import pickle
-        import json
-
-        os.makedirs(output_dir, exist_ok=True)
-
-        # Save via scaler parameters
-        if hasattr(self.via_scaler, 'data_min_') and hasattr(self.via_scaler, 'data_max_'):
-            via_params = {
-                'feature_names': self.via_feature_names,
-                'data_min': self.via_scaler.data_min_.tolist(),
-                'data_max': self.via_scaler.data_max_.tolist(),
-                'scale': self.via_scaler.scale_.tolist(),
-                'min': self.via_scaler.min_.tolist()
-            }
-
-            # Save as JSON (for C++ reading)
-            with open(os.path.join(output_dir, 'via_normalization_params.json'), 'w') as f:
-                json.dump(via_params, f, indent=2)
-
-            # Save as pickle (for Python backup)
-            with open(os.path.join(output_dir, 'via_scaler.pkl'), 'wb') as f:
-                pickle.dump(self.via_scaler, f)
-
-            self.logger.info(
-                f"Via normalization parameters saved to {output_dir}")
-
-        # Save wirelength baseline scaler parameters
-        if hasattr(self.wl_baseline_scaler, 'data_min_') and hasattr(self.wl_baseline_scaler, 'data_max_'):
-            wl_baseline_params = {
-                'feature_names': self.wl_baseline_feature_names,
-                'data_min': self.wl_baseline_scaler.data_min_.tolist(),
-                'data_max': self.wl_baseline_scaler.data_max_.tolist(),
-                'scale': self.wl_baseline_scaler.scale_.tolist(),
-                'min': self.wl_baseline_scaler.min_.tolist()
-            }
-
-            with open(os.path.join(output_dir, 'wl_baseline_normalization_params.json'), 'w') as f:
-                json.dump(wl_baseline_params, f, indent=2)
-
-            with open(os.path.join(output_dir, 'wl_baseline_scaler.pkl'), 'wb') as f:
-                pickle.dump(self.wl_baseline_scaler, f)
-
-            self.logger.info(
-                f"Wirelength baseline normalization parameters saved to {output_dir}")
-
+    
     def load_and_preprocess_data(self, data_path: str) -> Dict[str, Any]:
         """
         Load data and preprocess
@@ -485,9 +438,9 @@ class DataProcessor:
         X_wl_with_via = df[self.config.wl_with_via_feature_columns]
 
         # Enhance features
-        # X_via_enhanced = self.enhance_features(X_via)
-        # X_wl_baseline_enhanced = self.enhance_features(X_wl_baseline)
-        # X_wl_with_via_enhanced = self.enhance_features(X_wl_with_via)
+        # X_via_enhanced = self._enhance_features(X_via)
+        # X_wl_baseline_enhanced = self._enhance_features(X_wl_baseline)
+        # X_wl_with_via_enhanced = self._enhance_features(X_wl_with_via)
 
         # Data splitting ()
         X_wl_baseline_train, X_wl_baseline_test, y_wl_train, y_wl_test, train_bins, test_bins = train_test_split(
@@ -538,7 +491,7 @@ class DataProcessor:
         self.logger.info(
             f"Data preprocessing completed! Time elapsed: {end_time - start_time:.2f} seconds")
 
-        self.save_normalization_params()
+        self._save_normalization_params()
 
         return {
             'via_train': (X_via_train_scaled, y_via_train.values),
@@ -558,57 +511,46 @@ class DataProcessor:
             'wl_with_via_feature_cols': self.config.wl_with_via_feature_columns
         }
 
+    
+    def _save_normalization_params(self, output_file: str = "./normalization_params/wl_baseline_normalization_params.json") -> None:
+        """
+        Save normalization parameters to files
+        """
+        import pickle
+        import json
 
-# Usage example
-if __name__ == "__main__":
-    BASE_DIRS = [
-        "/data2/project_share/dataset_baseline/s713",
-        "/data2/project_share/dataset_baseline/s44",
-        "/data2/project_share/dataset_baseline/apb4_rng",
-        "/data2/project_share/dataset_baseline/gcd",
-        "/data2/project_share/dataset_baseline/s1238",
-        "/data2/project_share/dataset_baseline/s1488",
-        "/data2/project_share/dataset_baseline/apb4_archinfo",
-        "/data2/project_share/dataset_baseline/apb4_ps2",
-        "/data2/project_share/dataset_baseline/s9234",
-        "/data2/project_share/dataset_baseline/apb4_timer",
-        "/data2/project_share/dataset_baseline/s13207",
-        "/data2/project_share/dataset_baseline/apb4_i2c",
-        "/data2/project_share/dataset_baseline/s5378",
-        "/data2/project_share/dataset_baseline/apb4_pwm",
-        "/data2/project_share/dataset_baseline/apb4_wdg",
-        "/data2/project_share/dataset_baseline/apb4_clint",
-        "/data2/project_share/dataset_baseline/ASIC",
-        "/data2/project_share/dataset_baseline/s15850",
-        "/data2/project_share/dataset_baseline/apb4_uart",
-        "/data2/project_share/dataset_baseline/s38417",
-        "/data2/project_share/dataset_baseline/s35932",
-        "/data2/project_share/dataset_baseline/s38584",
-        "/data2/project_share/dataset_baseline/BM64",
-        "/data2/project_share/dataset_baseline/picorv32",
-        "/data2/project_share/dataset_baseline/PPU",
-        "/data2/project_share/dataset_baseline/blabla",
-        "/data2/project_share/dataset_baseline/aes_core",
-        "/data2/project_share/dataset_baseline/aes",
-        "/data2/project_share/dataset_baseline/salsa20",
-        "/data2/project_share/dataset_baseline/jpeg_encoder",
-        "/data2/project_share/dataset_baseline/eth_top"
-    ]
-    # step 0: create workspace list
-    workspace_list = []
-    for base_dir in BASE_DIRS:
-        workspace = workspace_create(
-            directory=base_dir+"/workspace", design=os.path.basename(base_dir))
-        workspace_list.append(workspace)
+        output_file = self.config.normalization_params_file or output_file
 
-    data_config = DataConfig(
-        raw_input_dirs=workspace_list,
-        pattern="/output/innovus/vectors/nets",
-        model_input_file="./iEDA_combined_nets_cleaned.csv",
-        plot_dir="./analysis_plots",
-        extracted_feature_columns=['id', 'wire_len', 'width', 'height',
-                                   'fanout', 'aspect_ratio', 'l_ness', 'rsmt',
-                                   'via_num'],
-    )
-    data_processor = DataProcessor(data_config)
-    data_processor.run_pipeline()
+        # Save via scaler parameters
+        if hasattr(self.via_scaler, 'data_min_') and hasattr(self.via_scaler, 'data_max_'):
+            via_params = {
+                'feature_names': self.via_feature_names,
+                'data_min': self.via_scaler.data_min_.tolist(),
+                'data_max': self.via_scaler.data_max_.tolist(),
+                'scale': self.via_scaler.scale_.tolist(),
+                'min': self.via_scaler.min_.tolist()
+            }
+
+            # Save as JSON (for C++ reading)
+            with open(output_file, 'w') as f:
+                json.dump(via_params, f, indent=2)
+
+            self.logger.info(
+                f"Via normalization parameters saved to {output_dir}")
+
+        # Save wirelength baseline scaler parameters
+        if hasattr(self.wl_baseline_scaler, 'data_min_') and hasattr(self.wl_baseline_scaler, 'data_max_'):
+            wl_baseline_params = {
+                'feature_names': self.wl_baseline_feature_names,
+                'data_min': self.wl_baseline_scaler.data_min_.tolist(),
+                'data_max': self.wl_baseline_scaler.data_max_.tolist(),
+                'scale': self.wl_baseline_scaler.scale_.tolist(),
+                'min': self.wl_baseline_scaler.min_.tolist()
+            }
+
+            with open(output_file, 'w') as f:
+                json.dump(wl_baseline_params, f, indent=2)
+
+            self.logger.info(
+                f"Wirelength baseline normalization parameters saved to {output_dir}")
+

@@ -676,33 +676,33 @@ class Workspace:
         def __init__(self, paths_table, logger):
             self.paths_table = paths_table
             self.logger = logger
-            self.flows = self.__init_flow_json__()
-            self.paths = self.__init_path_json__()
-            self.workspace = self.__init_workspace_json__()
-            self.parameters = self.__init_parameters__()
+            self.flows = self._init_flow_json()
+            self.paths = self._init_path_json()
+            self.workspace = self._init_workspace_json()
+            self.parameters = self._init_parameters()
         
         def update(self):
-            self.flows = self.__init_flow_json__()
-            self.paths = self.__init_path_json__()
-            self.workspace = self.__init_workspace_json__()
-            self.parameters = self.__init_parameters__()
+            self.flows = self._init_flow_json()
+            self.paths = self._init_path_json()
+            self.workspace = self._init_workspace_json()
+            self.parameters = self._init_parameters()
         
-        def __init_flow_json__(self):
+        def _init_flow_json(self):
             from .config import FlowParser
             parser = FlowParser(self.paths_table.flow, self.logger)
             return parser.get_db()
         
-        def __init_path_json__(self):
+        def _init_path_json(self):
             from .config import PathParser
             parser = PathParser(self.paths_table.path, self.logger)
             return parser.get_db()
         
-        def __init_workspace_json__(self):
+        def _init_workspace_json(self):
             from .config.json_workspace import WorkspaceParser
             parser = WorkspaceParser(self.paths_table.workspace, self.logger)
             return parser.get_db()
         
-        def __init_parameters__(self):
+        def _init_parameters(self):
             from .config.json_parameters import ParametersParser
             parser = ParametersParser(self.paths_table.parameters, self.logger)
             return parser.get_db()
@@ -713,7 +713,7 @@ class Workspace:
             parser.reset_flow_state()
             
             #reset flows data
-            self.flows = self.__init_flow_json__()
+            self.flows = self._init_flow_json()
         
         def save_flow_state(self, db_flow):
             """save flow state"""

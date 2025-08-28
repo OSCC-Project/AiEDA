@@ -3,32 +3,34 @@
 '''
 @File : tabnet_trainer.py
 @Author : yhqiu
-@Desc : TabNet trainer for wirelength prediction
+@Desc : TabNet trainer for wirelength prediction with ONNX export capability
 '''
 import pandas as pd
 import numpy as np
-import torch
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import joblib
 import time
 import logging
+import torch
 from typing import Dict, Any, Tuple, Optional, Union, List
 from tqdm import tqdm
 import json
 import os
+import traceback
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 
-from tabnet_config import DataConfig, ModelConfig
-from tabnet_process import DataProcessor
-from tabnet_model import (
-    ViaPredictor, 
-    BaselineWirelengthPredictor, 
-    WithViaWirelengthPredictor,
-    WithPredViaWirelengthPredictor
+from .tabnet_config import TabNetDataConfig, TabNetModelConfig
+from .tabnet_process import TabNetDataProcess
+from .tabnet_model import ViaPredictor, BaselineWirelengthPredictor, WithViaWirelengthPredictor, WithPredViaWirelengthPredictor
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
+logger = logging.getLogger(__name__)
 
 
 class TrainingCallback:
@@ -97,7 +99,7 @@ class TrainingCallback:
 class TabNetTrainer:
     """TabNet trainer for two-stage wirelength prediction"""
     
-    def __init__(self, data_config: DataConfig, model_config: ModelConfig):
+    def __init__(self, data_config: TabNetDataConfig, model_config: TabNetModelConfig):
         """
         Initialize trainer
         
@@ -109,7 +111,7 @@ class TabNetTrainer:
         self.data_config = data_config
         
         # Initialize data processor
-        self.data_processor = DataProcessor(self.data_config)
+        self.data_processor = TabNetDataProcess(self.data_config)
         
         # Configure logger
         self.logger = logging.getLogger(__name__)
@@ -131,24 +133,24 @@ class TabNetTrainer:
         if self.model_config.do_train:
             # Train via_num prediction model
             # X_via_train, y_via_train = data_dict['via_train']
-            # self.train_via_model(X_via_train, y_via_train)
+            # self._train_via_model(X_via_train, y_via_train)
 
             # # Train baseline wirelength ratio model
             X_wl_baseline_train, y_wl_train = data_dict['wl_baseline_train']
-            self.train_baseline_model(X_wl_baseline_train, y_wl_train)
+            self._train_baseline_model(X_wl_baseline_train, y_wl_train)
 
             # # Train wirelength ratio model with real via_num
             # X_wl_with_real_via_train, y_wl_train_real = data_dict['wl_with_real_via_train']
-            # self.train_with_via_model(X_wl_with_real_via_train, y_wl_train_real)
+            # self._train_with_via_model(X_wl_with_real_via_train, y_wl_train_real)
 
             # # Use predicted via num to replace real via num, then train wirelength ratio model with predicted via_num
             # X_wl_with_pred_via_train = X_wl_with_real_via_train.copy()
             # X_wl_with_pred_via_train[:, -1] = self.via_model.predict(X_via_train).reshape(-1)
-            # self.train_with_pred_via_model(X_wl_with_pred_via_train, y_wl_train_real)
+            # self._train_with_pred_via_model(X_wl_with_pred_via_train, y_wl_train_real)
 
         return data_dict
 
-    def train_via_model(self, X_train: np.ndarray, y_train: np.ndarray) -> ViaPredictor:
+    def _train_via_model(self, X_train: np.ndarray, y_train: np.ndarray) -> ViaPredictor:
         """Train via_num prediction model"""
         self.logger.info("=== Starting Via Prediction Model Training ===")
 
@@ -164,7 +166,7 @@ class TabNetTrainer:
 
         return self.via_model
 
-    def train_baseline_model(self, X_train: np.ndarray, y_train: np.ndarray) -> BaselineWirelengthPredictor:
+    def _train_baseline_model(self, X_train: np.ndarray, y_train: np.ndarray) -> BaselineWirelengthPredictor:
         """Train baseline wirelength prediction model"""
         self.logger.info("=== Starting Baseline Model Training ===")
 
@@ -180,7 +182,7 @@ class TabNetTrainer:
 
         return self.baseline_model
 
-    def train_with_via_model(self, X_train: np.ndarray, y_train: np.ndarray) -> WithViaWirelengthPredictor:
+    def _train_with_via_model(self, X_train: np.ndarray, y_train: np.ndarray) -> WithViaWirelengthPredictor:
         """Train wirelength prediction model with via features"""
         self.logger.info("=== Starting With Via Model Training ===")
 
@@ -196,7 +198,7 @@ class TabNetTrainer:
 
         return self.with_via_model
     
-    def train_with_pred_via_model(self, X_train: np.ndarray, y_train: np.ndarray) -> WithPredViaWirelengthPredictor:
+    def _train_with_pred_via_model(self, X_train: np.ndarray, y_train: np.ndarray) -> WithPredViaWirelengthPredictor:
         """Train wirelength prediction model with predicted via features"""
         self.logger.info("=== Starting With Predicted Via Model Training ===")
 
@@ -538,78 +540,184 @@ class TabNetTrainer:
         
         return predictions
 
+    def export_model_to_onnx(self, model_type: str = 'wirelength', 
+                           model_path: Optional[str] = None, 
+                           onnx_path: Optional[str] = None, 
+                           num_features: int = 9) -> str:
+        """
+        Export model to ONNX format with configurable paths
 
-if __name__ == "__main__":
-    # Data configuration
-    data_config = DataConfig(
-        model_input_file="./iEDA_combined_nets_cleaned.csv",
-        plot_dir="./analysis_plots",
-        via_feature_columns=['width', 'height', 'pin_num', 'aspect_ratio',
-                             'l_ness', 'rsmt', 'area', 'route_ratio_x',
-                             'route_ratio_y'],
-        wl_baseline_feature_columns=['width', 'height', 'pin_num', 'aspect_ratio',
-                                     'l_ness', 'rsmt', 'area', 'route_ratio_x',
-                                     'route_ratio_y'],
-        wl_with_via_feature_columns=['width', 'height', 'pin_num', 'aspect_ratio',
-                                     'l_ness', 'rsmt', 'area', 'route_ratio_x',
-                                     'route_ratio_y', 'via_num'],
-        test_size=0.2,
-        random_state=42,
-    )
-    
-    # Model configuration
-    via_model_config = {
-        'n_d': 16,
-        'n_a': 32,
-        'n_steps': 5,
-        'gamma': 1.3,
-        'n_independent': 2,
-        'n_shared': 2,
-        'lambda_sparse': 1e-4,
-        'learning_rate': 0.01,
-        'batch_size': 512,
-        'max_epochs': 100,
-        'patience': 20,
-        'device': torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
-        'num_workers': 4,
-        'pin_memory': True
-    }
-    baseline_model_config = {
-        'n_d': 64,
-        'n_a': 128,
-        'n_steps': 4,
-        'gamma': 1.8,
-        'n_independent': 2,
-        'n_shared': 2,
-        'lambda_sparse': 1e-5,
-        'learning_rate': 0.01,
-        'batch_size': 2048,
-        'max_epochs': 100,
-        'patience': 20,
-        'device': torch.device('cuda' if torch.cuda.is_available() else 'cpu'),
-        'num_workers': 4,
-        'pin_memory': True
-    }
-    model_config = ModelConfig(
-        do_train=True,
-        do_eval=True,
-        output_dir="./",
-        via_model_config=via_model_config,
-        baseline_model_config=baseline_model_config,
-        with_via_model_config=baseline_model_config,
-    )
+        Args:
+            model_type: Type of model to export ('wirelength' or 'via')
+            model_path: Path to the trained model file. If None, uses default path.
+            onnx_path: Path to save the exported ONNX model. If None, uses default path.
+            num_features: Number of input features for the model
 
-    # Create trainer
-    trainer = TabNetTrainer(
-        data_config=data_config,
-        model_config=model_config
-    )
+        Returns:
+            str: Path to the exported ONNX model
 
-    # Train model
-    data_dict = trainer.train()
+        Raises:
+            ValueError: If model_type is invalid
+            FileNotFoundError: If model_path is not found
+            RuntimeError: If export to ONNX fails
+        """
+        # Create model instance
+        if model_type == 'wirelength':
+            config = self.model_config.baseline_model_config
+            config['devive'] = 'cpu' # Use CPU for export to avoid device issues
+            
+            model = BaselineWirelengthPredictor(config)
+            
+            # Set default paths if not provided
+            default_model_dir = os.path.join(os.path.dirname(__file__), 'saved_models')
+            if model_path is None:
+                model_path = os.path.join(default_model_dir, 'baseline_model.zip')
+            if onnx_path is None:
+                onnx_path = os.path.join(default_model_dir, 'baseline_model.onnx')
+                
+        elif model_type == 'via':
+            config = self.model_config.via_model_config
+            config['devive'] = 'cpu' # Use CPU for export to avoid device issues
 
-    # Evaluate model
-    # results = trainer.evaluate(data_dict)
-    
-    # Save models
-    trainer.save_models("./saved_models")
+            model = ViaPredictor(config)
+            
+            # Set default paths if not provided
+            default_model_dir = os.path.join(os.path.dirname(__file__), 'saved_models')
+            if model_path is None:
+                model_path = os.path.join(default_model_dir, 'via_model.zip')
+            if onnx_path is None:
+                onnx_path = os.path.join(default_model_dir, 'via_model.onnx')
+                
+        else:
+            raise ValueError(
+                f"Invalid model_type: {model_type}. Must be 'wirelength' or 'via'"
+            )
+
+        # Load trained model
+        try:
+            if not os.path.exists(model_path):
+                raise FileNotFoundError(f"Model file not found: {model_path}")
+            model.load_model(model_path)
+            logger.info(f"Successfully loaded model from {model_path}")
+        except Exception as e:
+            logger.error(f"Failed to load model from {model_path}: {e}")
+            raise
+
+        # Determine input shape
+        input_shape = (1, num_features)  # Batch size 1 for export
+
+        # Export to ONNX
+        try:
+            model.export_to_onnx(onnx_path, input_shape)
+            logger.info(
+                f"Successfully exported model to ONNX format at {onnx_path}")
+        except Exception as e:
+            logger.error(f"Failed to export model to ONNX format: {e}")
+            raise RuntimeError(f"ONNX export failed: {e}")
+
+        # Verify ONNX model
+        try:
+            # Load ONNX model
+            model.load_onnx_model(onnx_path)
+
+            # Create test input
+            test_input = np.random.rand(*input_shape).astype(np.float32)
+            logger.info(f"Test input type: {type(test_input)}")
+            logger.info(f"Test input shape: {test_input.shape}")
+
+            # Predict with original model
+            torch_pred = model.predict(test_input)
+
+            # Predict with ONNX model - ensure input is numpy array
+            try:
+                onnx_pred = model.predict_onnx(test_input)
+            except TypeError as te:
+                logger.warning(f"Type error during ONNX prediction: {te}")
+                logger.info("Trying to convert input to numpy array explicitly...")
+                # Ensure input is a numpy array
+                test_input_np = np.array(test_input, dtype=np.float32)
+                onnx_pred = model.predict_onnx(test_input_np)
+
+            # Handle ONNX output which might be a list or other format
+            logger.info(f"ONNX prediction raw type: {type(onnx_pred)}")
+
+            # Convert ONNX output to numpy array if needed
+            if isinstance(onnx_pred, list):
+                # If it's a list of arrays, take the first element
+                if len(onnx_pred) > 0 and hasattr(onnx_pred[0], '__array__'):
+                    onnx_pred_np = np.array(onnx_pred[0])
+                else:
+                    onnx_pred_np = np.array(onnx_pred)
+            elif hasattr(onnx_pred, '__array__'):
+                # If it has __array__ method, convert to numpy
+                onnx_pred_np = np.array(onnx_pred)
+            else:
+                # Try direct conversion
+                onnx_pred_np = np.array(onnx_pred)
+
+            # Ensure torch prediction is also numpy array
+            torch_pred_np = np.array(torch_pred) if not isinstance(
+                torch_pred, np.ndarray) else torch_pred
+
+            # Log predictions safely
+            logger.info(f"Original model prediction: {torch_pred_np.tolist()}")
+            logger.info(f"ONNX model prediction: {onnx_pred_np.tolist()}")
+
+            # Compare predictions
+            diff = np.max(np.abs(torch_pred_np - onnx_pred_np))
+            logger.info(f"Maximum difference between predictions: {diff}")
+
+            if diff < 1e-5:
+                logger.info(
+                    "Predictions from ONNX model match closely with original model.")
+            else:
+                logger.warning(
+                    "Predictions from ONNX model differ significantly from original model.")
+
+        except Exception as e:
+            logger.error(f"Failed to verify ONNX model: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            # Do not raise exception as verification is optional
+
+        logger.info(f"ONNX export and verification completed.")
+        return onnx_path, self.data_config.normalization_params_file
+
+    def load_onnx_model_for_inference(self, onnx_path: str, model_type: str = 'wirelength') -> Any:
+        """
+        Load ONNX model for inference
+
+        Args:
+            onnx_path: Path to the ONNX model file
+            model_type: Type of model ('wirelength' or 'via')
+
+        Returns:
+            Loaded model instance ready for inference
+
+        Raises:
+            ValueError: If model_type is invalid
+            FileNotFoundError: If onnx_path is not found
+        """
+        # Create model instance
+        if model_type == 'wirelength':
+            config = self.model_config.baseline_model_config
+            config['devive'] = 'cpu'
+            model = BaselineWirelengthPredictor(config)
+        elif model_type == 'via':
+            config = self.model_config().via_model_config
+            config['devive'] = 'cpu'  # Use CPU for inference
+            model = ViaPredictor(config)
+        else:
+            raise ValueError(
+                f"Invalid model_type: {model_type}. Must be 'wirelength' or 'via'"
+            )
+
+        # Load ONNX model
+        try:
+            if not os.path.exists(onnx_path):
+                raise FileNotFoundError(f"ONNX model file not found: {onnx_path}")
+            model.load_onnx_model(onnx_path)
+            logger.info(f"Successfully loaded ONNX model from {onnx_path}")
+            return model
+        except Exception as e:
+            logger.error(f"Failed to load ONNX model from {onnx_path}: {e}")
+            raise

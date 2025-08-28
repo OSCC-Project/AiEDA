@@ -139,6 +139,41 @@ class RunIEDA(RunFlowBase):
         self.workspace.configs.save_flow_state(flow)
         return is_success
     
+    
+    def run_ai_flow(self, flow : DbFlow, onnx_path:str=None, normalization_path:str=None):
+        """run ai eda tool"""            
+        def _run_ai_eda(flow : DbFlow):
+            """run eda tool""" 
+            match flow.step:
+                case DbFlow.FlowStep.ai_place:
+                    from ..eda import IEDAPlacement
+                    ieda_flow = IEDAPlacement(workspace=self.workspace,
+                                              flow=flow)
+                    ieda_flow._run_ai_placement(onnx_path=onnx_path, normalization_path=normalization_path)
+                
+        
+        if flow.is_finish() is True:
+            return True
+        
+        #set state running
+        flow.set_state_running()
+        self.workspace.configs.save_flow_state(flow)
+             
+        #run eda tool
+        _run_ai_eda(flow)
+        
+        #save flow state
+        is_success = False
+        if self.check_flow_state(flow) is True:
+            flow.set_state_finished()
+            is_success = True
+        else:
+            flow.set_state_imcomplete()   
+            is_success = False 
+            
+        self.workspace.configs.save_flow_state(flow)
+        return is_success
+    
     def run_fix_fanout(self, 
                       input_def:str, 
                       input_verilog:str=None,
@@ -193,6 +228,31 @@ class RunIEDA(RunFlowBase):
         
         return self.run_flow(flow)
     
+    def run_ai_placement(self,
+                         input_def:str,
+                         input_verilog:str=None,
+                         output_def:str=None,
+                         output_verilog:str=None,
+                         onnx_path:str=None,
+                         normalization_path:str=None):
+        
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.ai_place,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      output_def=output_def,
+                      output_verilog=output_verilog)
+        
+        #check flow path, if None, set to default path in workspace  
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(flow)
+        
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
+        
+        return self.run_ai_flow(flow, onnx_path=onnx_path, normalization_path=normalization_path)
+            
+
     def run_CTS(self, 
                 input_def:str, 
                 input_verilog:str=None,
