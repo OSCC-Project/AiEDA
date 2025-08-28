@@ -443,11 +443,19 @@ class Workspace:
         # update iEDA_config/pl_default_config.json
         from .config import ConfigIEDAPlacementParser
         parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'], self.logger)
+        if hasattr(parameters, 'pl_config') and 'PL' in parameters.pl_config:
+            # 直接复制整个配置
+            try:
+                parser.update_config(parameters.pl_config['PL'])
+            except Exception as e:
+                print(f"警告: 无法更新配置: {e}")
+        '''
         parser.set_target_density(parameters.placement_target_density)
         parser.set_max_phi_coef(parameters.placement_max_phi_coef)    
         parser.set_init_wirelength_coef(parameters.placement_init_wirelength_coef)    
         parser.set_min_wirelength_force_bar(parameters.placement_min_wirelength_force_bar)
-        
+        '''
+        '''
         # update iEDA_config/cts_default_config.json
         from .config import ConfigIEDACTSParser
         parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'], self.logger)
@@ -457,7 +465,7 @@ class Workspace:
         parser.set_max_cap(parameters.cts_max_cap)
         parser.set_max_fanout(parameters.cts_max_fanout)
         parser.set_cluster_size(parameters.cts_cluster_size)
-
+        '''
     def load_parameters(self, parameters_json : str):
         """load parameters data from json
         """

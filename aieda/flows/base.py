@@ -34,7 +34,7 @@ class DbFlow(object):
         sta = "sta"
         rcx = "rcx"
         gds = "gds"
-        full_flow = 'full_flow',
+        full_flow = 'full_flow'
         vectorization = 'vectorization'
         ai_place = "ai_place"
         

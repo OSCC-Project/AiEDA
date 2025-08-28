@@ -20,7 +20,7 @@ class IEDABase():
         if(ieda == None):
             workspace.logger.error("Error, iEDA library is not load.")
             exit(0)
-        self.ieda = ieda #iEDA 
+        self.ieda = ieda  
         self.workspace = workspace
         self.flow = flow
         self._configs()
