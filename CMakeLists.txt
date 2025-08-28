@@ -3,7 +3,8 @@ project(aieda)
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(PYTHON_EXECUTABLE "/home/huangzengrong/.conda/envs/pda/bin/python")
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
 
 set(BUILD_AIEDA "ON")
 add_subdirectory(${PROJECT_SOURCE_DIR}/aieda/third_party/iEDA)

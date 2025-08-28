@@ -1,0 +1,26 @@
+[project]
+name = "aieda-fork"
+version = "0.1.0"
+description = "AI-Enhanced Electronic Design Automation Library with iEDA Integration"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "matplotlib>=3.10.5",
+    "networkx>=3.4.2",
+    "nni>=3.0",
+    "numpy>=2.2.6",
+    "pandas>=2.3.2",
+    "pytorch-tabnet>=4.1.0",
+    "scikit-learn>=1.7.1",
+    "seaborn>=0.13.2",
+    "torch>=2.8.0",
+    "tqdm>=4.67.1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "mypy>=1.17.1",
+    "ruff>=0.12.10",
+]
+
