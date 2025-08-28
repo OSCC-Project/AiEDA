@@ -21,7 +21,12 @@ from aieda import (
 
 if __name__ == "__main__":  
     # step 1 : create workspace
-    workspace_dir = "/data/project_share/yhqiu/test_aieda/workspace_rerun"
+    import os
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    root = current_dir.rsplit('/', 1)[0]
+
+    workspace_dir = "{}/example/sky130_test".format(root)
+    
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2: init evaluation by workspace
@@ -38,7 +43,7 @@ if __name__ == "__main__":
     grwl = run_eval.total_wirelength_grwl()
     print("Total GRWL: {}".format(grwl))
     
-    
+
     
     # step 4: run iEDA density evaluation
     max_density, avg_density = run_eval.cell_density(bin_cnt_x=256, bin_cnt_y=256, save_path="./cell_density.csv")
@@ -97,8 +102,5 @@ if __name__ == "__main__":
         print(f"  Suggested Frequency: {clock_timing['suggest_freq']}")
     print(f"Static Power: {egr_result['static_power']}")
     print(f"Dynamic Power: {egr_result['dynamic_power']}")   
-    
-    
-    
     
     exit(0)

@@ -31,8 +31,19 @@ def test_vectors_generation(workspace : Workspace, patch_row_step : int, patch_c
                                patch_col_step=patch_col_step)
     data_gen.generate_patterns()
     
+def test_vectors_nets_to_def(workspace : Workspace):
+    # step 1 : init by workspace
+    data_gen = DataGeneration(workspace)
+    
+    # step 2 : transform vectors nets to def  
+    data_gen.vectors_nets_to_def()
+    
 def test_vectors_load(workspace):
     data_load = DataVectors(workspace)
+    
+    layers = data_load.load_layers()
+    
+    vias = data_load.load_vias()
     
     cells = data_load.load_cells()
     
@@ -51,11 +62,16 @@ def test_vectors_load(workspace):
     print(1)
     
 if __name__ == "__main__":  
-    # step 1 : create workspace
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_6"
+    import os
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    root = current_dir.rsplit('/', 1)[0]
+
+    workspace_dir = "{}/example/sky130_test".format(root)
+    
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     test_vectors_generation(workspace, patch_row_step=9, patch_col_step=9)
+    test_vectors_nets_to_def(workspace)
     test_vectors_load(workspace)
 
     exit(0)

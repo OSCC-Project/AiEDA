@@ -303,6 +303,36 @@ class VectorsParserJson(JsonParser):
  
         return vec_cells
     
+    def get_layers(self) -> VectorLayers:
+        vec_layers = VectorLayers()
+        
+        if self.read() is True:
+            vec_layers.layer_num = self.json_data.get("layer_num")
+            json_layers = self.json_data.get('layers', [])
+            for json_layer in json_layers:
+                vec_layer = VectorLayer()
+                vec_layer.id = json_layer.get('id')
+                vec_layer.name = json_layer.get('name')
+                
+                vec_layers.layers.append(vec_layer)
+ 
+        return vec_layers
+    
+    def get_vias(self) -> VectorVias:
+        vec_vias = VectorVias()
+        
+        if self.read() is True:
+            vec_vias.via_num = self.json_data.get("via_num")
+            json_vias = self.json_data.get('vias', [])
+            for json_via in json_vias:
+                vec_via = VectorVia()
+                vec_via.id = json_via.get('id')
+                vec_via.name = json_via.get('name')
+                
+                vec_vias.vias.append(vec_via)
+ 
+        return vec_vias
+    
     def get_instances(self) -> VectorInstances:
         vec_insts = VectorInstances()
         

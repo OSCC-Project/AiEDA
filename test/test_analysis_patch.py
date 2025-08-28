@@ -17,47 +17,35 @@ from aieda import (
     workspace_create,
     DbFlow
 )
+
 import os
+current_dir = os.path.split(os.path.abspath(__file__))[0]
+root = current_dir.rsplit('/', 1)[0]
+workspace_dir = "{}/example/sky130_test".format(root)
 
-BASE_DIRS = [
-    "/data2/project_share/dataset_baseline/s713",
-    "/data2/project_share/dataset_baseline/s44",
-    "/data2/project_share/dataset_baseline/apb4_rng",
-    "/data2/project_share/dataset_baseline/gcd",
-    "/data2/project_share/dataset_baseline/s1238",
-    "/data2/project_share/dataset_baseline/s1488",
-    "/data2/project_share/dataset_baseline/apb4_archinfo",
-    "/data2/project_share/dataset_baseline/apb4_ps2",
-    "/data2/project_share/dataset_baseline/s9234",
-    "/data2/project_share/dataset_baseline/apb4_timer",
-]
+# all workspace directory
+WORKSPACES = {
+    "gcd" : workspace_dir
+}
 
+# name map
 DISPLAY_NAME = {
-    "s713": "D1",
-    "s44": "D2", 
-    "apb4_rng": "D3",
-    "gcd": "D4",
-    "s1238": "D5",
-    "s1488": "D6",
-    "apb4_archinfo": "D7",
-    "apb4_ps2": "D8",
-    "s9234": "D9",
-    "apb4_timer": "D10",
+    "gcd" : "GCD"
 }
 
 
 def main():
     # step 0: create workspace list
     workspace_list = []
-    for base_dir in BASE_DIRS:
-        workspace = workspace_create(directory=base_dir+"/workspace", design = os.path.basename(base_dir))
+    for design, dir in WORKSPACES.items():
+        workspace = workspace_create(directory=dir, design = design)
         workspace_list.append(workspace)
         
     # step 1: Wire Density Analysis
     wire_analyzer = WireDensityAnalyzer()
     wire_analyzer.load(
         workspace_dirs=workspace_list,
-        pattern = "/output/innovus/vectors/patchs",
+        pattern = "/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME
     )
     wire_analyzer.analyze()
@@ -67,7 +55,7 @@ def main():
     feature_analyzer = FeatureCorrelationAnalyzer()
     feature_analyzer.load(
         workspace_dirs=workspace_list,
-        pattern = "/output/innovus/vectors/patchs",
+        pattern = "/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME
         
     )
@@ -75,12 +63,19 @@ def main():
     feature_analyzer.visualize(save_path = '.')
     
     # step 3: Map Analysis
-    workspace_dir = workspace_create(directory="/data2/project_share/dataset_baseline/aes/workspace", design="aes")
+    import os
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    root = current_dir.rsplit('/', 1)[0]
+
+    workspace_dir = "{}/example/sky130_test".format(root)
+    
+    workspace = workspace_create(directory=workspace_dir, design="gcd")
+    
     map_analyzer = MapAnalyzer()
     map_analyzer.load(
-        workspace_dirs=[workspace_dir],
-        pattern = "/output/innovus/vectors/patchs",
-        dir_to_display_name={"aes": "AES"}
+        workspace_dirs=[workspace],
+        pattern = "/output/iEDA/vectors/patchs",
+        dir_to_display_name={"gcd": "GCD"}
     )
     map_analyzer.analyze()
     map_analyzer.visualize(save_path = '.')

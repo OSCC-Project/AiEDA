@@ -29,7 +29,6 @@ def test_pattern_generation(workspace):
 def test_patterns_load(workspace):
     data_load = DataPatterns(workspace)
     
-    # data = data_load.load_wire_sequences(sequences_json="/data/project_share/dataset_baseline/eth_top/workspace/output/innovus/vectors/patterns/wire_sequences.json")
     data = data_load.load_wire_sequences()
     print(len(data))
 

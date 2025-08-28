@@ -632,7 +632,8 @@ class Workspace:
         @property
         def ieda_vectors(self):
             vectors_paths = {
-                'cells' : "{}/cells/cells.json".format(self.ieda_output['vectors']), 
+                'tech' : "{}/tech/tech.json".format(self.ieda_output['vectors']), 
+                'cells' : "{}/tech/cells.json".format(self.ieda_output['vectors']),
                 'instances' : "{}/instances/instances.json".format(self.ieda_output['vectors']),  
                 'nets' : "{}/nets".format(self.ieda_output['vectors']),    
                 'patchs' : "{}/patchs".format(self.ieda_output['vectors']),
