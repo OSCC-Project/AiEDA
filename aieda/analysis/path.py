@@ -52,6 +52,7 @@ class DelayAnalyzer(BaseAnalyzer):
             pattern : File pattern to search for wire path files
         """        
         self.dir_to_display_name = dir_to_display_name or {}
+        self.workspace_dirs = workspace_dirs
         
         for workspace in workspace_dirs:
             design_name = workspace.design
@@ -144,7 +145,9 @@ class DelayAnalyzer(BaseAnalyzer):
         # set default save path
         if save_path is None:
             save_path = "."
-        
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
         # create DataFrame for visualization
         df_summary = pd.DataFrame([stats for stats in self.design_stats.values()])
         
@@ -267,6 +270,7 @@ class StageAnalyzer(BaseAnalyzer):
             pattern : File pattern to search for wire path files
         """
         self.dir_to_display_name = dir_to_display_name or {}
+        self.workspace_dirs = workspace_dirs
         
         for workspace in workspace_dirs:
             design_name = workspace.design
@@ -361,7 +365,10 @@ class StageAnalyzer(BaseAnalyzer):
         # set default save path
         if save_path is None:
             save_path = "."
-        
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
+            
         # create DataFrame for visualization
         df_summary = pd.DataFrame([stats for stats in self.design_stats.values()])
         

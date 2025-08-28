@@ -55,7 +55,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
             verbose: Whether to show progress information
         """
         self.dir_to_display_name = dir_to_display_name or {}
-        
+        self.workspace_dirs = workspace_dirs
         for workspace in workspace_dirs:
             design_name = workspace.design
             
@@ -174,7 +174,10 @@ class WireDensityAnalyzer(BaseAnalyzer):
         # Set output directory
         if save_path is None:
             save_path = "."
-        
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
+            
         # Generate visualizations
         self._create_wire_density_scatter(save_path)
         self._create_layer_comparison_plot(save_path)
@@ -333,7 +336,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
             pattern : Pattern to match patch files
         """
         self.dir_to_display_name = dir_to_display_name or {}
-        
+        self.workspace_dirs = workspace_dirs
         for workspace in workspace_dirs:
             design_name = workspace.design
             
@@ -466,7 +469,9 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         # Set output directory
         if save_path is None:
             save_path = "."
-        
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
         # Generate visualizations
         self._create_correlation_heatmap(save_path)
         self._create_feature_distribution_plot(save_path)
@@ -571,6 +576,7 @@ class MapAnalyzer(BaseAnalyzer):
             raise ValueError("Pattern must be specified to find patch files.")
         
         self.dir_to_display_name = dir_to_display_name or {}
+        self.workspace_dirs = workspace_dirs
         
         for workspace in workspace_dirs:
             design_name = workspace.design
@@ -666,6 +672,12 @@ class MapAnalyzer(BaseAnalyzer):
         # Use consistent colormap
         unified_cmap = 'viridis'
         
+        if save_path is None:
+            save_path = "."
+        if self.workspace_dirs.__len__() == 1:
+            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            print(f"Only one workspace, using save path: {save_path}")
+            
         # 1. Create individual feature maps for each design
         self._create_individual_feature_maps(save_path, unified_cmap)
         

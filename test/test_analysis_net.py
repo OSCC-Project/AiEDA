@@ -17,7 +17,6 @@ from aieda import (
     workspace_create,
     DbFlow
 )
-import os
 
 import os
 current_dir = os.path.split(os.path.abspath(__file__))[0]
@@ -50,7 +49,7 @@ def main():
         dir_to_display_name=DISPLAY_NAME
     )
     wire_analyzer.analyze()
-    wire_analyzer.visualize(save_path=".")
+    wire_analyzer.visualize(save_path=workspace_dir)
     
     # step 2: Metrics Correlation Analysis
     metric_analyzer = MetricsCorrelationAnalyzer()
@@ -60,7 +59,7 @@ def main():
         pattern = "/output/iEDA/vectors/nets"
         )
     metric_analyzer.analyze()
-    metric_analyzer.visualize(save_path=".")
+    metric_analyzer.visualize(save_path=workspace_dir)
 
 if __name__ == "__main__":  
     main()

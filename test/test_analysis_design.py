@@ -48,7 +48,7 @@ def main():
         dir_to_display_name=DISPLAY_NAME
         )
     cell_analyzer.analyze()
-    cell_analyzer.visualize(save_path="./")
+    cell_analyzer.visualize(save_path=workspace_dir)
     
     
     # step 2: test core usage analysis
@@ -58,7 +58,7 @@ def main():
         flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
     )
     core_analyzer.analyze()
-    core_analyzer.visualize(save_path="./")
+    core_analyzer.visualize(save_path=workspace_dir)
     
     
     # step 3: test pin distribution analysis
@@ -68,7 +68,7 @@ def main():
         flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
     )
     pin_analyzer.analyze()
-    pin_analyzer.visualize(save_path="./")
+    pin_analyzer.visualize(save_path=workspace_dir)
     
     
     # step 4: test result statistics
@@ -80,7 +80,7 @@ def main():
         calc_wire_num=False,  # set to False to avoid calculating wire number
     )
     result_analyzer.analyze()
-    result_analyzer.visualize(save_path="./")
+    result_analyzer.visualize(save_path=workspace_dir)
     
 
 if __name__ == "__main__":  
