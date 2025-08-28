@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 '''
 @File : json_parameters.py
-@Author : yell
+@Author : zhanghongda
 @Desc : parameters json parser 
 '''
 from ...utility.json_parser import JsonParser
@@ -16,10 +16,8 @@ class ParametersParser(JsonParser):
             if parameters is None:
                 # default paramters
                 parameters = EDAParameters()
-                
-            # 直接使用克隆的DSE配置
+
             if hasattr(parameters, 'pl_config'):
-                # 完全克隆DSE配置结构
                 self.json_data = parameters.pl_config.copy()
             else:
                 print("pl_config not found")
@@ -30,7 +28,6 @@ class ParametersParser(JsonParser):
         """get data"""
         if self.read() is True:
             parameters = EDAParameters()
-            
             return parameters
         
         return None
