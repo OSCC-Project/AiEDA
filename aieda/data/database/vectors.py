@@ -219,6 +219,26 @@ class VectorTimingWireGraph(object):
 class VectorTimingWirePathGraph(object):
     nodes: List[VectorTimingWireGraphNode] = field(default_factory=list)
     edges: List[VectorTimingWireGraphEdge] = field(default_factory=list)
+
+@dataclass
+class VectorLayer:
+    id : int = None
+    name : str = None
+    
+@dataclass
+class VectorLayers(object):
+    layer_num : int = None
+    layers: List[VectorLayer] = field(default_factory=list)
+    
+@dataclass
+class VectorVia:
+    id : int = None
+    name : str = None
+    
+@dataclass
+class VectorVias(object):
+    via_num : int = None
+    vias: List[VectorVia] = field(default_factory=list)
     
 @dataclass
 class VectorCell:

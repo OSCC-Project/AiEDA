@@ -41,5 +41,9 @@
         "./sky130_sram_1rw1r_80x64_8_TT_1p8V_25C.lib"
     ],
     "sdc_path": "./gcd.sdc",
-    "spef_path": "/gcd.spef"
+    "spef_path": "/gcd.spef",
+    "max_lib_paths": [],
+    "min_lib_paths": [],
+    "rcworst_path": "",
+    "rcbest_path": ""
 }

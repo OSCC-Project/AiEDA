@@ -24,71 +24,11 @@ from aieda.ai import TabNetDataConfig, TabNetDataProcess, TabNetModelConfig, Tab
 ######################################################################################
 
 BASE_DIRS = [
-    "/data2/project_share/dataset_baseline/s713",
-    "/data2/project_share/dataset_baseline/s44",
-    "/data2/project_share/dataset_baseline/apb4_rng",
-    "/data2/project_share/dataset_baseline/gcd",
-    "/data2/project_share/dataset_baseline/s1238",
-    "/data2/project_share/dataset_baseline/s1488",
-    "/data2/project_share/dataset_baseline/apb4_archinfo",
-    "/data2/project_share/dataset_baseline/apb4_ps2",
-    "/data2/project_share/dataset_baseline/s9234",
-    "/data2/project_share/dataset_baseline/apb4_timer",
-    "/data2/project_share/dataset_baseline/s13207",
-    "/data2/project_share/dataset_baseline/apb4_i2c",
-    "/data2/project_share/dataset_baseline/s5378",
-    "/data2/project_share/dataset_baseline/apb4_pwm",
-    "/data2/project_share/dataset_baseline/apb4_wdg",
-    "/data2/project_share/dataset_baseline/apb4_clint",
-    "/data2/project_share/dataset_baseline/ASIC",
-    "/data2/project_share/dataset_baseline/s15850",
-    "/data2/project_share/dataset_baseline/apb4_uart",
-    "/data2/project_share/dataset_baseline/s38417",
-    "/data2/project_share/dataset_baseline/s35932",
-    "/data2/project_share/dataset_baseline/s38584",
-    "/data2/project_share/dataset_baseline/BM64",
-    "/data2/project_share/dataset_baseline/picorv32",
-    "/data2/project_share/dataset_baseline/PPU",
-    "/data2/project_share/dataset_baseline/blabla",
-    "/data2/project_share/dataset_baseline/aes_core",
-    "/data2/project_share/dataset_baseline/aes",
-    "/data2/project_share/dataset_baseline/salsa20",
-    "/data2/project_share/dataset_baseline/jpeg_encoder",
-    "/data2/project_share/dataset_baseline/eth_top"
+    
 ]
 
 DISPLAY_NAME = {
-    "s713": "s713",
-    "s44": "s44",
-    "apb4_rng": "apb4_rng",
-    "gcd": "gcd",
-    "s1238": "s1238",
-    "s1488": "s1488",
-    "apb4_archinfo": "apb4_arch",
-    "apb4_ps2": "apb4_ps2",
-    "s9234": "s9234",
-    "apb4_timer": "apb4_timer",
-    "s13207": "s13207",
-    "apb4_i2c": "apb4_i2c",
-    "s5378": "s5378",
-    "apb4_pwm": "apb4_pwm",
-    "apb4_wdg": "apb4_wdg",
-    "apb4_clint": "apb4_clint",
-    "ASIC": "ASIC",
-    "s15850": "s15850",
-    "apb4_uart": "apb4_uart",
-    "s38417": "s38417",
-    "s35932": "s35932",
-    "s38584": "s38584",
-    "BM64": "BM64",
-    "picorv32": "picorv32",
-    "PPU": "PPU",
-    "blabla": "blabla",
-    "aes_core": "aes_core",
-    "aes": "aes",
-    "salsa20": "salsa20",
-    "jpeg_encoder": "jpeg",
-    "eth_top": "eth_top"
+    
 }
 
 

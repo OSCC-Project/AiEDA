@@ -73,8 +73,6 @@ def run_floorplan_sky130_gcd(workspace : Workspace):
         
         ieda_fp.set_net(net_name="clk", net_type="CLOCK")
         
-        # ieda_fp.pnp()
-        
         ieda_fp.def_save()
         ieda_fp.verilog_save()
         
@@ -92,9 +90,12 @@ def run_floorplan_sky130_gcd(workspace : Workspace):
 
 if __name__ == "__main__":  
     # step 1 : create workspace
-    # workspace_dir = "/data2/huangzengrong/test_aieda/minirv3"
-    # workspace = workspace_create(directory=workspace_dir, design="minirv")
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_6"
+    import os
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    root = current_dir.rsplit('/', 1)[0]
+
+    workspace_dir = "{}/example/sky130_test".format(root)
+    
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     # step 2 : init iEDA by workspace
@@ -106,7 +107,6 @@ if __name__ == "__main__":
     run_ieda.run_pdn(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan)))
     
     run_ieda.run_fix_fanout(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.pdn)))
-    # run_ieda.run_fix_fanout(input_def="/home/taosimin/tosujianrong/0816/iPNP_result2.def")
     
     run_ieda.run_placement(input_def=workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)))
     

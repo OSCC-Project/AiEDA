@@ -168,4 +168,37 @@ class DataGeneration(RunFlowBase):
                                         epsilon=100,
                                         sequences_json=sequences_json)
         
+    def vectors_nets_to_def(self, 
+                input_def:str=None, 
+                input_verilog:str=None,
+                output_def:str=None, 
+                output_verilog:str=None,
+                vectors_dir:str=None):   
+        """ run data vectorization flow by iEDA
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.vectorization,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      )
+        
+        if input_def is None:
+            # use output def of step route as input def
+            flow.input_def = self.workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route))
+            
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.vectorization))
+            
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.vectorization))
+        
+        # create nets, patchs, wire_graph, wire_paths by iEDA
+        from ..eda import IEDAVectorization
+        ieda_flow = IEDAVectorization(workspace=self.workspace,
+                                      flow=flow,
+                                      vectors_dir=vectors_dir)
+        ieda_flow.vectors_nets_to_def()
+        
 

@@ -20,15 +20,31 @@ class DataVectors:
         
     def load_cells(self, cells_path:str = None):
         if cells_path is None:
-            # read from workspace vectors/cells/cells.json
+            # read from workspace vectors/tech/cells.json
             cells_path = self.workspace.paths_table.ieda_vectors['cells']
             
         parser = VectorsParserJson(json_path=cells_path, logger=self.workspace.logger)
         return parser.get_cells()
     
+    def load_layers(self, tech_path :str = None):
+        if tech_path is None:
+            # read from workspace vectors/tech/tech.json
+            tech_path = self.workspace.paths_table.ieda_vectors['tech']
+            
+        parser = VectorsParserJson(json_path=tech_path, logger=self.workspace.logger)
+        return parser.get_layers()
+    
+    def load_vias(self, tech_path :str = None):
+        if tech_path is None:
+            # read from workspace vectors/tech/tech.json
+            tech_path = self.workspace.paths_table.ieda_vectors['tech']
+            
+        parser = VectorsParserJson(json_path=tech_path, logger=self.workspace.logger)
+        return parser.get_vias()
+    
     def load_instances(self, instances_path:str = None):
         if instances_path is None:
-            # read from workspace vectors/cells/cells.json
+            # read from workspace vectors/instances/instances.json
             instances_path = self.workspace.paths_table.ieda_vectors['instances']
             
         parser = VectorsParserJson(json_path=instances_path, logger=self.workspace.logger)

@@ -14,12 +14,16 @@ import_aieda()
 
 from aieda import (
     workspace_create,
-    DbFlow,
     GuiLayout
 )
     
 if __name__ == "__main__":  
-    workspace_dir = "/data2/huangzengrong/test_aieda/sky130_6"
+    import os
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    root = current_dir.rsplit('/', 1)[0]
+
+    workspace_dir = "{}/example/sky130_test".format(root)
+    
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     gui = GuiLayout(workspace)
