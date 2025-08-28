@@ -5,11 +5,6 @@
 @Author : yhqiu
 @Desc : test design_level data ananlysis
 '''
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
 
 from aieda.analysis import CellTypeAnalyzer,CoreUsageAnalyzer,PinDistributionAnalyzer,ResultStatisAnalyzer
 from aieda import (

@@ -8,9 +8,9 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "aieda-fork"
+name = "aieda"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
     { name = "networkx", version = "3.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },

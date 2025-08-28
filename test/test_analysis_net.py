@@ -6,12 +6,6 @@
 @Desc : test net_level data ananlysis
 '''
 
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
-
 from aieda.analysis import WireDistributionAnalyzer, MetricsCorrelationAnalyzer
 from aieda import (
     workspace_create,

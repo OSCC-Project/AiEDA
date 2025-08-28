@@ -9,11 +9,6 @@
 @Desc    :   test placement for dse   
 '''
 
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
 
 from aieda.ai.DSE.dse_facade import DSEFacade
 from aieda.data.database.enum import DSEMethod

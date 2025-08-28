@@ -11,9 +11,8 @@
 import os
 import torch
 
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
+# set EDA tools working environment
+os.environ['iEDA'] = "ON"
 
 from aieda.workspace import workspace_create
 from aieda.flows import DbFlow, RunIEDA, DataGeneration
@@ -22,7 +21,6 @@ from aieda.analysis import CellTypeAnalyzer, WireDistributionAnalyzer
 from aieda.ai import TabNetDataConfig, TabNetDataProcess, TabNetModelConfig, TabNetTrainer
 
 ######################################################################################
-import os
 current_dir = os.path.split(os.path.abspath(__file__))[0]
 root = current_dir.rsplit('/', 1)[0]
 workspace_dir = "{}/example/sky130_test".format(root)

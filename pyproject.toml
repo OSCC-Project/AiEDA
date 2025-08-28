@@ -1,5 +1,9 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "aieda-fork"
+name = "aieda"
 version = "0.1.0"
 description = "AI-Enhanced Electronic Design Automation Library with iEDA Integration"
 readme = "README.md"
@@ -23,4 +27,7 @@ dev = [
     "mypy>=1.17.1",
     "ruff>=0.12.10",
 ]
+
+[tool.hatch.build.targets.wheel]
+packages = ["aieda"]
 
