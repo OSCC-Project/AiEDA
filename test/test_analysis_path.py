@@ -6,12 +6,6 @@
 @Desc : test path_level data ananlysis
 '''
 
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
-
 from aieda.analysis import DelayAnalyzer, StageAnalyzer
 from aieda import (
     workspace_create,
@@ -48,7 +42,7 @@ def main():
         dir_to_display_name=DISPLAY_NAME
     )
     delay_analyzer.analyze()
-    delay_analyzer.visualize(save_path = '.')
+    delay_analyzer.visualize(save_path=workspace_dir)
     
     # step 2: Path Stage Analysis
     stage_analyzer = StageAnalyzer()
@@ -58,7 +52,7 @@ def main():
         dir_to_display_name=DISPLAY_NAME
     )
     stage_analyzer.analyze()
-    stage_analyzer.visualize(save_path = '.')
+    stage_analyzer.visualize(save_path=workspace_dir)
 
 if __name__ == "__main__":  
     main()

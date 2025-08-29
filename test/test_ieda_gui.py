@@ -6,11 +6,7 @@
 @Desc : test gui for data vectors
 '''
 
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
+
 
 from aieda import (
     workspace_create,

@@ -27,7 +27,7 @@ class IEDAPlacement(IEDAIO):
                 self._run_legalization()   
             case DbFlow.FlowStep.filler:
                 self._run_filler()      
-        
+    '''    
     def _run_placement(self):
         self.read_def()
         
@@ -39,7 +39,34 @@ class IEDAPlacement(IEDAIO):
         self._generate_placement_feature_summary()
         self._generate_placement_feature_tool()
         self._generate_feature_map()
+    '''
+    def _run_placement(self):
+        print("DEBUG: _run_placement开始")
         
+        print("DEBUG: 第1步：读取DEF文件")
+        self.read_def()
+        print("DEBUG: 第1步完成")
+        
+        print("DEBUG: 第2步：运行placement算法")
+        self.ieda.run_placer(self.ieda_config)
+        print("DEBUG: 第2步完成")
+        
+        print("DEBUG: 第3步：保存DEF文件")
+        self.def_save()
+        print("DEBUG: 第3步完成")
+        
+        print("DEBUG: 第4步：保存Verilog文件")
+        self.verilog_save(self.cell_names)
+        print("DEBUG: 第4步完成")
+        
+        print("DEBUG: 第5步：生成特征数据")
+        self._generate_placement_feature_summary()
+        self._generate_placement_feature_tool()
+        self._generate_feature_map()
+        print("DEBUG: 第5步完成")
+        
+        print("DEBUG: _run_placement完成")
+
     def _run_legalization(self):
         self.read_def()
         

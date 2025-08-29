@@ -6,11 +6,8 @@
 @Desc : test physical design flows for iEDA
 '''
 
-######################################################################################
-# import aieda
-from import_aieda import import_aieda
-import_aieda()
-######################################################################################
+import os
+os.environ['iEDA'] = "ON"
 
 from aieda import (
     Workspace,
