@@ -8,11 +8,12 @@
 @Contact :   zhanghongda24@mails.ucas.ac.cn
 @Desc    :   test placement for dse   
 '''
-
-
 from aieda.ai.design_parameter_optimization.dse_facade import DSEFacade
 from aieda.data.database.enum import DSEMethod
 from aieda.flows.base import DbFlow
+
+import os
+os.environ['iEDA'] = "ON"
 
 if __name__ == "__main__":  
     #change the workspace_dir to the path of your workspace
