@@ -2,7 +2,7 @@
 <img src="AiEDA.png" width="27%" alt="AiEDA" />
  <h1>AiEDA</h1>
 
-<h3> A Python Library for RTL-to-Vector-to-GDS.</h3>
+<h3> An Open-Source AI-Aided Design Library for Design-to-Vector </h3>
 
 <p align="center">
     <a title="GitHub Watchers" target="_blank" href="https://github.com/OSCC-Project/AiEDA/watchers">
@@ -16,13 +16,9 @@
     </a>
 </p>
 
-[Chinese] | **English**
-
 </div>
 
 
-## Release Date: Aug. 2025
-# AiEDA: An Open-Source AI-Aided Design Library for Design-to-Vector
 ## Overview
 
 AiEDA is an open-source AI-native Electronic Design Automation (EDA) library that revolutionizes chip design workflows by introducing a unified design-to-vector methodology. Built on the iEDA infrastructure, it transforms diverse chip design data into standardized multi-level vector representations through modular engine integration, comprehensive data extraction frameworks, and hierarchical data management. AiEDA bridges traditional EDA tools with modern AI/ML techniques by providing complete physical design flows, programmatic data extraction capabilities, and standardized Python interfaces, establishing an AI-aided design (AAD) paradigm that enables seamless integration between EDA datasets and AI frameworks. With its extensible architecture designed for multi-tool support, the current open-source version features the iEDA engine while maintaining flexibility for future engine expansions, empowering researchers and engineers to leverage artificial intelligence for enhanced design optimization and automation in modern chip development.
