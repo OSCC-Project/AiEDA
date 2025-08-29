@@ -17,7 +17,6 @@ from aieda import (
     DbFlow,
     EDAParameters,
     DataGeneration,
-    DataVectors,
 )
 
 
@@ -107,9 +106,7 @@ def create_workspace_sky130_gcd(workspace_dir):
         directory=workspace_dir, design="gcd", flow_list=flow_db_list
     )
 
-    import sys
     import os
-
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
     # get foundry from iEDA

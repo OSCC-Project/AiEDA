@@ -7,7 +7,6 @@
 """
 import numpy as np
 import torch
-import torch.nn as nn
 from pytorch_tabnet.tab_model import TabNetRegressor
 from sklearn.metrics import (
     mean_squared_error,
@@ -15,7 +14,7 @@ from sklearn.metrics import (
     mean_absolute_error,
     mean_absolute_percentage_error,
 )
-from typing import Dict, Any, Tuple, Optional, Union, List
+from typing import Dict, Any, Tuple, List
 import logging
 
 

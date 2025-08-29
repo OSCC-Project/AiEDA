@@ -5,18 +5,13 @@
 @Author : yhqiu
 @Desc : TabNet trainer for wirelength prediction with ONNX export capability
 """
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
-import joblib
-import time
 import logging
-import torch
-from typing import Dict, Any, Tuple, Optional, Union, List
+from typing import Dict, Any, Optional
 from tqdm import tqdm
-import json
 import os
 import traceback
 from sklearn.model_selection import train_test_split

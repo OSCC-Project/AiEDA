@@ -6,25 +6,16 @@
 @Desc : net level data ananlysis, including wirelength distribution and metrics correlation
 """
 import os
-import json
-import glob
-import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
-from multiprocessing import Pool, cpu_count
-from concurrent.futures import ProcessPoolExecutor
-from tqdm import tqdm
-import time
-import matplotlib as mpl
+from typing import Dict, List, Optional
 
 from .base import BaseAnalyzer
 from ..workspace import Workspace
 
-from aieda import DbFlow, DataVectors
+from aieda import DataVectors
 
 
 # =====================================

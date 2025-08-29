@@ -6,27 +6,16 @@
 @Desc : Path-level data analysis, including delay and stage analysis.
 """
 import os
-import glob
-import yaml
-import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-from matplotlib.gridspec import GridSpec
 from matplotlib import ticker
-from concurrent.futures import ProcessPoolExecutor
-from tqdm import tqdm
-import warnings
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
-import random
-from multiprocessing import Pool, cpu_count
+from typing import Dict, List, Optional
 
 from .base import BaseAnalyzer
 from ..workspace import Workspace
 
-from aieda import DbFlow, DataVectors
+from aieda import DataVectors
 
 
 class DelayAnalyzer(BaseAnalyzer):
@@ -362,7 +351,6 @@ class StageAnalyzer(BaseAnalyzer):
 
             # randomly select an example row
             example_idx = np.random.randint(0, len(df))
-            example_row = df.iloc[example_idx]
 
             stats = {
                 "design": design_name,

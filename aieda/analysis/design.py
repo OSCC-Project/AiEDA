@@ -6,15 +6,13 @@
 @Desc : design level data ananlysis, including cell type distribution, core usage, pin distribution and result statistics
 """
 import os
-import json
 import glob
 import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
+from typing import Dict, List, Optional
 from concurrent.futures import ProcessPoolExecutor
 import multiprocessing
 from functools import partial

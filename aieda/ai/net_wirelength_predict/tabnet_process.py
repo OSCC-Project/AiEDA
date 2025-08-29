@@ -7,14 +7,11 @@
 """
 import os
 import json
-import csv
-import glob
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from pathlib import Path
-from typing import List, Union, Tuple, Dict, Any, Optional
+from typing import Dict, Any
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import logging
@@ -22,7 +19,7 @@ import time
 
 from .tabnet_config import TabNetDataConfig
 
-from aieda import workspace_create, DbFlow, DataVectors
+from aieda import DataVectors
 
 # Configure logging
 logging.basicConfig(
@@ -89,8 +86,6 @@ class TabNetDataProcess:
         for workspace in self.config.raw_input_dirs:
 
             self.logger.info(f"Processing workspace: {workspace.directory}")
-
-            design_name = workspace.design
 
             vector_loader = DataVectors(workspace)
 
@@ -532,9 +527,6 @@ class TabNetDataProcess:
         """
         Save normalization parameters to files
         """
-        import pickle
-        import json
-
         output_file = self.config.normalization_params_file or output_file
 
         # Save via scaler parameters
@@ -553,7 +545,7 @@ class TabNetDataProcess:
             with open(output_file, "w") as f:
                 json.dump(via_params, f, indent=2)
 
-            self.logger.info(f"Via normalization parameters saved to {output_dir}")
+            self.logger.info(f"Via normalization parameters saved to {output_file}")
 
         # Save wirelength baseline scaler parameters
         if hasattr(self.wl_baseline_scaler, "data_min_") and hasattr(
@@ -571,5 +563,5 @@ class TabNetDataProcess:
                 json.dump(wl_baseline_params, f, indent=2)
 
             self.logger.info(
-                f"Wirelength baseline normalization parameters saved to {output_dir}"
+                f"Wirelength baseline normalization parameters saved to {output_file}"
             )

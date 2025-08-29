@@ -10,7 +10,7 @@
 """
 import sys
 import os
-
+import logging
 
 def setup_paths():
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -21,10 +21,7 @@ def setup_paths():
 
 setup_paths()
 from aieda.flows.base import DbFlow
-from aieda.workspace.workspace import Workspace
 from aieda.ai.design_parameter_optimization.parameter import iEDAParameter
-import logging
-
 
 class ConfigManagement:
     def __init__(self, workspace, eda_tool, step=None):

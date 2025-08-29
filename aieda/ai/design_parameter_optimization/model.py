@@ -3,7 +3,11 @@
 import sys
 import os
 from multiprocessing import Process
-
+import nni
+import numpy as np
+import time
+import logging
+import json
 
 def setup_paths():
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,11 +31,7 @@ from aieda.data.database.enum import FeatureOption
 from aieda.workspace.workspace import Workspace
 from aieda.ai.design_parameter_optimization.config import ConfigManagement
 
-import nni
-import numpy as np
-import time
-import logging
-import json
+
 
 
 class AbstractOptimizationMethod(metaclass=ABCMeta):
@@ -139,10 +139,6 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
             output_dir = os.path.join(
                 workspace, "output/iEDA/data/pl/report/summary_report.txt"
             )
-            if os.path.exists(output_dir):
-                import time
-
-                mtime = os.path.getmtime(output_dir)
 
             out_lines = open(output_dir).readlines()
             for i in range(len(out_lines)):
@@ -268,17 +264,14 @@ class NNIOptimization(AbstractOptimizationMethod):
         hpwl_ref = metrics.get("hpwl", 1.0)
         messages += f"hpwl: {hpwl}, "
         metric += hpwl / hpwl_ref
-        hpwl_contribution = hpwl / hpwl_ref
 
         messages += f"wns: {wns}, "
         wns_ref = metrics.get("wns", 0.0)
         metric += np.exp(wns_ref) / np.exp(wns)
-        wns_contribution = np.exp(wns_ref) / np.exp(wns)
 
         messages += f"tns: {tns}, "
         tns_ref = metrics.get("tns", 0.0)
         metric += np.exp(tns_ref) / np.exp(tns)
-        tns_contribution = np.exp(tns_ref) / np.exp(tns)
 
         results["place_hpwl"] = hpwl
         results["place_wns"] = wns
@@ -351,7 +344,6 @@ class NNIOptimization(AbstractOptimizationMethod):
     def checkAndSyncBestToDefault(self):
         try:
 
-            trial_id = os.environ.get("NNI_TRIAL_JOB_ID", "")
             trial_number = os.environ.get("NNI_TRIAL_SEQ_ID", "")
 
             if trial_number:
@@ -359,7 +351,6 @@ class NNIOptimization(AbstractOptimizationMethod):
                 max_trial_num = self._run_count
 
                 if current_trial >= max_trial_num:
-                    flow_list = self.config_manage.getFlowList()
                     best_config_paths = self.config_manage.getBestConfigPathList()
                     default_config_paths = self.config_manage.getConfigPathList()
                     with open(best_config_paths["place"], "r") as f:
@@ -400,8 +391,6 @@ class NNIOptimization(AbstractOptimizationMethod):
         tool="iEDA",
         pre_step=DbFlow.FlowStep.fixFanout,
     ):
-        dir_workspace = self._workspace
-        project_name = self._project_name
         engine = self.getOperationEngine(step, tool, pre_step)
         if engine:
             if hasattr(engine, "_run_flow"):

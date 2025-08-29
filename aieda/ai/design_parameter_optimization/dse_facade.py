@@ -25,7 +25,6 @@ def setup_paths():
 
 setup_paths()
 
-from aieda.flows.base import DbFlow
 from aieda.data.database.enum import DSEMethod
 from aieda.workspace.workspace import Workspace
 from aieda.ai.design_parameter_optimization.config import ConfigManagement

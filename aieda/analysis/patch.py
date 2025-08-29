@@ -6,27 +6,18 @@
 @Desc : Patch-level data analysis, including wire density and feature correlation for individual patches, and spatial mapping analysis for the entire chip layout
 """
 import os
-import json
-import glob
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from concurrent.futures import ProcessPoolExecutor
-from tqdm import tqdm
-import warnings
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
-import random
-import time
-from multiprocessing import Pool, cpu_count
+from typing import Dict, List, Optional
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import matplotlib.ticker as ticker
 
 from .base import BaseAnalyzer
 from ..workspace import Workspace
 
-from aieda import DbFlow, DataVectors
+from aieda import DataVectors
 
 
 class WireDensityAnalyzer(BaseAnalyzer):
@@ -239,9 +230,6 @@ class WireDensityAnalyzer(BaseAnalyzer):
 
                     # Calculate R² value
                     y_pred = p(x_values)
-                    ss_total = np.sum((y_values - np.mean(y_values)) ** 2)
-                    ss_residual = np.sum((y_values - y_pred) ** 2)
-                    r_squared = 1 - (ss_residual / ss_total) if ss_total != 0 else 0
 
                     # Plot regression line
                     x_range = np.linspace(min(x_values), max(x_values), 100)

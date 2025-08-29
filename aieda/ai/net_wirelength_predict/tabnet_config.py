@@ -5,11 +5,7 @@
 @Author : yhqiu
 @Desc : configuration module for data and model
 """
-import sys
-import os
-import json
-from typing import Dict, Any, Optional, List, Union
-from pathlib import Path
+from typing import Dict, Any, Optional, List
 import torch
 
 from ..config_base import ConfigBase

@@ -7,7 +7,7 @@
 """
 
 from aieda.analysis import DelayAnalyzer, StageAnalyzer
-from aieda import workspace_create, DbFlow
+from aieda import workspace_create
 
 import os
 

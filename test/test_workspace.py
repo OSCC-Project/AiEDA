@@ -7,7 +7,7 @@
 """
 
 
-from aieda import workspace_create, RunIEDA, DbFlow
+from aieda import workspace_create, DbFlow
 
 
 def create_workspace_sky130_gcd(workspace_dir):
@@ -97,9 +97,7 @@ def create_workspace_sky130_gcd(workspace_dir):
         directory=workspace_dir, design="gcd", flow_list=flow_db_list
     )
 
-    import sys
     import os
-
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
     foundry_dir = "{}/aieda/third_party/iEDA/scripts/foundry/sky130".format(root)
@@ -243,12 +241,6 @@ def create_workspace_cx55_minirv(workspace_dir):
         directory=workspace_dir, design="minirv", flow_list=flow_db_list
     )
 
-    import sys
-    import os
-
-    current_dir = os.path.split(os.path.abspath(__file__))[0]
-    root = current_dir.rsplit("/", 1)[0]
-    foundry_dir = "/data2/project_share/cx55/minirv_cx55/lib"
 
     # step 2 : set workspace parameters
     # set def input

@@ -16,7 +16,6 @@ os.environ["iEDA"] = "ON"
 
 from aieda.workspace import workspace_create
 from aieda.flows import DbFlow, RunIEDA, DataGeneration
-from aieda.eda.iEDA.placement import IEDAPlacement
 from aieda.analysis import CellTypeAnalyzer, WireDistributionAnalyzer
 from aieda.ai import (
     TabNetDataConfig,

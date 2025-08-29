@@ -7,8 +7,7 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
+from typing import Dict, List, Any, Optional
 
 from ..workspace import Workspace
 

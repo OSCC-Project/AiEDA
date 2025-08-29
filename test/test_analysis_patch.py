@@ -7,7 +7,7 @@
 """
 
 from aieda.analysis import WireDensityAnalyzer, FeatureCorrelationAnalyzer, MapAnalyzer
-from aieda import workspace_create, DbFlow
+from aieda import workspace_create
 
 import os
 
