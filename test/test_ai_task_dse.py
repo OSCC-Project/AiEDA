@@ -16,7 +16,12 @@ from aieda.flows.base import DbFlow
 
 if __name__ == "__main__":  
     #change the workspace_dir to the path of your workspace
-    workspace_dir = "/home/zhanghongda/test_aieda/workspace_sky130_gcd"
+        # step 1 : create workspace
+    import os
+    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    root = current_dir.rsplit('/', 1)[0]
+
+    workspace_dir = "{}/example/sky130_test".format(root)
     project_name = "gcd"
     step = DbFlow.FlowStep.place
 
