@@ -1,7 +1,11 @@
-""" workspace definition.
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+'''
+@File : workspace.py
+@Author : yell
+@Desc : workspace definition.
+'''
 
-
-"""
 import os
 from ..utility import create_logger
 

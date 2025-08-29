@@ -49,3 +49,17 @@ class IEDAVectorization(IEDAIO):
             p = Process(target=_read_nets, args=())
             p.start()
             p.join()
+            
+    def vectors_nets_patterns_to_def(self, path):
+        def _read_nets_patterns():
+            self.read_def() 
+            self.ieda.read_vectors_nets_patterns(path=path)
+            self.def_save()
+            self.verilog_save(self.cell_names)
+        
+        if self.inited_flag:
+            _read_nets_patterns()
+        else:
+            p = Process(target=_read_nets_patterns, args=())
+            p.start()
+            p.join()

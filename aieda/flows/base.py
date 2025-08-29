@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : flow.py
+@File : base.py
 @Author : yell
 @Desc : flow data structure
 '''
@@ -34,8 +34,9 @@ class DbFlow(object):
         sta = "sta"
         rcx = "rcx"
         gds = "gds"
-        full_flow = 'full_flow',
-        vectorization = 'vectorization'
+        full_flow = "full_flow"
+        vectorization = "vectorization"
+        net_pattern = "net_pattern"
         ai_place = "ai_place"
         
     class FlowState(Enum):
