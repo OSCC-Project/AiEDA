@@ -10,7 +10,7 @@ RUN cd /opt/aieda && \
         -DCMAKE_C_COMPILER=gcc-10 \
         -DCMAKE_BUILD_TYPE=Release \
         -GNinja && \
-    ninja -j4 ieda_py
+    ninja -j16 ieda_py
 
 # intall aieda library
 RUN cd /opt/aieda && \
