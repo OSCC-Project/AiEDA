@@ -446,13 +446,13 @@ if __name__ == "__main__":
     workspace = create_workspace_sky130_gcd(workspace_dir)
 
     # step 2 : set paramters
-    # set_parameters(workspace)
+    set_parameters(workspace)
 
-    # # # step 3 : run physical design flow
-    # run_eda_flow(workspace)
+    # # step 3 : run physical design flow
+    run_eda_flow(workspace)
 
-    # # step 4 : generate vectors
-    # generate_vectors(workspace, 9, 9)
+    # step 4 : generate vectors
+    generate_vectors(workspace, 9, 9)
     
     # step 5: analysis vectors
     analyze_net_data(workspace)
