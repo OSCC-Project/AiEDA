@@ -148,4 +148,4 @@ cython_debug/
 *.onnx
 *.zip
 
-example/*
+/example/sky130_test/

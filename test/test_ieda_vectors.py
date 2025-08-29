@@ -28,7 +28,7 @@ def test_vectors_generation(workspace : Workspace, patch_row_step : int, patch_c
                                patch_col_step=patch_col_step)
     data_gen.generate_patterns()
     
-def test_vectors_nets_to_def(workspace : Workspace):
+def test_vectors_data_to_def(workspace : Workspace):
     # step 1 : init by workspace
     data_gen = DataGeneration(workspace)
     
@@ -68,7 +68,7 @@ if __name__ == "__main__":
     workspace = workspace_create(directory=workspace_dir, design="gcd")
     
     test_vectors_generation(workspace, patch_row_step=9, patch_col_step=9)
-    test_vectors_nets_to_def(workspace)
+    test_vectors_data_to_def(workspace)
     test_vectors_load(workspace)
 
     exit(0)

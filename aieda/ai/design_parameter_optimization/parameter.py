@@ -1,43 +1,23 @@
-
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-'''
-@File    :   parameter.py
-@Time    :   2024/08/06 12:44:09
-@Author  :   SivanLaai
-@Version :   1.0
-@Contact :   laaisivan@gmail.com
-@Desc    :   parameter space operation for iEDA
-'''
 import sys
 import os
-
 
 from abc import abstractmethod, ABCMeta
 import json 
 from collections import OrderedDict
+
 def setup_paths():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.join(current_dir, '..', '..', '..')
     if project_root not in sys.path:
         sys.path.insert(0, project_root)
-
 setup_paths()
 
 from aieda.flows.base import DbFlow
-
 class AbstractParameter(metaclass=ABCMeta):
     _search_space = None
     config = {}
     next_params = {}
 
-    '''
-    @Func 
-    @Desc return
-    @Param filename | default parameter json path
-           step | step of AiEDA flow
-    @Return None
-    '''
     def __init__(self, filename="./config/iEDA/default.json", step=DbFlow.FlowStep.place):
         """
         @brief initialization
@@ -84,7 +64,6 @@ class AbstractParameter(metaclass=ABCMeta):
         raise NotImplementedError
     
     def initData(self, filename, step):
-        # print(step)
         params_dict = {}
         with open(filename, "r") as f:
             params_dict = json.load(f, object_pairs_hook=OrderedDict)
@@ -102,86 +81,20 @@ class AbstractParameter(metaclass=ABCMeta):
                 else:
                     self.__dict__[key] = None
         self.__dict__['params_dict'] = params_dict
-    
-    def getParamsDict(self):
-        return self.params_dict
-    
-    def get(self, key):
-        return self.__dict__.get(key, None)
-
-    def set(self, key, value):
-        if "." not in key:
-            self.__dict__[key] = value
-        else:
-            key1, key2 = key.split(".")
-            if key1 in self.__dict__:
-                if isinstance(self.__dict__[key1] ,list):
-                    if key2 in self.__dict__[key1][0]:
-                        self.__dict__[key1][0][key2] = value
-                elif key2 in self.__dict__[key1]:
-                    self.__dict__[key1][key2] = value
-        if "." not in key:
-            self.config[key] = value
-        else:
-            key1, key2 = key.split(".")
-            if key1 in self.config:
-                if isinstance(self.config[key1] ,list):
-                    if key2 in self.config[key1][0]:
-                        self.config[key1][0][key2] = value
-                elif key2 in self.config[key1]:
-                    self.config[key1][key2] = value
-
-    def toJson(self):
-        """
-        @brief convert to json
-        """
-        data = {}
-        for key, value in self.__dict__.items():
-            if key != 'params_dict': 
-                data[key] = value
-        return data
-
-    def fromJson(self, data):
-        """
-        @brief load form json
-        """
-        for key, value in data.items(): 
-            self.__dict__[key] = value
-
-
-    def dump(self, filename):
-        """
-        @brief dump to json file
-        """
-        with open(filename, 'w') as f:
-            json.dump(self.toJson(), f)
-
+        
     def load_list(self, path_list):
-        """
-        @brief load from json file list
-        """
-        for step in path_list:
-            filepath = path_list[step]
-            self.load(filepath, step)
-        print(self.config, "load_list")
-        self.fromJson(self.config)
-
-    def load(self, filename, step=None):
-        """
-        @brief load from json file
-        """
-        with open(filename, 'r') as f:
-            data = json.load(f)
-            if step is not None:
-                self.config[step] = data
-            # self.fromJson(self.config[step])
+        for step, filepath in path_list.items():
+            try:
+                with open(filepath, 'r') as f:
+                    self.config[step] = json.load(f)
+            except Exception as e:
+                print(f"WARNING: load config failed {step}: {e}")
+        
+        print(f"DEBUG: load {len(self.config)} configs")
 
     def updateParams(self, new_param_dict):
         self.next_params = new_param_dict
         print("update self.next_params:", self.next_params)
-        # for key,value in new_param_dict.items():
-        #     self.config[key] = value
-
 
 class iEDAParameter(AbstractParameter):
 
@@ -199,7 +112,7 @@ class iEDAParameter(AbstractParameter):
                 self._search_space = dict()
                 for k,v in self.params_dict.items():
                     self._search_space.update(v)
-    
+
     def getCurrUpdateParams(self, step):
         key_step = step.value.lower() 
         print("next_params:", self.next_params)
@@ -262,6 +175,5 @@ class iEDAParameter(AbstractParameter):
 
 if __name__ == "__main__":
     inn = iEDAParameter()
-    inn.parseParams()
     
     

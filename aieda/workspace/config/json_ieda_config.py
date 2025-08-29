@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : config_ieda.py
+@File : config_ieda_ieda.py
 @Author : yell
 @Desc : set iEDA config
 '''

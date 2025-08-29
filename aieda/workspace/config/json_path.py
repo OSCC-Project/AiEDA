@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : path_parser.py
+@File : json_path.py
 @Author : yell
 @Desc : path json parser 
 '''

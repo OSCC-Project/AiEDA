@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 '''
-@File : ieda.py
+@File : data.py
 @Author : yell
-@Desc : run iEDA flow api
+@Desc : data generation api
 '''
 from .base import DbFlow, RunFlowBase
 
@@ -174,9 +174,12 @@ class DataGeneration(RunFlowBase):
                 output_def:str=None, 
                 output_verilog:str=None,
                 vectors_dir:str=None):   
-        """ run data vectorization flow by iEDA
+        """ save vectorization nets data to def by iEDA
         input_def : input def path, must be set
         input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : save def path
+        output_verilog : save verilog path
+        vectors_dir : vector nets directory
         """
         flow = DbFlow(eda_tool="iEDA",
                       step=DbFlow.FlowStep.vectorization,
@@ -200,5 +203,40 @@ class DataGeneration(RunFlowBase):
                                       flow=flow,
                                       vectors_dir=vectors_dir)
         ieda_flow.vectors_nets_to_def()
+        
+    def vectors_nets_patterns_to_def(self, 
+                pattern_path:str,
+                input_def:str=None, 
+                input_verilog:str=None,
+                output_def:str=None, 
+                output_verilog:str=None):   
+        """ save vectorization nets patterns data to def by iEDA
+        pattern_path : pattern json file path
+        input_def : input def path, must be set
+        input_verilog :input verilog path, optional variable for iEDA flow
+        output_def : save def path
+        output_verilog : save verilog path
+        """
+        flow = DbFlow(eda_tool="iEDA",
+                      step=DbFlow.FlowStep.net_pattern,
+                      input_def=input_def,
+                      input_verilog=input_verilog,
+                      )
+        
+        if input_def is None:
+            # use output def of step route as input def
+            flow.input_def = self.workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route))
+            
+        if output_def is None:
+            flow.output_def = self.workspace.configs.get_output_def(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.net_pattern))
+            
+        if output_verilog is None:
+            flow.output_verilog = self.workspace.configs.get_output_verilog(DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.net_pattern))
+        
+        # create nets, patchs, wire_graph, wire_paths by iEDA
+        from ..eda import IEDAVectorization
+        ieda_flow = IEDAVectorization(workspace=self.workspace,
+                                      flow=flow)
+        ieda_flow.vectors_nets_patterns_to_def(path=pattern_path)
         
 
