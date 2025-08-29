@@ -1,0 +1,36 @@
+ARG BASE_IMAGE=docker.m.daocloud.io/library/ubuntu:22.04
+FROM ${BASE_IMAGE}
+LABEL maintainer="qiuyihang23@mails.ucas.ac.cn"
+
+ENV TZ=Asia/Shanghai
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
+    sed -i -e 's@//archive.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' \
+           -e 's@//security.ubuntu.com@//mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y python3-pip python3.10 python3.10-dev python3.10-venv git wget unzip && \
+    apt-get install -y build-essential g++-10 cmake ninja-build tcl-dev libgflags-dev libgoogle-glog-dev libboost-all-dev && \
+    apt-get install -y libcurl4 libunwind8 libgomp1 libtcl8.6 libtk8.6 libcairo2 && \
+    apt-get install -y libgtest-dev flex libeigen3-dev libunwind-dev libmetis-dev libgmp-dev bison rustc cargo && \
+    apt-get install -y libhwloc-dev libcairo2-dev libcurl4-openssl-dev libtbb-dev && \
+    apt-get autoremove -y && apt-get clean -y
+
+# Install uv for Python package management
+RUN pip3 install -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple uv
+
+ARG AIEDA_WORKSPACE=/opt/aieda
+
+ENV PYTHONPATH="${AIEDA_WORKSPACE}"
+ENV PATH="${AIEDA_WORKSPACE}/aieda/third_party/iEDA/bin:$PATH"
+
+WORKDIR ${AIEDA_WORKSPACE}
+
+# Copy only requirements.txt first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies using uv
+RUN uv pip install --system -i https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple -r requirements.txt
+
+# Copy the rest of the project
+COPY . .

@@ -1,0 +1,22 @@
+ARG BASE_IMG=aieda:base
+FROM $BASE_IMG
+
+# build ieda_py.so
+RUN cd /opt/aieda && \
+    mkdir -p build && \
+    cd build && \
+    cmake -S .. -B . \
+        -DCMAKE_CXX_COMPILER=g++-10 \
+        -DCMAKE_C_COMPILER=gcc-10 \
+        -DCMAKE_BUILD_TYPE=Release \
+        -GNinja && \
+    ninja -j4 ieda_py
+
+# intall aieda library
+RUN cd /opt/aieda && \
+    uv pip install --system -e .
+
+WORKDIR /opt/aieda
+
+# default test
+CMD ["/usr/bin/env", "python3", "test/test_sky130_gcd.py"]
