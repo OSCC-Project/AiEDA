@@ -1,4 +1,1 @@
-from .workspace import (
-    workspace_create,
-    Workspace
-)
+from .workspace import workspace_create, Workspace

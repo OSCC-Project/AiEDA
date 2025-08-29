@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-'''
+"""
 @File : tabnet_process.py
 @Author : yhqiu
 @Desc : data process module for tabnet
-'''
+"""
 import os
 import json
 import csv
@@ -22,16 +22,11 @@ import time
 
 from .tabnet_config import TabNetDataConfig
 
-from aieda import (
-    workspace_create,
-    DbFlow,
-    DataVectors
-)
+from aieda import workspace_create, DbFlow, DataVectors
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
@@ -70,7 +65,7 @@ class TabNetDataProcess:
         combined_df = self._add_engineered_features(combined_df)
 
         # step 4: Analyze target distribution (optional)
-        if hasattr(self.config, 'plot_dir') and self.config.plot_dir:
+        if hasattr(self.config, "plot_dir") and self.config.plot_dir:
             self._analyze_target_distribution(combined_df)
 
         # step 5: Remove outliers
@@ -83,7 +78,8 @@ class TabNetDataProcess:
         self._show_final_data_info(combined_df)
 
         self.logger.info(
-            f"Data processing pipeline completed, final file: {final_file}")
+            f"Data processing pipeline completed, final file: {final_file}"
+        )
 
     def _extract_and_combine_features(self) -> pd.DataFrame:
         """Extract features from JSON files and combine all data"""
@@ -108,15 +104,15 @@ class TabNetDataProcess:
             for vec_net in net_db:
                 # Extract feature data
                 row_data = {
-                    'id': vec_net.id,
-                    'wire_len': vec_net.feature.wire_len,
-                    'width': vec_net.feature.width,
-                    'height': vec_net.feature.height,
-                    'fanout': vec_net.feature.fanout,
-                    'aspect_ratio': vec_net.feature.aspect_ratio,
-                    'l_ness': vec_net.feature.l_ness,
-                    'rsmt': vec_net.feature.rsmt,
-                    'via_num': vec_net.feature.via_num
+                    "id": vec_net.id,
+                    "wire_len": vec_net.feature.wire_len,
+                    "width": vec_net.feature.width,
+                    "height": vec_net.feature.height,
+                    "fanout": vec_net.feature.fanout,
+                    "aspect_ratio": vec_net.feature.aspect_ratio,
+                    "l_ness": vec_net.feature.l_ness,
+                    "rsmt": vec_net.feature.rsmt,
+                    "via_num": vec_net.feature.via_num,
                 }
                 net_list.append(row_data)
 
@@ -124,19 +120,22 @@ class TabNetDataProcess:
             if net_list:
                 df = pd.DataFrame(net_list)
                 # Remove id column (if exists)
-                if 'id' in df.columns:
-                    df = df.drop('id', axis=1)
+                if "id" in df.columns:
+                    df = df.drop("id", axis=1)
                 # Ensure column order
                 feature_cols = [
-                    col for col in self.config.extracted_feature_columns if col != 'id']
+                    col for col in self.config.extracted_feature_columns if col != "id"
+                ]
                 df = df[feature_cols]
                 all_dataframes.append(df)
 
                 self.logger.info(
-                    f"Directory {workspace.directory} processing completed")
+                    f"Directory {workspace.directory} processing completed"
+                )
             else:
                 self.logger.warning(
-                    f"No valid data found in directory {workspace.directory}")
+                    f"No valid data found in directory {workspace.directory}"
+                )
 
         if not all_dataframes:
             self.logger.error("No valid data found")
@@ -146,7 +145,8 @@ class TabNetDataProcess:
         self.logger.info("Starting data combination")
         combined_df = pd.concat(all_dataframes, ignore_index=True)
         self.logger.info(
-            f"Combination completed, total {len(combined_df)} rows of data")
+            f"Combination completed, total {len(combined_df)} rows of data"
+        )
 
         return combined_df
 
@@ -156,16 +156,17 @@ class TabNetDataProcess:
         original_count = len(df)
 
         # Apply cleaning rules
-        df_cleaned = df[df['fanout'] <= self.config.max_fanout]
-        df_cleaned = df_cleaned[df_cleaned['aspect_ratio']
-                                <= self.config.max_aspect_ratio]
-        df_cleaned = df_cleaned[(df_cleaned['height'] > 0) &
-                                (df_cleaned['width'] > 0)]
+        df_cleaned = df[df["fanout"] <= self.config.max_fanout]
+        df_cleaned = df_cleaned[
+            df_cleaned["aspect_ratio"] <= self.config.max_aspect_ratio
+        ]
+        df_cleaned = df_cleaned[(df_cleaned["height"] > 0) & (df_cleaned["width"] > 0)]
 
         cleaned_count = len(df_cleaned)
         removed_count = original_count - cleaned_count
         self.logger.info(
-            f"Data cleaning completed: original {original_count} rows, after cleaning {cleaned_count} rows, removed {removed_count} rows")
+            f"Data cleaning completed: original {original_count} rows, after cleaning {cleaned_count} rows, removed {removed_count} rows"
+        )
 
         return df_cleaned
 
@@ -179,23 +180,22 @@ class TabNetDataProcess:
         df_engineered = df.copy()
 
         # Add area feature
-        df_engineered['area'] = df_engineered['width'] * \
-            df_engineered['height']
+        df_engineered["area"] = df_engineered["width"] * df_engineered["height"]
 
         # Add routing ratio features
-        df_engineered['route_ratio_x'] = df_engineered['width'] / \
-            df_engineered['area']
-        df_engineered['route_ratio_y'] = df_engineered['height'] / \
-            df_engineered['area']
+        df_engineered["route_ratio_x"] = df_engineered["width"] / df_engineered["area"]
+        df_engineered["route_ratio_y"] = df_engineered["height"] / df_engineered["area"]
 
         # Rename columns
-        df_engineered['fanout'] = df_engineered['fanout'] + 1
+        df_engineered["fanout"] = df_engineered["fanout"] + 1
         df_engineered.rename(
-            columns={'fanout': 'pin_num', 'wire_len': 'drwl'}, inplace=True)
+            columns={"fanout": "pin_num", "wire_len": "drwl"}, inplace=True
+        )
 
         self.logger.info("Feature engineering completed")
         self.logger.info(
-            f"Number of columns after adding new features: {len(df_engineered.columns)}")
+            f"Number of columns after adding new features: {len(df_engineered.columns)}"
+        )
 
         return df_engineered
 
@@ -206,7 +206,7 @@ class TabNetDataProcess:
         self.logger.info("Starting target distribution analysis")
 
         # Calculate target values
-        target_series = df['drwl'] / df['rsmt']
+        target_series = df["drwl"] / df["rsmt"]
 
         # Basic statistics
         stats_info = target_series.describe()
@@ -225,8 +225,7 @@ class TabNetDataProcess:
         # Plot distribution charts
         self._plot_distribution_charts(target_series)
 
-        self.logger.info(
-            f"Analysis charts saved to {self.config.plot_dir} directory")
+        self.logger.info(f"Analysis charts saved to {self.config.plot_dir} directory")
 
     def _plot_distribution_charts(self, target_series: pd.Series) -> None:
         """
@@ -235,27 +234,27 @@ class TabNetDataProcess:
         # Plot histogram and kernel density estimation
         plt.figure(figsize=(12, 6))
         sns.histplot(data=target_series, bins=100, kde=True)
-        plt.title('drwl/rsmt Distribution')
-        plt.xlabel('drwl/rsmt')
-        plt.ylabel('Count')
-        plt.savefig(os.path.join(self.config.plot_dir,
-                    'target_distribution.png'))
+        plt.title("drwl/rsmt Distribution")
+        plt.xlabel("drwl/rsmt")
+        plt.ylabel("Count")
+        plt.savefig(os.path.join(self.config.plot_dir, "target_distribution.png"))
         plt.close()
 
         # Plot boxplot
         plt.figure(figsize=(10, 6))
         sns.boxplot(x=target_series)
-        plt.title('drwl/rsmt Boxplot')
-        plt.xlabel('drwl/rsmt')
-        plt.savefig(os.path.join(self.config.plot_dir, 'target_boxplot.png'))
+        plt.title("drwl/rsmt Boxplot")
+        plt.xlabel("drwl/rsmt")
+        plt.savefig(os.path.join(self.config.plot_dir, "target_boxplot.png"))
         plt.close()
 
         # Plot Q-Q plot
         from scipy import stats
+
         plt.figure(figsize=(10, 6))
         stats.probplot(target_series, dist="norm", plot=plt)
-        plt.title('Q-Q Plot of drwl/rsmt')
-        plt.savefig(os.path.join(self.config.plot_dir, 'target_qq_plot.png'))
+        plt.title("Q-Q Plot of drwl/rsmt")
+        plt.savefig(os.path.join(self.config.plot_dir, "target_qq_plot.png"))
         plt.close()
 
         # Segment statistics plot
@@ -266,29 +265,27 @@ class TabNetDataProcess:
         Plot segment statistics charts
         """
         # Segment statistics
-        bins = [0, 0.8, 0.9, 1.0, 1.1, 1.2, float('inf')]
-        labels = ['<0.8', '0.8-0.9', '0.9-1.0', '1.0-1.1', '1.1-1.2', '>1.2']
+        bins = [0, 0.8, 0.9, 1.0, 1.1, 1.2, float("inf")]
+        labels = ["<0.8", "0.8-0.9", "0.9-1.0", "1.0-1.1", "1.1-1.2", ">1.2"]
 
         # Create temporary DataFrame for segmentation
-        temp_df = pd.DataFrame({'target': target_series})
-        temp_df['range'] = pd.cut(temp_df['target'], bins=bins, labels=labels)
-        segment_stats = temp_df.groupby(
-            'range')['target'].agg(['count', 'mean', 'std'])
-        segment_stats['percentage'] = segment_stats['count'] / \
-            len(temp_df) * 100
+        temp_df = pd.DataFrame({"target": target_series})
+        temp_df["range"] = pd.cut(temp_df["target"], bins=bins, labels=labels)
+        segment_stats = temp_df.groupby("range")["target"].agg(["count", "mean", "std"])
+        segment_stats["percentage"] = segment_stats["count"] / len(temp_df) * 100
 
         self.logger.info("Segment statistics:")
         self.logger.info(segment_stats)
 
         # Plot segment statistics bar chart
         plt.figure(figsize=(12, 6))
-        segment_stats['percentage'].plot(kind='bar')
-        plt.title('Distribution of drwl/rsmt Ranges')
-        plt.xlabel('Range')
-        plt.ylabel('Percentage (%)')
+        segment_stats["percentage"].plot(kind="bar")
+        plt.title("Distribution of drwl/rsmt Ranges")
+        plt.xlabel("Range")
+        plt.ylabel("Percentage (%)")
         plt.xticks(rotation=45)
         plt.tight_layout()
-        plt.savefig(os.path.join(self.config.plot_dir, 'target_segments.png'))
+        plt.savefig(os.path.join(self.config.plot_dir, "target_segments.png"))
         plt.close()
 
     def _remove_outliers(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -299,7 +296,7 @@ class TabNetDataProcess:
         original_count = len(df)
 
         # Calculate target values
-        target_series = df['drwl'] / df['rsmt']
+        target_series = df["drwl"] / df["rsmt"]
 
         # Calculate outlier boundaries
         Q1 = target_series.quantile(0.25)
@@ -309,17 +306,18 @@ class TabNetDataProcess:
         upper_bound = Q3 + self.config.outlier_multiplier * IQR
 
         self.logger.info(
-            f"Outlier boundaries: lower bound {lower_bound:.4f}, upper bound {upper_bound:.4f}")
+            f"Outlier boundaries: lower bound {lower_bound:.4f}, upper bound {upper_bound:.4f}"
+        )
 
         # Remove outliers
-        outlier_mask = (target_series >= lower_bound) & (
-            target_series <= upper_bound)
+        outlier_mask = (target_series >= lower_bound) & (target_series <= upper_bound)
         df_cleaned = df[outlier_mask].copy()
 
         cleaned_count = len(df_cleaned)
         removed_count = original_count - cleaned_count
         self.logger.info(
-            f"Outlier removal completed: original {original_count} rows, after cleaning {cleaned_count} rows, removed {removed_count} rows")
+            f"Outlier removal completed: original {original_count} rows, after cleaning {cleaned_count} rows, removed {removed_count} rows"
+        )
 
         return df_cleaned
 
@@ -331,7 +329,8 @@ class TabNetDataProcess:
         df.to_csv(self.config.model_input_file, index=False)
 
         self.logger.info(
-            f"Final dataset contains {len(df)} rows, {len(df.columns)} columns")
+            f"Final dataset contains {len(df)} rows, {len(df.columns)} columns"
+        )
         return self.config.model_input_file
 
     def _show_final_data_info(self, df: pd.DataFrame) -> None:
@@ -345,10 +344,12 @@ class TabNetDataProcess:
         # Show basic statistics for each column
         self.logger.info("Column statistics:")
         for col in df.columns:
-            if df[col].dtype in ['int64', 'float64']:
+            if df[col].dtype in ["int64", "float64"]:
                 stats_info = df[col].describe()
-                self.logger.info(f"{col}: min={stats_info['min']:.4f}, max={stats_info['max']:.4f}, "
-                                 f"mean={stats_info['mean']:.4f}, std={stats_info['std']:.4f}")
+                self.logger.info(
+                    f"{col}: min={stats_info['min']:.4f}, max={stats_info['max']:.4f}, "
+                    f"mean={stats_info['mean']:.4f}, std={stats_info['std']:.4f}"
+                )
 
         # Check missing values
         missing_values = df.isnull().sum()
@@ -374,29 +375,28 @@ class TabNetDataProcess:
         X_enhanced = X.copy()
 
         # Feature interactions based on correlation analysis
-        X_enhanced['pin_rsmt'] = X['pin_num'] * X['rsmt']
-        X_enhanced['l_ness_route_y'] = X['l_ness'] * X['route_ratio_y']
+        X_enhanced["pin_rsmt"] = X["pin_num"] * X["rsmt"]
+        X_enhanced["l_ness_route_y"] = X["l_ness"] * X["route_ratio_y"]
 
         # Composite features for extreme value regions
-        X_enhanced['shape_complexity'] = X['width'] * \
-            X['height'] / (X['rsmt'] ** 2)
-        X_enhanced['pin_density'] = X['pin_num'] / X['area']
+        X_enhanced["shape_complexity"] = X["width"] * X["height"] / (X["rsmt"] ** 2)
+        X_enhanced["pin_density"] = X["pin_num"] / X["area"]
 
         # Non-linear transformations
-        X_enhanced['rsmt_sqrt'] = np.sqrt(X['rsmt'])
+        X_enhanced["rsmt_sqrt"] = np.sqrt(X["rsmt"])
 
         # Geometric feature combinations
-        X_enhanced['hpwl'] = X['width'] + X['height']
-        X_enhanced['log_pin'] = np.log1p(X['pin_num'])
-        X_enhanced['log_area'] = np.log1p(X['area'])
-        X_enhanced['sqrt_rsmt'] = np.sqrt(X['rsmt'])
+        X_enhanced["hpwl"] = X["width"] + X["height"]
+        X_enhanced["log_pin"] = np.log1p(X["pin_num"])
+        X_enhanced["log_area"] = np.log1p(X["area"])
+        X_enhanced["sqrt_rsmt"] = np.sqrt(X["rsmt"])
 
         self.logger.info(
-            f"Feature enhancement completed: original features {X.shape[1]}, enhanced features {X_enhanced.shape[1]}")
+            f"Feature enhancement completed: original features {X.shape[1]}, enhanced features {X_enhanced.shape[1]}"
+        )
 
         return X_enhanced
 
-    
     def load_and_preprocess_data(self, data_path: str) -> Dict[str, Any]:
         """
         Load data and preprocess
@@ -414,26 +414,25 @@ class TabNetDataProcess:
         df = pd.read_csv(data_path)
 
         # Calculate target values
-        df['target'] = df['drwl'] / df['rsmt']
+        df["target"] = df["drwl"] / df["rsmt"]
 
         # Create target value bins
-        df['target_bin'] = pd.cut(df['target'],
-                                  bins=self.config.target_bins,
-                                  labels=self.config.target_labels)
+        df["target_bin"] = pd.cut(
+            df["target"], bins=self.config.target_bins, labels=self.config.target_labels
+        )
 
         # Analyze sample counts for each interval
-        bin_counts = df['target_bin'].value_counts()
+        bin_counts = df["target_bin"].value_counts()
         self.logger.info("Target value interval distribution:")
         for bin_name, count in bin_counts.items():
-            self.logger.info(
-                f"{bin_name}: {count} samples ({count/len(df)*100:.2f}%)")
+            self.logger.info(f"{bin_name}: {count} samples ({count/len(df)*100:.2f}%)")
 
         # Prepare datasets for different stages
         X_via = df[self.config.via_feature_columns]
-        y_via = df['via_num']
+        y_via = df["via_num"]
 
         X_wl_baseline = df[self.config.wl_baseline_feature_columns]
-        y_wl = df['target']
+        y_wl = df["target"]
 
         X_wl_with_via = df[self.config.wl_with_via_feature_columns]
 
@@ -443,12 +442,21 @@ class TabNetDataProcess:
         # X_wl_with_via_enhanced = self._enhance_features(X_wl_with_via)
 
         # Data splitting ()
-        X_wl_baseline_train, X_wl_baseline_test, y_wl_train, y_wl_test, train_bins, test_bins = train_test_split(
+        (
+            X_wl_baseline_train,
+            X_wl_baseline_test,
+            y_wl_train,
+            y_wl_test,
+            train_bins,
+            test_bins,
+        ) = train_test_split(
             # use X_wl_baseline rather than X_wl_baseline_enhanced
-            X_wl_baseline, y_wl, df['target_bin'],
+            X_wl_baseline,
+            y_wl,
+            df["target_bin"],
             test_size=self.config.test_size,
             random_state=self.config.random_state,
-            stratify=df['target_bin']
+            stratify=df["target_bin"],
         )
 
         # Split other data using the same indices
@@ -465,7 +473,8 @@ class TabNetDataProcess:
         y_via_test = y_via.loc[test_indices]
 
         self.logger.info(
-            f"Dataset splitting completed: training set {X_via_train.shape[0]} samples, test set {X_via_test.shape[0]} samples")
+            f"Dataset splitting completed: training set {X_via_train.shape[0]} samples, test set {X_via_test.shape[0]} samples"
+        )
 
         # Feature normalization
         self.logger.info("Starting feature normalization...")
@@ -473,14 +482,18 @@ class TabNetDataProcess:
         X_via_test_scaled = self.via_scaler.transform(X_via_test)
 
         X_wl_baseline_train_scaled = self.wl_baseline_scaler.fit_transform(
-            X_wl_baseline_train)
+            X_wl_baseline_train
+        )
         X_wl_baseline_test_scaled = self.wl_baseline_scaler.transform(
-            X_wl_baseline_test)
+            X_wl_baseline_test
+        )
 
         X_wl_with_via_train_scaled = self.wl_with_via_scaler.fit_transform(
-            X_wl_with_via_train)
+            X_wl_with_via_train
+        )
         X_wl_with_via_test_scaled = self.wl_with_via_scaler.transform(
-            X_wl_with_via_test)
+            X_wl_with_via_test
+        )
 
         # Save feature names (save original feature)
         self.via_feature_names = list(X_via.columns)
@@ -489,30 +502,33 @@ class TabNetDataProcess:
 
         end_time = time.time()
         self.logger.info(
-            f"Data preprocessing completed! Time elapsed: {end_time - start_time:.2f} seconds")
+            f"Data preprocessing completed! Time elapsed: {end_time - start_time:.2f} seconds"
+        )
 
         self._save_normalization_params()
 
         return {
-            'via_train': (X_via_train_scaled, y_via_train.values),
-            'via_test': (X_via_test_scaled, y_via_test.values),
-            'wl_baseline_train': (X_wl_baseline_train_scaled, y_wl_train.values),
-            'wl_baseline_test': (X_wl_baseline_test_scaled, y_wl_test.values),
-            'wl_with_real_via_train': (X_wl_with_via_train_scaled, y_wl_train.values),
-            'wl_with_real_via_test': (X_wl_with_via_test_scaled, y_wl_test.values),
-            'X_via_test_orig': X_via_test,
-            'X_wl_baseline_test_orig': X_wl_baseline_test,
-            'X_wl_with_via_test_orig': X_wl_with_via_test,
-            'y_wl_test': y_wl_test.values,
-            'train_bins': train_bins,
-            'test_bins': test_bins,
-            'via_feature_cols': self.config.via_feature_columns,
-            'wl_baseline_feature_cols': self.config.wl_baseline_feature_columns,
-            'wl_with_via_feature_cols': self.config.wl_with_via_feature_columns
+            "via_train": (X_via_train_scaled, y_via_train.values),
+            "via_test": (X_via_test_scaled, y_via_test.values),
+            "wl_baseline_train": (X_wl_baseline_train_scaled, y_wl_train.values),
+            "wl_baseline_test": (X_wl_baseline_test_scaled, y_wl_test.values),
+            "wl_with_real_via_train": (X_wl_with_via_train_scaled, y_wl_train.values),
+            "wl_with_real_via_test": (X_wl_with_via_test_scaled, y_wl_test.values),
+            "X_via_test_orig": X_via_test,
+            "X_wl_baseline_test_orig": X_wl_baseline_test,
+            "X_wl_with_via_test_orig": X_wl_with_via_test,
+            "y_wl_test": y_wl_test.values,
+            "train_bins": train_bins,
+            "test_bins": test_bins,
+            "via_feature_cols": self.config.via_feature_columns,
+            "wl_baseline_feature_cols": self.config.wl_baseline_feature_columns,
+            "wl_with_via_feature_cols": self.config.wl_with_via_feature_columns,
         }
 
-    
-    def _save_normalization_params(self, output_file: str = "./normalization_params/wl_baseline_normalization_params.json") -> None:
+    def _save_normalization_params(
+        self,
+        output_file: str = "./normalization_params/wl_baseline_normalization_params.json",
+    ) -> None:
         """
         Save normalization parameters to files
         """
@@ -522,35 +538,38 @@ class TabNetDataProcess:
         output_file = self.config.normalization_params_file or output_file
 
         # Save via scaler parameters
-        if hasattr(self.via_scaler, 'data_min_') and hasattr(self.via_scaler, 'data_max_'):
+        if hasattr(self.via_scaler, "data_min_") and hasattr(
+            self.via_scaler, "data_max_"
+        ):
             via_params = {
-                'feature_names': self.via_feature_names,
-                'data_min': self.via_scaler.data_min_.tolist(),
-                'data_max': self.via_scaler.data_max_.tolist(),
-                'scale': self.via_scaler.scale_.tolist(),
-                'min': self.via_scaler.min_.tolist()
+                "feature_names": self.via_feature_names,
+                "data_min": self.via_scaler.data_min_.tolist(),
+                "data_max": self.via_scaler.data_max_.tolist(),
+                "scale": self.via_scaler.scale_.tolist(),
+                "min": self.via_scaler.min_.tolist(),
             }
 
             # Save as JSON (for C++ reading)
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(via_params, f, indent=2)
 
-            self.logger.info(
-                f"Via normalization parameters saved to {output_dir}")
+            self.logger.info(f"Via normalization parameters saved to {output_dir}")
 
         # Save wirelength baseline scaler parameters
-        if hasattr(self.wl_baseline_scaler, 'data_min_') and hasattr(self.wl_baseline_scaler, 'data_max_'):
+        if hasattr(self.wl_baseline_scaler, "data_min_") and hasattr(
+            self.wl_baseline_scaler, "data_max_"
+        ):
             wl_baseline_params = {
-                'feature_names': self.wl_baseline_feature_names,
-                'data_min': self.wl_baseline_scaler.data_min_.tolist(),
-                'data_max': self.wl_baseline_scaler.data_max_.tolist(),
-                'scale': self.wl_baseline_scaler.scale_.tolist(),
-                'min': self.wl_baseline_scaler.min_.tolist()
+                "feature_names": self.wl_baseline_feature_names,
+                "data_min": self.wl_baseline_scaler.data_min_.tolist(),
+                "data_max": self.wl_baseline_scaler.data_max_.tolist(),
+                "scale": self.wl_baseline_scaler.scale_.tolist(),
+                "min": self.wl_baseline_scaler.min_.tolist(),
             }
 
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(wl_baseline_params, f, indent=2)
 
             self.logger.info(
-                f"Wirelength baseline normalization parameters saved to {output_dir}")
-
+                f"Wirelength baseline normalization parameters saved to {output_dir}"
+            )

@@ -1,14 +1,8 @@
 from .database import *
 from .io import *
 
-from .feature import (
-    DataFeature
-)
+from .feature import DataFeature
 
-from .vectors import (
-    DataVectors
-)
+from .vectors import DataVectors
 
-from .patterns import (
-    DataPatterns
-)
+from .patterns import DataPatterns

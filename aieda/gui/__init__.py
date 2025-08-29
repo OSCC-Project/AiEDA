@@ -1,3 +1,1 @@
-from .layout import (
-    GuiLayout
-)
+from .layout import GuiLayout

@@ -1,11 +1,7 @@
-from .base import (
-    DbFlow
-)
+from .base import DbFlow
 
 from .ieda import (
     RunIEDA,
 )
 
-from .data import (
-    DataGeneration
-)
+from .data import DataGeneration

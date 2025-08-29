@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-'''
+"""
 @File : pattern_io.py
 @Author : yell
 @Desc : pattern parser
-'''
+"""
 
 from ...utility.log import Logger
 from ..database import *
 from ...utility.json_parser import JsonParser
-   
+
 from typing import List, Dict, Tuple, Any
 from collections import defaultdict
 from math import gcd
 from tqdm import tqdm
 import networkx as nx
 import pandas as pd
+
 
 class VectorWirePatternGen:
     def __init__(self, epsilon: int = 1):
@@ -24,20 +25,19 @@ class VectorWirePatternGen:
         self._pattern_count: Dict[str, int] = defaultdict(int)
 
     def generate(self, csv_path: str = None) -> pd.DataFrame:
-        df = pd.DataFrame(self._pattern_count.items(),
-                          columns=["Pattern", "Count"])
-        df.sort_values(by="Count", ascending=False,
-                       inplace=True, ignore_index=True)
+        df = pd.DataFrame(self._pattern_count.items(), columns=["Pattern", "Count"])
+        df.sort_values(by="Count", ascending=False, inplace=True, ignore_index=True)
         if csv_path:
             import os
+
             directory = os.path.dirname(csv_path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-        
+
             if not os.path.exists(csv_path):
-                with open(csv_path, 'w') as f:
+                with open(csv_path, "w") as f:
                     pass
-                
+
             df.to_csv(csv_path, index=False)
         return df
 
@@ -70,7 +70,9 @@ class VectorWirePatternGen:
         points.append(end)
         return points
 
-    def _calc_pattern(self, points: List[VectorWirePatternPoint]) -> VectorWirePatternSeq:
+    def _calc_pattern(
+        self, points: List[VectorWirePatternPoint]
+    ) -> VectorWirePatternSeq:
         sorted_points = points[:]
         if sorted_points[0].x > sorted_points[-1].x or (
             sorted_points[0].x == sorted_points[-1].x
@@ -127,32 +129,35 @@ class VectorWirePatternGen:
         pattern.name = pattern_name
         return pattern
 
+
 class VectorWirePatterns:
-    def __init__(self, patterns_csv: str, logger : Logger, epsilon: int = 1):
+    def __init__(self, patterns_csv: str, logger: Logger, epsilon: int = 1):
         self.patterns_csv = patterns_csv
         self.logger = logger
         self.epsilon = epsilon
-    
+
     def generate(self, vec_nets: List[VectorNet]):
         wire_patterns_gen = VectorWirePatternGen(epsilon=self.epsilon)
 
-        for _, vec_net in tqdm(enumerate(vec_nets), total=len(vec_nets), desc="build vector net wires"):
+        for _, vec_net in tqdm(
+            enumerate(vec_nets), total=len(vec_nets), desc="build vector net wires"
+        ):
             wires = vec_net.wires
             for wire in wires:
                 wire_patterns_gen.add_wire(wire)
 
         wire_patterns_gen.generate(self.patterns_csv)
-    
+
 
 class VectorWireSequences(JsonParser):
-    def __init__(self, json_path: str, logger : Logger, epsilon: int = 1):
+    def __init__(self, json_path: str, logger: Logger, epsilon: int = 1):
         self.epsilon = epsilon
         super().__init__(json_path=json_path, logger=logger)
 
     def generate(self, vec_nets: List[VectorNet]):
         gen = VectorWirePatternGen(epsilon=self.epsilon)
         sequences = []
-        
+
         def _convert(vec_net: VectorNet) -> nx.Graph:
             # edge with pattern
             graph = nx.Graph()
@@ -161,7 +166,7 @@ class VectorWireSequences(JsonParser):
                 wire: VectorWire
                 start = wire.wire.node1
                 end = wire.wire.node2
-    
+
                 pattern = gen.add_wire(wire)
                 pattern_name = pattern.name
                 if start.id not in graph:
@@ -169,9 +174,9 @@ class VectorWireSequences(JsonParser):
                 if end.id not in graph:
                     graph.add_node(end.id, pos=(end.x, end.y, end.layer))
                 graph.add_edge(start.id, end.id, pattern=pattern_name)
-    
+
             return graph
-    
+
         def _convert_to_seq(net_graph: nx.Graph) -> List[VectorNetSeq]:
             seqs = []
             source = 0
@@ -196,24 +201,26 @@ class VectorWireSequences(JsonParser):
                 seq = VectorNetSeq(loc_seq, pattern_seq)
                 seqs.append(seq)
             return seqs
-        
+
         if self.create():
-            for _, vec_net in tqdm(enumerate(vec_nets), total=len(vec_nets), desc="transform vector nets"):
+            for _, vec_net in tqdm(
+                enumerate(vec_nets), total=len(vec_nets), desc="transform vector nets"
+            ):
                 graph = _convert(vec_net)
                 seqs = _convert_to_seq(graph)
                 sequences.extend(seqs)
 
-            #save files
+            # save files
             return self.write(dict_value=sequences, is_db=True, indent=None)
-        
+
         return False
 
     def load_sequences(self) -> List[VectorNetSeq]:
         sequences = []
-        
+
         if self.read(is_db=True):
-            sequences=self.json_data
-            
+            sequences = self.json_data
+
         return sequences
 
 
@@ -222,7 +229,9 @@ class VectorTimingGraphSeqConverter:
         self._gen = VectorWirePatternGen(epsilon=epsilon)
         self._seqs = []
 
-    def convert(self, timing_wire_graph : VectorTimingWireGraph, vec_nets: List[VectorNet]) -> nx.Graph:
+    def convert(
+        self, timing_wire_graph: VectorTimingWireGraph, vec_nets: List[VectorNet]
+    ) -> nx.Graph:
         nodes = timing_wire_graph.nodes
         edges = timing_wire_graph.edges
         graph = nx.Graph()
@@ -238,8 +247,7 @@ class VectorTimingGraphSeqConverter:
                 (int)(from_node.name.split(":")[1]),
                 (int)(to_node.name.split(":")[1]),
             )
-            pattern = "" if key not in wire_map else self._gen.add_wire(
-                wire_map[key])
+            pattern = "" if key not in wire_map else self._gen.add_wire(wire_map[key])
             graph.add_edge(
                 from_node.name,
                 to_node.name,
@@ -256,7 +264,9 @@ class VectorTimingGraphSeqConverter:
         seqs = []
         pass
 
-    def _build_wire_map(self, vec_nets: List[VectorNet]) -> Dict[Tuple[int, int], VectorWire]:
+    def _build_wire_map(
+        self, vec_nets: List[VectorNet]
+    ) -> Dict[Tuple[int, int], VectorWire]:
         wire_map = {}
         for vec_net in vec_nets:
             wires = vec_net.wires

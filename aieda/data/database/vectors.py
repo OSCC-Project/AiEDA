@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-'''
+"""
 @File : vectors.py
 @Author : yell
 @Desc : EDA vectors data structure for physical design
-'''
+"""
 
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional, List
+
 
 @dataclass
 class VectorNode:
@@ -20,10 +21,12 @@ class VectorNode:
     layer: Optional[int] = None
     pin_id: Optional[int] = None
 
+
 @dataclass
 class VectorPath:
     node1: Optional[VectorNode] = None
     node2: Optional[VectorNode] = None
+
 
 @dataclass
 class VectorWireFeature:
@@ -39,6 +42,7 @@ class VectorWireFeature:
     wire_density: Optional[float] = None
     drc_type: List[str] = field(default_factory=list)
 
+
 @dataclass
 class VectorWire:
     id: Optional[int] = None
@@ -47,12 +51,14 @@ class VectorWire:
     path_num: Optional[int] = None
     paths: List[VectorPath] = field(default_factory=list)
 
+
 @dataclass
 class VectorPin:
     id: Optional[int] = None
     pin_name: Optional[str] = None
     instance: Optional[str] = None
     is_driver: Optional[str] = None
+
 
 @dataclass
 class VectorNetFeature:
@@ -93,7 +99,9 @@ class VectorNetRoutingPoint:
         return f"Point({self.x}, {self.y}, {self.layer_id})"
 
     def __eq__(self, other):
-        return self.x == other.x and self.y == other.y and self.layer_id == other.layer_id
+        return (
+            self.x == other.x and self.y == other.y and self.layer_id == other.layer_id
+        )
 
     def __hash__(self):
         return hash((self.x, self.y, self.layer_id))
@@ -112,12 +120,14 @@ class VectorNetRoutingEdge:
     source_id: int
     target_id: int
     path: List[VectorNetRoutingPoint]
-        
+
+
 @dataclass
 class VectorNetRoutingGraph:
     vertices: List[VectorNetRoutingVertex]
     edges: List[VectorNetRoutingEdge]
-    
+
+
 @dataclass
 class VectorNet:
     id: Optional[int] = None
@@ -129,6 +139,7 @@ class VectorNet:
     wires: List[VectorWire] = field(default_factory=list)
     routing_graph: Optional[VectorNetRoutingGraph] = None
 
+
 @dataclass
 class VectorPatchLayer:
     id: Optional[int] = None
@@ -138,6 +149,7 @@ class VectorPatchLayer:
     wire_len: Optional[int] = None
     wire_density: Optional[float] = None
     congestion: Optional[float] = None
+
 
 @dataclass
 class VectorPatch:
@@ -164,6 +176,7 @@ class VectorPatch:
     power_map: Optional[float] = None
     ir_drop_map: Optional[float] = None
 
+
 @dataclass
 class VectorWirePatternPoint(object):
     x: int = None
@@ -178,6 +191,7 @@ class VectorWirePatternDirection(Enum):
     LEFT = "LEFT"
     RIGHT = "RIGHT"
     VIA = "VIA"
+
 
 @dataclass
 class VectorWirePatternUnit:
@@ -196,99 +210,115 @@ class VectorNetSeq:
     loc_seq: List[VectorWirePatternPoint] = field(default_factory=list)
     pattern_seq: List[VectorWirePatternSeq] = field(default_factory=list)
 
+
 @dataclass
 class VectorTimingWireGraphNode:
-    id : str = None
+    id: str = None
     name: str = None
     is_pin: bool = False
     is_port: bool = False
-    
+
+
 @dataclass
 class VectorTimingWireGraphEdge:
-    id : str = None
+    id: str = None
     from_node: int = None
     to_node: int = None
-    is_net_edge : bool = False
-    
+    is_net_edge: bool = False
+
+
 @dataclass
 class VectorTimingWireGraph(object):
     nodes: List[VectorTimingWireGraphNode] = field(default_factory=list)
     edges: List[VectorTimingWireGraphEdge] = field(default_factory=list)
-    
+
+
 @dataclass
 class VectorTimingWirePathGraph(object):
     nodes: List[VectorTimingWireGraphNode] = field(default_factory=list)
     edges: List[VectorTimingWireGraphEdge] = field(default_factory=list)
 
+
 @dataclass
 class VectorLayer:
-    id : int = None
-    name : str = None
-    
+    id: int = None
+    name: str = None
+
+
 @dataclass
 class VectorLayers(object):
-    layer_num : int = None
+    layer_num: int = None
     layers: List[VectorLayer] = field(default_factory=list)
-    
+
+
 @dataclass
 class VectorVia:
-    id : int = None
-    name : str = None
-    
+    id: int = None
+    name: str = None
+
+
 @dataclass
 class VectorVias(object):
-    via_num : int = None
+    via_num: int = None
     vias: List[VectorVia] = field(default_factory=list)
-    
+
+
 @dataclass
 class VectorCell:
-    id : int = None
-    name : str = None
-    width : int = None
-    height : int = None
-    
+    id: int = None
+    name: str = None
+    width: int = None
+    height: int = None
+
+
 @dataclass
 class VectorCells(object):
-    cell_num : int = None
+    cell_num: int = None
     cells: List[VectorCell] = field(default_factory=list)
+
 
 @dataclass
 class VectorInstance:
-    id : int = None
-    cell_id : int = None
-    name : str = None
-    x : int = None
-    y : int = None
-    width : int = None
-    height : int = None
-    llx : int = None
-    lly : int = None
-    urx : int = None
-    ury : int = None
-    orient : str = None
-    status : str = None
-    
+    id: int = None
+    cell_id: int = None
+    name: str = None
+    x: int = None
+    y: int = None
+    width: int = None
+    height: int = None
+    llx: int = None
+    lly: int = None
+    urx: int = None
+    ury: int = None
+    orient: str = None
+    status: str = None
+
+
 @dataclass
 class VectorInstances(object):
-    instance_num : int = None
+    instance_num: int = None
     instances: List[VectorInstance] = field(default_factory=list)
-    
+
+
 @dataclass
 class VectorInstanceGraphNode:
-    id : str = None
+    id: str = None
     name: str = None
-    
+
+
 @dataclass
 class VectorInstanceGraphEdge:
-    id : str = None
+    id: str = None
     from_node: int = None
     to_node: int = None
-    
+
+
 @dataclass
 class VectorInstanceGraph(object):
     nodes: List[VectorInstanceGraphNode] = field(default_factory=list)
     edges: List[VectorInstanceGraphEdge] = field(default_factory=list)
-    
+
+
 @dataclass
 class VectorPathMetrics:
     stage: Optional[int] = None

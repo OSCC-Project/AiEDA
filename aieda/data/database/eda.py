@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- encoding: utf-8 -*-
-'''
+"""
 @File : eda.py
 @Author : yell
 @Desc : eda database
-'''
+"""
 
-from dataclasses import dataclass,field
+from dataclasses import dataclass, field
 from numpy import double, uint, uint64
 from typing import Dict, List, Optional
 
@@ -16,130 +16,153 @@ from typing import Dict, List, Optional
 
     begin
 """
+
+
 ##########################################################################################
-@dataclass     
+@dataclass
 class SummaryInfo(object):
     """infomation structure"""
-    eda_tool : str = ""
-    eda_version : str = ""
-    design_name = ""
-    design_version : str = ""
-    flow_stage : str = ""
-    flow_runtime : str = ""
-    flow_memory : str = ""
 
-@dataclass     
+    eda_tool: str = ""
+    eda_version: str = ""
+    design_name = ""
+    design_version: str = ""
+    flow_stage: str = ""
+    flow_runtime: str = ""
+    flow_memory: str = ""
+
+
+@dataclass
 class SummaryLayout(object):
     """layout structure"""
-    design_dbu : int = 0
-    die_area : double = 0.0
-    die_usage : double = 0.0
-    die_bounding_width : double = 0.0
-    die_bounding_height : double = 0.0
-    core_area : double = 0.0
-    core_usage : double = 0.0
-    core_bounding_width : double = 0.0
-    core_bounding_height : double = 0.0
-    
-@dataclass     
+
+    design_dbu: int = 0
+    die_area: double = 0.0
+    die_usage: double = 0.0
+    die_bounding_width: double = 0.0
+    die_bounding_height: double = 0.0
+    core_area: double = 0.0
+    core_usage: double = 0.0
+    core_bounding_width: double = 0.0
+    core_bounding_height: double = 0.0
+
+
+@dataclass
 class SummaryStatis(object):
     """chip statis"""
-    num_layers : int = 0
-    num_layers_routing : int = 0
-    num_layers_cut : int = 0
-    num_iopins : int = 0
-    num_instances : int = 0
-    num_nets : int = 0
-    num_pdn :int = 0
-    
-@dataclass     
-class SummaryInstance(object):
-    num : uint64 = None
-    num_ratio : double = None
-    area : double = None
-    area_ratio : double = None
-    die_usage : double = None
-    core_usage : double = None
-    pin_num : uint64 = None
-    pin_ratio : double = None
 
-@dataclass     
+    num_layers: int = 0
+    num_layers_routing: int = 0
+    num_layers_cut: int = 0
+    num_iopins: int = 0
+    num_instances: int = 0
+    num_nets: int = 0
+    num_pdn: int = 0
+
+
+@dataclass
+class SummaryInstance(object):
+    num: uint64 = None
+    num_ratio: double = None
+    area: double = None
+    area_ratio: double = None
+    die_usage: double = None
+    core_usage: double = None
+    pin_num: uint64 = None
+    pin_ratio: double = None
+
+
+@dataclass
 class SummaryInstances(object):
     """instance structure"""
-    total : SummaryInstance = None
-    iopads : SummaryInstance = None
-    macros : SummaryInstance = None
-    logic : SummaryInstance = None
-    clock : SummaryInstance = None
-    
-@dataclass     
+
+    total: SummaryInstance = None
+    iopads: SummaryInstance = None
+    macros: SummaryInstance = None
+    logic: SummaryInstance = None
+    clock: SummaryInstance = None
+
+
+@dataclass
 class SummaryNets(object):
     """nets structure"""
-    num_total : uint64 = None
-    num_signal : uint64 = None
-    num_clock : uint64 = None
-    num_pins : uint64 = None
-    num_segment : uint64 = None
-    num_via : uint64 = None
-    num_wire : uint64 = None
-    num_patch : uint64 = None
 
-    wire_len : double = None
-    wire_len_signal : double = None
-    ratio_signal : double = None
-    wire_len_clock : double = None
-    ratio_clock : double = None
+    num_total: uint64 = None
+    num_signal: uint64 = None
+    num_clock: uint64 = None
+    num_pins: uint64 = None
+    num_segment: uint64 = None
+    num_via: uint64 = None
+    num_wire: uint64 = None
+    num_patch: uint64 = None
 
-@dataclass 
+    wire_len: double = None
+    wire_len_signal: double = None
+    ratio_signal: double = None
+    wire_len_clock: double = None
+    ratio_clock: double = None
+
+
+@dataclass
 class SummaryLayerRouting(object):
-    layer_name : str = None
-    layer_order : uint = None
-    wire_len : double = None
-    wire_ratio : double = None
-    wire_num : uint64 = None
-    patch_num : uint64 = None
+    layer_name: str = None
+    layer_order: uint = None
+    wire_len: double = None
+    wire_ratio: double = None
+    wire_num: uint64 = None
+    patch_num: uint64 = None
 
-@dataclass 
+
+@dataclass
 class SummaryLayerCut(object):
-    layer_name : str = None
-    layer_order : uint = None
-    via_num : uint64 = None
-    via_ratio : double = None
-    
-@dataclass     
+    layer_name: str = None
+    layer_order: uint = None
+    via_num: uint64 = None
+    via_ratio: double = None
+
+
+@dataclass
 class SummaryLayers(object):
     """layer structure"""
-    num_layers : int = 0
-    num_layers_routing : int = 0
-    num_layers_cut : int = 0
-    routing_layers : list = field(default_factory=list)
-    cut_layers : list = field(default_factory=list)
 
-@dataclass     
+    num_layers: int = 0
+    num_layers_routing: int = 0
+    num_layers_cut: int = 0
+    routing_layers: list = field(default_factory=list)
+    cut_layers: list = field(default_factory=list)
+
+
+@dataclass
 class SummaryPins(object):
     """pins structure"""
-    max_fanout : uint = None
-    pin_distribution : list = field(default_factory=list)
 
-@dataclass 
+    max_fanout: uint = None
+    pin_distribution: list = field(default_factory=list)
+
+
+@dataclass
 class SummaryPin(object):
-    pin_num : uint64 = None
-    net_num : uint64 = None
-    net_ratio : double = None
-    inst_num : uint64 = None
-    inst_ratio : double = None
+    pin_num: uint64 = None
+    net_num: uint64 = None
+    net_ratio: double = None
+    inst_num: uint64 = None
+    inst_ratio: double = None
 
-@dataclass     
+
+@dataclass
 class FeatureSummary(object):
-     """basic feature package"""  
-     flow = None
-     info : SummaryInfo = None
-     statis : SummaryStatis = None
-     layout : SummaryLayout = None
-     layers : SummaryLayers = None
-     nets : SummaryNets = None
-     instances : SummaryInstances = None
-     pins : SummaryPins =None
+    """basic feature package"""
+
+    flow = None
+    info: SummaryInfo = None
+    statis: SummaryStatis = None
+    layout: SummaryLayout = None
+    layers: SummaryLayers = None
+    nets: SummaryNets = None
+    instances: SummaryInstances = None
+    pins: SummaryPins = None
+
+
 ##########################################################################################
 """ data structure for feature of iEDA summary 
 
@@ -154,7 +177,9 @@ class FeatureSummary(object):
 """ data structure for feature of iEDA tools 
     
     begin
-""" 
+"""
+
+
 ##########################################################################################
 @dataclass
 class ClockTiming(object):
@@ -183,8 +208,8 @@ class CTSSummary(object):
 @dataclass
 class PLCommonSummary(object):
     place_density: float = None
-    HPWL : int = None
-    STWL : int = None
+    HPWL: int = None
+    STWL: int = None
 
 
 @dataclass
@@ -279,6 +304,7 @@ class TGSummary(object):
     # std::map<std::string, double> type_power_map
     type_power_map: Dict[str, float] = field(default_factory=dict)
 
+
 @dataclass
 class LASummary(object):
     # std::map<int32_t, double> routing_demand_map
@@ -298,6 +324,7 @@ class LASummary(object):
     # std::map<std::string, double> type_power_map
     type_power_map: Dict[str, float] = field(default_factory=dict)
 
+
 @dataclass
 class SRSummary(object):
     # std::map<int32_t, double> routing_demand_map
@@ -316,7 +343,6 @@ class SRSummary(object):
     clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
     # std::map<std::string, double> type_power_map
     type_power_map: Dict[str, float] = field(default_factory=dict)
-
 
 
 @dataclass
@@ -361,14 +387,18 @@ class VRSummary(object):
     routing_patch_num_map: Dict[int, int] = field(default_factory=dict)
     total_patch_num: int = 0
     # std::map<int32_t, std::map<std::string, int32_t>> within_net_routing_violation_type_num_map
-    within_net_routing_violation_type_num_map: Dict[int, Dict[str, int]] = field(default_factory=dict)
+    within_net_routing_violation_type_num_map: Dict[int, Dict[str, int]] = field(
+        default_factory=dict
+    )
     # std::map<std::string, int32_t> within_net_violation_type_num_map
     within_net_violation_type_num_map: Dict[str, int] = field(default_factory=dict)
     # std::map<int32_t, int32_t> within_net_routing_violation_num_map
     within_net_routing_violation_num_map: Dict[int, int] = field(default_factory=dict)
     within_net_total_violation_num: int = 0
     # std::map<int32_t, std::map<std::string, int32_t>> among_net_routing_violation_type_num_map
-    among_net_routing_violation_type_num_map: Dict[int, Dict[str, int]] = field(default_factory=dict)
+    among_net_routing_violation_type_num_map: Dict[int, Dict[str, int]] = field(
+        default_factory=dict
+    )
     # std::map<std::string, int32_t> among_net_violation_type_num_map
     among_net_violation_type_num_map: Dict[str, int] = field(default_factory=dict)
     # std::map<int32_t, int32_t> among_net_routing_violation_num_map
@@ -378,6 +408,7 @@ class VRSummary(object):
     clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
     # std::map<std::string, double> type_power_map
     type_power_map: Dict[str, float] = field(default_factory=dict)
+
 
 @dataclass
 class ERSummary(object):
@@ -397,7 +428,6 @@ class ERSummary(object):
     clock_timing_map: Dict[str, Dict[str, float]] = field(default_factory=dict)
     # std::map<std::string, double> type_power_map
     type_power_map: Dict[str, float] = field(default_factory=dict)
-
 
 
 @dataclass
@@ -420,7 +450,8 @@ class RouteSummary(object):
     vr_summary: Optional[VRSummary] = None
     # ERSummary er_summary
     er_summary: Optional[ERSummary] = None
-    
+
+
 @dataclass
 class FeatureDrcShape(object):
     llx: float = None
@@ -430,17 +461,20 @@ class FeatureDrcShape(object):
     net_ids: list = field(default_factory=list)
     inst_ids: list = field(default_factory=list)
 
+
 @dataclass
 class FeatureDrcLayer(object):
     layer: str = None
     number: int = None
     shapes: List[FeatureDrcShape] = field(default_factory=list)
 
+
 @dataclass
 class FeatureDrcDistribution(object):
     type: str = None
     number: int = None
     layers: List[FeatureDrcLayer] = field(default_factory=list)
+
 
 @dataclass
 class FeatureDrcDistributions(object):
@@ -458,14 +492,15 @@ class FeatureTools(object):
     opt_setup_summary: TimingOptSummary = None
     legalization_summary: PlaceSummary = None
     routing_summary: RouteSummary = None
+
+
 ##########################################################################################
 """ data structure for feature of iEDA tools 
     
     end
-""" 
+"""
 ##########################################################################################
 ##########################################################################################
-
 
 
 ##########################################################################################
@@ -479,6 +514,7 @@ from enum import Enum
 from typing import List
 import numpy as np
 
+
 # wirelength
 @dataclass
 class FeatureWirelength(object):
@@ -487,6 +523,7 @@ class FeatureWirelength(object):
     HPWL: float = None
     HTree: float = None
     VTree: float = None
+
 
 # density
 @dataclass
@@ -499,7 +536,8 @@ class FeatureDensityCell(object):
     allcell_density_data: np.ndarray = None
     macro_density_data: np.ndarray = None
     stdcell_density_data: np.ndarray = None
-    
+
+
 @dataclass
 class FeatureDensityMargin(object):
     # csv map path
@@ -510,6 +548,7 @@ class FeatureDensityMargin(object):
     horizontal_data: np.ndarray = None
     union_data: np.ndarray = None
     vertical_data: np.ndarray = None
+
 
 @dataclass
 class FeatureDensityNet(object):
@@ -522,6 +561,7 @@ class FeatureDensityNet(object):
     global_net_density_data: np.ndarray = None
     local_net_density_data: np.ndarray = None
 
+
 @dataclass
 class FeatureDensityPin(object):
     # csv map path
@@ -533,12 +573,14 @@ class FeatureDensityPin(object):
     macro_pin_density_data: np.ndarray = None
     stdcell_pin_density_data: np.ndarray = None
 
+
 @dataclass
 class FeatureDensity(object):
     cell: FeatureDensityCell = None
     margin: FeatureDensityMargin = None
     net: FeatureDensityNet = None
     pin: FeatureDensityPin = None
+
 
 # congestion
 @dataclass
@@ -552,11 +594,13 @@ class FeatureCongestionMapBase(object):
     union_data: np.ndarray = None
     vertical_data: np.ndarray = None
 
+
 @dataclass
 class FeatureCongestionMap(object):
     egr: FeatureCongestionMapBase = None
     lutrudy: FeatureCongestionMapBase = None
     rudy: FeatureCongestionMapBase = None
+
 
 @dataclass
 class FeatureCongestionOverflowBase(object):
@@ -564,33 +608,39 @@ class FeatureCongestionOverflowBase(object):
     union: float = None
     vertical: float = None
 
+
 @dataclass
 class FeatureCongestionOverflow(object):
     max: FeatureCongestionOverflowBase = None
     top_average: FeatureCongestionOverflowBase = None
     total: FeatureCongestionOverflowBase = None
 
+
 @dataclass
 class FeatureCongestionUtilizationBase(object):
     horizontal: float = None
     union: float = None
     vertical: float = None
-    
+
+
 @dataclass
 class FeatureCongestionUtilizationStats(object):
     max: FeatureCongestionUtilizationBase = None
-    top_average: FeatureCongestionUtilizationBase = None  
+    top_average: FeatureCongestionUtilizationBase = None
+
 
 @dataclass
 class FeatureCongestionUtilization(object):
     lutrudy: FeatureCongestionUtilizationStats = None
     rudy: FeatureCongestionUtilizationStats = None
 
+
 @dataclass
 class FeatureCongestion(object):
     map: FeatureCongestionMap = None
     overflow: FeatureCongestionOverflow = None
     utilization: FeatureCongestionUtilization = None
+
 
 # timing
 @dataclass
@@ -599,12 +649,14 @@ class MethodTimingIEDA(object):
     dynamic_power: float = None
     static_power: float = None
 
+
 class FeatureTimingEnumIEDA(Enum):
-    DR = 'DR'
-    EGR = 'EGR'
-    FLUTE = 'FLUTE'
-    HPWL = 'HPWL'
-    SALT = 'SALT'
+    DR = "DR"
+    EGR = "EGR"
+    FLUTE = "FLUTE"
+    HPWL = "HPWL"
+    SALT = "SALT"
+
 
 @dataclass
 class FeatureTimingIEDA(object):
@@ -614,16 +666,19 @@ class FeatureTimingIEDA(object):
     EGR: MethodTimingIEDA = None
     DR: MethodTimingIEDA = None
 
+
 @dataclass
 class FeatureMetric(object):
     wirelength: FeatureWirelength = None
     density: FeatureDensity = None
     congestion: FeatureCongestion = None
     timing: FeatureTimingIEDA = None  # include timing and power
+
+
 ##########################################################################################
 """ data structure for feature of iEDA tools 
     
     end
-""" 
+"""
 ##########################################################################################
 ##########################################################################################
