@@ -1,5 +1,5 @@
 <div align="center">
-<img src="AiEDA.png" width="27%" alt="AiEDA" />
+<img src="/docs/resources/AiEDA.png" width="27%" alt="AiEDA" />
  <h1>AiEDA</h1>
 
 <h3> An Open-Source AI-Aided Design Library for Design-to-Vector </h3>
@@ -21,7 +21,11 @@
 
 ## Overview
 
-AiEDA is an open-source AI-native Electronic Design Automation (EDA) library that revolutionizes chip design workflows by introducing a unified design-to-vector methodology. Built on the iEDA infrastructure, it transforms diverse chip design data into standardized multi-level vector representations through modular engine integration, comprehensive data extraction frameworks, and hierarchical data management. AiEDA bridges traditional EDA tools with modern AI/ML techniques by providing complete physical design flows, programmatic data extraction capabilities, and standardized Python interfaces, establishing an AI-aided design (AAD) paradigm that enables seamless integration between EDA datasets and AI frameworks. With its extensible architecture designed for multi-tool support, the current open-source version features the iEDA engine while maintaining flexibility for future engine expansions, empowering researchers and engineers to leverage artificial intelligence for enhanced design optimization and automation in modern chip development.
+AiEDA is an open-source AI-native Electronic Design Automation (EDA) library that revolutionizes chip design workflows by introducing a unified design-to-vector methodology. Built on the iEDA infrastructure, it transforms diverse chip design data into standardized multi-level vector representations through modular engine integration, comprehensive data extraction frameworks, and hierarchical data management. AiEDA bridges traditional EDA tools with modern AI/ML techniques by providing complete physical design flows, programmatic data extraction capabilities, and standardized Python interfaces, establishing an AI-aided design (AAD) paradigm that enables seamless integration between EDA datasets and AI frameworks. 
+
+<center><img src="/res/images/aieda/datavector.png" alt="6" style="zoom:70%;"/></center>
+<center>Data Transformation for AI-aided design (AAD)</center>
+
 
 
 ## Software Architecture
@@ -108,6 +112,10 @@ The AiEDA data flow follows this pattern:
 4. **AI Analysis** → ML models analyze extracted features
 5. **Optimization** → AI-guided parameter optimization and design improvements
 6. **Validation** → Results validation and iteration
+
+<center><img src="/res/images/aieda/flow.png" alt="6" style="zoom:90%;"/></center>
+<center>Data Flow</center>
+
 
 ```
 Design Files → Workspace → iEDA Tools → Feature Extraction → AI Models → Optimization → Results
