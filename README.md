@@ -296,4 +296,4 @@ This project is open-source. Please refer to the LICENSE file for details.
 
 ## Support
 
-For questions and support, please visit our documentation or open an
+For questions and support, please visit our documentation (https://ieda.oscc.cc/en/aieda/library/) and the deepwiki (https://deepwiki.com/OSCC-Project/AiEDA) or contact us (https://ieda.oscc.cc/en/publicity/connection.html)
