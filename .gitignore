@@ -137,9 +137,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-*.png
-*.jpg
-*.csv
+# *.png
+# *.jpg
+# *.csv
 .vscode/
 .VSCodeCounter/
 
