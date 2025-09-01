@@ -6,6 +6,11 @@
 @Desc : closure flow: EDA data_generation -> data parse and load -> model training -> model inference -> guide EDA optimization
 @Desc : use net_wirelength_predict as an example
 """
+######################################################################################
+# # import aieda
+# from import_aieda import import_aieda
+# import_aieda()
+######################################################################################
 
 ######################################################################################
 import os

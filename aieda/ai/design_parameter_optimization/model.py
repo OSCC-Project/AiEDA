@@ -8,7 +8,7 @@ import numpy as np
 import time
 import logging
 import json
-
+import numpy as np
 def setup_paths():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.join(current_dir, "..", "..", "..")
@@ -230,7 +230,47 @@ class NNIOptimization(AbstractOptimizationMethod):
     ):
 
         super().__init__(args, workspace, parameter, algorithm, goal, step)
+        self.trial_times = []
+        self.trial_start_time = None
 
+    def get_trial_time_statistics(self):
+        if not self.trial_times:
+            return None
+        stats = {
+            "total_trials": len(self.trial_times),
+            "average_time": np.mean(self.trial_times),
+            "median_time": np.median(self.trial_times),
+            "min_time": np.min(self.trial_times),
+            "max_time": np.max(self.trial_times),
+            "std_time": np.std(self.trial_times),
+            "total_time": np.sum(self.trial_times),
+            "time_distribution": {
+                "fast_trials": len([t for t in self.trial_times if t < np.percentile(self.trial_times, 25)]),
+                "medium_trials": len([t for t in self.trial_times if np.percentile(self.trial_times, 25) <= t <= np.percentile(self.trial_times, 75)]),
+                "slow_trials": len([t for t in self.trial_times if t > np.percentile(self.trial_times, 75)])
+            }
+        }
+        
+        return stats
+    def print_trial_time_analysis(self):
+        stats = self.get_trial_time_statistics()
+        if not stats:
+            print("No trial time data available")
+            return
+        
+        print("=== Trial Time Analysis ===")
+        print(f"Total trials: {stats['total_trials']}")
+        print(f"Average trial time: {stats['average_time']:.3f} seconds")
+        print(f"Median trial time: {stats['median_time']:.3f} seconds")
+        print(f"Min trial time: {stats['min_time']:.3f} seconds")
+        print(f"Max trial time: {stats['max_time']:.3f} seconds")
+        print(f"Standard deviation: {stats['std_time']:.3f} seconds")
+        print(f"Total optimization time: {stats['total_time']:.3f} seconds")
+        print(f"Time distribution:")
+        print(f"  Fast trials (<25%): {stats['time_distribution']['fast_trials']}")
+        print(f"  Medium trials (25%-75%): {stats['time_distribution']['medium_trials']}")
+        print(f"  Slow trials (>75%): {stats['time_distribution']['slow_trials']}")
+        
     def getNextParams(self):
         return nni.get_next_parameter()
 
@@ -266,12 +306,18 @@ class NNIOptimization(AbstractOptimizationMethod):
         metric += hpwl / hpwl_ref
 
         messages += f"wns: {wns}, "
-        wns_ref = metrics.get("wns", 0.0)
-        metric += np.exp(wns_ref) / np.exp(wns)
+        if wns < 0:
+            wns_penalty = abs(wns) * 20  
+        else:
+            wns_penalty = 0
+        metric += wns_penalty
 
         messages += f"tns: {tns}, "
-        tns_ref = metrics.get("tns", 0.0)
-        metric += np.exp(tns_ref) / np.exp(tns)
+        if tns < 0:
+            tns_penalty = abs(tns) * 2 
+        else:
+            tns_penalty = 0
+        metric += tns_penalty
 
         results["place_hpwl"] = hpwl
         results["place_wns"] = wns
@@ -340,6 +386,7 @@ class NNIOptimization(AbstractOptimizationMethod):
 
         self.checkAndSyncBestToDefault()
         nni.report_final_result(metric)
+        return metric
 
     def checkAndSyncBestToDefault(self):
         try:
@@ -367,13 +414,20 @@ class NNIOptimization(AbstractOptimizationMethod):
         except Exception as e:
             print(f"Error: check trial status: {e}")
 
-    def GenerateDataset(self, params, step=DbFlow.FlowStep.place, tool="iEDA"):
+    def GenerateDataset(self, params, step=DbFlow.FlowStep.place, tool="iEDA",metric=None):
         data = dict()
         data["params"] = params
         data = self.getFeatureMetrics(
             data, eda_tool="iEDA", step=DbFlow.FlowStep.place, option=None
         )
-        # print(data)
+        if metric is not None:
+            data["metric"] = metric
+        else:
+            metrics = {"hpwl": 1.0, "tns": 0.0, "wns": 0.0}
+            results = {}
+            metric = self.logPlaceMetrics(metrics, results)
+            data["metric"] = metric
+        print(f"Trial metric: {data['metric']:.6f}")
         filepath = f"{self._result_dir}/benchmark/{self._tech}"
         filename = f"{self._result_dir}/benchmark/{self._tech}/{self._project_name}_{self._step.value}.jsonl"
         if not os.path.exists(filepath):
@@ -413,6 +467,7 @@ class NNIOptimization(AbstractOptimizationMethod):
         pre_step=DbFlow.FlowStep.cts,
         tool="iEDA",
     ):
+        trial_start = time.time()
         tt = time.time()
         next_params = self.getNextParams()
         workspace = Workspace(self._workspace, self._project_name)
@@ -428,10 +483,13 @@ class NNIOptimization(AbstractOptimizationMethod):
             pre_step = DbFlow.FlowStep.fixFanout
             tool = db_flow.eda_tool
             self.runTask(tool=tool, step=step, pre_step=pre_step)
-        self.logFeature(metrics, step)
-        self.GenerateDataset(next_params, step, tool)
+        metric = self.logFeature(metrics, step)
+        self.GenerateDataset(next_params, step, tool,metric)
+        trial_time = time.time() - trial_start
+        self.trial_times.append(trial_time)
         total_time = time.time() - tt
         logging.info("task takes %.3f seconds" % (total_time))
+        logging.info("trial takes %.3f seconds" % (trial_time))
 
 
 def main():

@@ -5,7 +5,11 @@
 @Author : yell
 @Desc : test physical design flows for iEDA
 """
-
+######################################################################################
+# # import aieda
+# from import_aieda import import_aieda
+# import_aieda()
+######################################################################################
 import os
 
 os.environ["iEDA"] = "ON"
@@ -17,6 +21,7 @@ from aieda import (
     DbFlow,
     EDAParameters,
     DataGeneration,
+    WireDistributionAnalyzer,
 )
 
 
@@ -411,6 +416,24 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
     )
     data_gen.generate_patterns()
 
+def analyze_net_data(workspace : Workspace):
+    # step 0: create workspace list
+    workspace_list = []
+    workspace_list.append(workspace)
+    
+    # name map
+    DISPLAY_NAME = {"gcd": "GCD"}
+    
+    # step 1: Wire Distribution Analysis
+    wire_analyzer = WireDistributionAnalyzer()
+    wire_analyzer.load(
+        workspace_dirs=workspace_list,
+        pattern="/output/iEDA/vectors/nets",
+        dir_to_display_name=DISPLAY_NAME,
+    )
+    wire_analyzer.analyze()
+    wire_analyzer.visualize()
+
 
 if __name__ == "__main__":
     # step 1 : create workspace
@@ -430,5 +453,9 @@ if __name__ == "__main__":
 
     # step 4 : generate vectors
     generate_vectors(workspace, 9, 9)
+    
+    # step 5: analysis vectors
+    analyze_net_data(workspace)
+    
 
     exit(0)

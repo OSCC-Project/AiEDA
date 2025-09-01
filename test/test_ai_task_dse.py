@@ -8,6 +8,12 @@
 @Contact :   zhanghongda24@mails.ucas.ac.cn
 @Desc    :   test placement for dse
 """
+######################################################################################
+# import aieda
+# from import_aieda import import_aieda
+# import_aieda()
+######################################################################################
+
 from aieda.ai.design_parameter_optimization.dse_facade import DSEFacade
 from aieda.data.database.enum import DSEMethod
 from aieda.flows.base import DbFlow
