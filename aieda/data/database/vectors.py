@@ -16,6 +16,8 @@ class VectorNode:
     id: Optional[int] = None
     x: Optional[int] = None
     y: Optional[int] = None
+    real_x: Optional[int] = None
+    real_y: Optional[int] = None
     row: Optional[int] = None
     col: Optional[int] = None
     layer: Optional[int] = None
