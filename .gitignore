@@ -139,7 +139,7 @@ cython_debug/
 
 # *.png
 # *.jpg
-# *.csv
+*.csv
 .vscode/
 .VSCodeCounter/
 

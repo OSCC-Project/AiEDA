@@ -3,8 +3,7 @@ project(aieda)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
-set(PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
+set(PYTHON_EXECUTABLE ${PROJECT_SOURCE_DIR}/.venv/bin/python)
 
 set(BUILD_AIEDA "ON")
 add_subdirectory(${PROJECT_SOURCE_DIR}/aieda/third_party/iEDA)

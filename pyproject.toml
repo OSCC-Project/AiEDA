@@ -12,12 +12,12 @@ dependencies = [
     "matplotlib>=3.10.5",
     "networkx>=3.4.2",
     "nni>=3.0",
-    "numpy>=2.2.6",
+    "numpy>=1.17,<2.0",
     "pandas>=2.3.2",
-    "pytorch-tabnet>=4.1.0",
+    "pytorch-tabnet>=3.1.1,<4.0.0",
     "scikit-learn>=1.7.1",
     "seaborn>=0.13.2",
-    "torch>=2.8.0",
+    "torch>=1.8.0",
     "tqdm>=4.67.1",
 ]
 
