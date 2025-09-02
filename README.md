@@ -122,110 +122,98 @@ The AiEDA data flow follows this pattern:
 
 
 ```
-Design Files → Workspace → iEDA Tools → Feature Extraction → AI Models → Optimization → Results
-     ↑                                                                            ↓
-     └─────────────────── Feedback Loop ──────────────────────────────────────────┘
+Design Files → Workspace → iEDA Tools → Feature Extraction → AI Models → Analyse → Results
+                               ↑                                       ↓
+                               └──── Feedback Loop (Optimization) ─────┘
 ```
 
 ## Build Methods
 
-### Method 1: Docker Build (Recommended)
-
-Docker provides a containerized environment with all dependencies pre-configured.
-
-#### Prerequisites
-- Docker installed on your system
-- At least 8GB of available disk space
-
-#### Build Steps
+### Method 1: Local Installation (Python dependencies and aieda library)
 
 1. **Clone the repository with submodules:**
    ```bash
    git clone <repository-url>
-   cd aieda_fork
+   cd AiEDA
    git submodule update --init --recursive
    ```
 
-2. **Build the Docker image:**
+2. **Install Python Dependencies and AiEDA library:**
+
+   We support multiple Python package managers (conda, uv, etc.). We recommend UV for its efficiency.
+
    ```bash
-   # Use the provided build script
-   ./build_docker.sh
-   
-   # Or build manually
-   docker build -f Dockerfile.base -t aieda:base .
-   docker build -f Dockerfile.final -t aieda:latest .
-   ```
+   # Use the provided build script (recommended)
+   # The script builds the AiEDA library by default
+   ./build.sh
+   # You can also skip the AiEDA library build using --skip-build 
+   # (recommended for development)
+   ./build.sh --skip-build
 
-3. **Run the container:**
-   ```bash
-   docker run --rm -it aieda:latest
-   ```
-
-4. **Test the installation:**
-   ```bash
-   docker run --rm aieda:latest python3 test/test_sky130_gcd.py
-   ```
-
-For detailed Docker instructions, refer to the build script and configuration files in the repository.
-
-### Method 2: UV Build (Development)
-
-UV provides a fast Python package manager for local development.
-
-#### Prerequisites
-- Python 3.10 or higher
-- UV package manager
-- iEDA dependencies (C++ compiler, CMake, etc.)
-
-#### Build Steps
-
-1. **Install UV:**
-   ```bash
+   # Or install manually
+   # Install UV
    pip install uv
-   ```
-
-2. **Verify UV installation:**
-   ```bash
-   uv --version
-   ```
-
-3. **Create and activate virtual environment:**
-   ```bash
+   # Create and activate virtual environment
    uv venv
    source .venv/bin/activate
-   ```
-
-4. **Install dependencies:**
-   ```bash
-   uv run python -m build
-   ```
-
-5. **Build aieda package:**
-   ```bash
+   # Install aieda using one of the following options:
+   # Option 1: Development mode (recommended for development)
+   uv pip install -e .
+   # Option 2: Regular installation
    uv build
-   ```
-
-6. **Install aieda:**
-   ```bash
    uv pip install dist/aieda-0.1.0-py3-none-any.whl
    ```
 
-7. **Test the installation:**
-   ```bash
-   uv run python test/test_sky130_gcd.py
-   ```
-
-#### iEDA Compilation (Required for UV build)
-
-Before using AiEDA with UV, you need to compile the iEDA backend:
-
- **Compile iEDA:**
+3. **Compile iEDA:**
    ```bash
    mkdir build
    cd build
    cmake ..
    make -j32 ieda_py
    ```
+   **Note:** Building ieda_py requires **sudo** privileges to download additional system libraries.
+
+4. **Run Tests:**
+   ```bash
+   uv run python test/test_sky130_gcd.py
+   ```
+
+### Method 2: Docker Build (Complete environment with all dependencies)
+
+Docker provides a containerized environment with all dependencies pre-configured, including Python/C++ dependencies, AiEDA library, and source code.
+
+#### Prerequisites
+- Docker installed on your system
+- At least 20GB of available disk space (this will be optimized in future versions)
+
+#### Build Steps
+
+1. **Clone the repository with submodules:**
+   ```bash
+   git clone <repository-url>
+   cd AiEDA
+   git submodule update --init --recursive
+   ```
+
+2. **Build the Docker image:**
+   ```bash
+   docker build -t aieda:latest .
+   ```
+
+3. **Run the container:**
+   ```bash
+   # Test the installation
+   docker run --rm aieda:latest python3 test/test_sky130_gcd.py
+
+   # Run in detached mode for interactive use
+   docker run -dit --name myaieda aieda:latest bash
+   
+   # Enter the running container
+   docker exec -it myaieda bash
+   ```
+
+**Note:** For detailed Docker instructions, refer to the build script and Dockerfile in the repository.
+
 
 ## Getting Started
 
@@ -262,7 +250,7 @@ trainer.train()
 
 ```bash
 # Test iEDA backend
-python test/test_ieda_backend.py
+python test/test_ieda_flows.py
 
 # Test design-level analysis
 python test/test_analysis_design.py
