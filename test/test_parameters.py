@@ -26,7 +26,17 @@ if __name__ == "__main__":
     workspace.print_paramters()
 
     # step 2 : test parameters config
-    parameters = EDAParameters(workspace_dir=workspace_dir)
+    parameters = EDAParameters()
+    parameters.placement_target_density = 0.4
+    parameters.placement_max_phi_coef = 1.04
+    parameters.placement_init_wirelength_coef = 0.15
+    parameters.placement_min_wirelength_force_bar = -54.04
+    parameters.cts_skew_bound = "0.1"
+    parameters.cts_max_buf_tran = "1.2"
+    parameters.cts_max_sink_tran = "1.1"    
+    parameters.cts_max_cap = "0.2"
+    parameters.cts_max_fanout = "32"
+    parameters.cts_cluster_size = "32"
     workspace.update_parameters(parameters=parameters)
 
     workspace.print_paramters()
