@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 import sys
@@ -133,7 +134,7 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
         raise NotImplementedError
 
     def getPlaceResults(self):
-        hpwl, wns, tns = None, None, None
+        hpwl, wns, tns = None, 0.0, 0.0
         try:
             workspace = self._workspace
             output_dir = os.path.join(
@@ -145,12 +146,6 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
                 line = out_lines[i]
                 if "Total HPWL" in line:
                     hpwl = line.replace(" ", "").split("|")[-2]
-                elif "Late TNS".lower() in line.lower() and "|" in out_lines[i + 2]:
-                    new_line = out_lines[i + 2]
-                    datas = new_line.replace(" ", "").split("|")
-                    wns = datas[-3]
-                    tns = datas[-2]
-
         except Exception as e:
             print(e)
 
@@ -232,44 +227,6 @@ class NNIOptimization(AbstractOptimizationMethod):
         super().__init__(args, workspace, parameter, algorithm, goal, step)
         self.trial_times = []
         self.trial_start_time = None
-
-    def get_trial_time_statistics(self):
-        if not self.trial_times:
-            return None
-        stats = {
-            "total_trials": len(self.trial_times),
-            "average_time": np.mean(self.trial_times),
-            "median_time": np.median(self.trial_times),
-            "min_time": np.min(self.trial_times),
-            "max_time": np.max(self.trial_times),
-            "std_time": np.std(self.trial_times),
-            "total_time": np.sum(self.trial_times),
-            "time_distribution": {
-                "fast_trials": len([t for t in self.trial_times if t < np.percentile(self.trial_times, 25)]),
-                "medium_trials": len([t for t in self.trial_times if np.percentile(self.trial_times, 25) <= t <= np.percentile(self.trial_times, 75)]),
-                "slow_trials": len([t for t in self.trial_times if t > np.percentile(self.trial_times, 75)])
-            }
-        }
-        
-        return stats
-    def print_trial_time_analysis(self):
-        stats = self.get_trial_time_statistics()
-        if not stats:
-            print("No trial time data available")
-            return
-        
-        print("=== Trial Time Analysis ===")
-        print(f"Total trials: {stats['total_trials']}")
-        print(f"Average trial time: {stats['average_time']:.3f} seconds")
-        print(f"Median trial time: {stats['median_time']:.3f} seconds")
-        print(f"Min trial time: {stats['min_time']:.3f} seconds")
-        print(f"Max trial time: {stats['max_time']:.3f} seconds")
-        print(f"Standard deviation: {stats['std_time']:.3f} seconds")
-        print(f"Total optimization time: {stats['total_time']:.3f} seconds")
-        print(f"Time distribution:")
-        print(f"  Fast trials (<25%): {stats['time_distribution']['fast_trials']}")
-        print(f"  Medium trials (25%-75%): {stats['time_distribution']['medium_trials']}")
-        print(f"  Slow trials (>75%): {stats['time_distribution']['slow_trials']}")
         
     def getNextParams(self):
         return nni.get_next_parameter()
@@ -304,20 +261,6 @@ class NNIOptimization(AbstractOptimizationMethod):
         hpwl_ref = metrics.get("hpwl", 1.0)
         messages += f"hpwl: {hpwl}, "
         metric += hpwl / hpwl_ref
-
-        messages += f"wns: {wns}, "
-        if wns < 0:
-            wns_penalty = abs(wns) * 20  
-        else:
-            wns_penalty = 0
-        metric += wns_penalty
-
-        messages += f"tns: {tns}, "
-        if tns < 0:
-            tns_penalty = abs(tns) * 2 
-        else:
-            tns_penalty = 0
-        metric += tns_penalty
 
         results["place_hpwl"] = hpwl
         results["place_wns"] = wns
