@@ -33,7 +33,6 @@ def test_vectors_generation(
         patch_row_step=patch_row_step,
         patch_col_step=patch_col_step,
     )
-    data_gen.generate_patterns()
 
 
 def test_vectors_data_to_def(workspace: Workspace):

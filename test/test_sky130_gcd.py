@@ -414,7 +414,6 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
         patch_row_step=patch_row_step,
         patch_col_step=patch_col_step,
     )
-    data_gen.generate_patterns()
 
 def analyze_net_data(workspace : Workspace):
     # step 0: create workspace list

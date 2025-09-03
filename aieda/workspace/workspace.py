@@ -812,7 +812,6 @@ class Workspace:
                 "patchs": "{}/patchs".format(self.ieda_output["vectors"]),
                 "wire_graph": "{}/wire_graph".format(self.ieda_output["vectors"]),
                 "wire_paths": "{}/wire_paths".format(self.ieda_output["vectors"]),
-                "patterns": "{}/patterns".format(self.ieda_output["vectors"]),
                 "instance_graph": "{}/instance_graph".format(
                     self.ieda_output["vectors"]
                 ),
@@ -821,13 +820,7 @@ class Workspace:
                 ),
                 "timing_wire_graph": "{}/wire_graph/timing_wire_graph.json".format(
                     self.ieda_output["vectors"]
-                ),
-                "wire_patterns": "{}/patterns/wire_patterns.csv".format(
-                    self.ieda_output["vectors"]
-                ),
-                "wire_sequences": "{}/patterns/wire_sequences.json".format(
-                    self.ieda_output["vectors"]
-                ),
+                )
             }
 
             return vectors_paths
