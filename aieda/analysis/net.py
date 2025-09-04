@@ -5,17 +5,18 @@
 @Author : yhqiu
 @Desc : net level data ananlysis, including wirelength distribution and metrics correlation
 """
+
 import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from typing import Dict, List, Optional
 
-from .base import BaseAnalyzer
-from ..workspace import Workspace
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
-from aieda import DataVectors
+from ..data import DataVectors
+from ..workspace import Workspace
+from .base import BaseAnalyzer
 
 
 # =====================================

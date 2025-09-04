@@ -5,22 +5,24 @@
 @Author : yhqiu
 @Desc : design level data ananlysis, including cell type distribution, core usage, pin distribution and result statistics
 """
-import os
+
 import glob
+import multiprocessing
+import os
 import re
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
+from typing import Dict, List, Optional
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Optional
-from concurrent.futures import ProcessPoolExecutor
-import multiprocessing
-from functools import partial
 
-from .base import BaseAnalyzer
+from ..data import DataFeature
+from ..flows import DbFlow
 from ..workspace import Workspace
-
-from aieda import DbFlow, DataFeature
+from .base import BaseAnalyzer
 
 
 class CellTypeAnalyzer(BaseAnalyzer):
@@ -650,7 +652,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         print(
             f"{'Designs':<16} | {'Nets Dir':<25} | {'Patches Dir':<25} | {'Paths Dir':<25} | {'Wire Num':<20}"
         )
-        print(f"{'-'*16} | {'-'*25} | {'-'*25} | {'-'*25} | {'-'*12}")
+        print(f"{'-' * 16} | {'-' * 25} | {'-' * 25} | {'-' * 25} | {'-' * 12}")
 
         for design, data in self.stats_data.items():
             nets_info = (
@@ -666,7 +668,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             )
 
         # Print totals
-        print(f"{'-'*16} | {'-'*25} | {'-'*25} | {'-'*25} | {'-'*12}")
+        print(f"{'-' * 16} | {'-' * 25} | {'-' * 25} | {'-' * 25} | {'-' * 12}")
         print(
             f"{'Total':<16} | {self.total_stats['nets_count']} files, {self._format_size(self.total_stats['nets_size']):<10} | "
             f"{self.total_stats['patches_count']} files, {self._format_size(self.total_stats['patches_size']):<10} | "
@@ -740,7 +742,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             values = df[count_type].sort_values(ascending=False)
             ax.bar(range(len(values)), values, color=color)
             ax.set_title(
-                f'All Designs - {count_type.replace("_count", "").title()} File Count'
+                f"All Designs - {count_type.replace('_count', '').title()} File Count"
             )
             ax.set_xlabel("Design Rank")
             ax.set_ylabel("File Count")
