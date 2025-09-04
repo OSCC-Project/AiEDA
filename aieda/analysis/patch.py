@@ -5,19 +5,20 @@
 @Author : yhqiu
 @Desc : Patch-level data analysis, including wire density and feature correlation for individual patches, and spatial mapping analysis for the entire chip layout
 """
+
 import os
+from typing import Dict, List, Optional
+
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Optional
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import matplotlib.ticker as ticker
 
-from .base import BaseAnalyzer
+from ..data import DataVectors
 from ..workspace import Workspace
-
-from aieda import DataVectors
+from .base import BaseAnalyzer
 
 
 class WireDensityAnalyzer(BaseAnalyzer):
@@ -783,7 +784,7 @@ class MapAnalyzer(BaseAnalyzer):
                 plt.tight_layout()
                 plt.savefig(
                     os.path.join(
-                        design_dir, f'patch_{feature.replace(" ", "_")}_layout.png'
+                        design_dir, f"patch_{feature.replace(' ', '_')}_layout.png"
                     )
                 )
                 plt.close()

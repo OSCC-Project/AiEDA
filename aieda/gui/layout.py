@@ -5,13 +5,16 @@
 @Author : yell
 @Desc : show layout
 """
+
 import os
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
-import numpy as np
 import random
 
-from aieda import Workspace, DataVectors
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+import numpy as np
+
+from ..data import DataVectors
+from ..workspace import Workspace
 
 
 class GuiLayout:
@@ -271,7 +274,7 @@ class GuiLayout:
             f"Total Edges: {len(edges)}\n"
             f"Valid Edges: {len(valid_edges)}\n"
             f"Displayed Edges: {edges_drawn}\n"
-            f"Layout Range: {max_x-min_x:.0f} x {max_y-min_y:.0f}"
+            f"Layout Range: {max_x - min_x:.0f} x {max_y - min_y:.0f}"
         )
         # place info text above the legend
         fig.text(

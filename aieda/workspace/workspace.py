@@ -6,8 +6,15 @@
 @Desc : workspace definition.
 """
 
+from __future__ import annotations
+
 import os
+from typing import TYPE_CHECKING
+
 from ..utility import create_logger
+
+if TYPE_CHECKING:
+    from ..data.database.parameters import EDAParameters
 
 
 def workspace_create(directory: str, design: str, flow_list=None):
@@ -19,8 +26,6 @@ def workspace_create(directory: str, design: str, flow_list=None):
 
 
 class Workspace:
-    from ..data.database.parameters import EDAParameters
-
     def __init__(self, directory: str, design: str):
         self.directory = directory
         self.design = design
@@ -521,35 +526,40 @@ class Workspace:
         )
         parser.set_enable_timing(enable_timing)
 
-    def update_parameters(self, parameters : EDAParameters):
-        """update parameters and save to parameters.json
-        """
+    def update_parameters(self, parameters: EDAParameters):
+        """update parameters and save to parameters.json"""
         # update data in configs
         self.configs.parameters = parameters
-        
         # update parameters.json
         from .config import ParametersParser
+
         parser = ParametersParser(self.paths_table.parameters, self.logger)
         parser.create_json(parameters)
-        
+
         # update iEDA_config/pl_default_config.json
         from .config import ConfigIEDAPlacementParser
-        parser = ConfigIEDAPlacementParser(self.paths_table.ieda_config['place'], self.logger)
+
+        parser = ConfigIEDAPlacementParser(
+            self.paths_table.ieda_config["place"], self.logger
+        )
         parser.set_target_density(parameters.placement_target_density)
-        parser.set_max_phi_coef(parameters.placement_max_phi_coef)    
-        parser.set_init_wirelength_coef(parameters.placement_init_wirelength_coef)    
-        parser.set_min_wirelength_force_bar(parameters.placement_min_wirelength_force_bar)
-        
+        parser.set_max_phi_coef(parameters.placement_max_phi_coef)
+        parser.set_init_wirelength_coef(parameters.placement_init_wirelength_coef)
+        parser.set_min_wirelength_force_bar(
+            parameters.placement_min_wirelength_force_bar
+        )
+
         # update iEDA_config/cts_default_config.json
         from .config import ConfigIEDACTSParser
-        parser = ConfigIEDACTSParser(self.paths_table.ieda_config['CTS'], self.logger)
+
+        parser = ConfigIEDACTSParser(self.paths_table.ieda_config["CTS"], self.logger)
         parser.set_skew_bound(parameters.cts_skew_bound)
         parser.set_max_buf_tran(parameters.cts_max_buf_tran)
         parser.set_max_sink_tran(parameters.cts_max_sink_tran)
         parser.set_max_cap(parameters.cts_max_cap)
         parser.set_max_fanout(parameters.cts_max_fanout)
         parser.set_cluster_size(parameters.cts_cluster_size)
-        
+
     def load_parameters(self, parameters_json: str):
         """load parameters data from json"""
         from .config import ParametersParser
@@ -828,7 +838,7 @@ class Workspace:
                 ),
                 "timing_wire_graph": "{}/wire_graph/timing_wire_graph.json".format(
                     self.ieda_output["vectors"]
-                )
+                ),
             }
 
             return vectors_paths

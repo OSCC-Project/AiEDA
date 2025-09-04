@@ -7,10 +7,7 @@
 """
 import os
 
-if os.environ.get("iEDA") == "ON":
-    from ...third_party.iEDA.bin import ieda_py as ieda
-else:
-    ieda = None
+from ...third_party.iEDA.bin import ieda_py as ieda
 
 from ...workspace import Workspace
 from ...flows import DbFlow

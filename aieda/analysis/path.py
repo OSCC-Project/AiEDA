@@ -5,17 +5,18 @@
 @Author : yhqiu
 @Desc : Path-level data analysis, including delay and stage analysis.
 """
+
 import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib import ticker
 from typing import Dict, List, Optional
 
-from .base import BaseAnalyzer
-from ..workspace import Workspace
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib import ticker
 
-from aieda import DataVectors
+from ..data import DataVectors
+from ..workspace import Workspace
+from .base import BaseAnalyzer
 
 
 class DelayAnalyzer(BaseAnalyzer):
