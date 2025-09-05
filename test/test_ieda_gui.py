@@ -11,7 +11,8 @@
 # import_aieda()
 ######################################################################################
 
-from aieda import workspace_create, GuiLayout
+from aieda.workspace import workspace_create
+from aieda.gui import GuiLayout
 
 if __name__ == "__main__":
     import os

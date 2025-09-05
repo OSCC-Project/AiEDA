@@ -14,15 +14,10 @@ import os
 
 os.environ["iEDA"] = "ON"
 
-from aieda import (
-    Workspace,
-    workspace_create,
-    RunIEDA,
-    DbFlow,
-    EDAParameters,
-    DataGeneration,
-    WireDistributionAnalyzer,
-)
+from aieda.workspace import Workspace, workspace_create
+from aieda.flows import DbFlow, RunIEDA, DataGeneration
+from aieda.data.database import EDAParameters
+from aieda.analysis import WireDistributionAnalyzer
 
 
 def create_workspace_sky130_gcd(workspace_dir):
@@ -111,7 +106,6 @@ def create_workspace_sky130_gcd(workspace_dir):
         directory=workspace_dir, design="gcd", flow_list=flow_db_list
     )
 
-    import os
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
     # get foundry from iEDA
@@ -436,8 +430,6 @@ def analyze_net_data(workspace : Workspace):
 
 if __name__ == "__main__":
     # step 1 : create workspace
-    import os
-
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
 

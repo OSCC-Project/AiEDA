@@ -15,7 +15,9 @@ import os
 
 os.environ["iEDA"] = "ON"
 
-from aieda import workspace_create, DbFlow, DataGeneration, DataVectors, Workspace
+from aieda.workspace import workspace_create, Workspace
+from aieda.flows import DbFlow, DataGeneration
+from aieda.data import DataVectors
 
 
 def test_vectors_generation(
@@ -68,8 +70,6 @@ def test_vectors_load(workspace):
 
 
 if __name__ == "__main__":
-    import os
-
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
 

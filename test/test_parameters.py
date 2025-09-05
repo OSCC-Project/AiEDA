@@ -11,7 +11,8 @@
 # import_aieda()
 ######################################################################################
 
-from aieda import workspace_create, EDAParameters
+from aieda.workspace import workspace_create
+from aieda.data.database import EDAParameters
 
 if __name__ == "__main__":
     # step 1 : create workspace
