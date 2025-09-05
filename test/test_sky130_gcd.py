@@ -414,6 +414,9 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
         patch_row_step=patch_row_step,
         patch_col_step=patch_col_step,
     )
+    
+def analyse(workspace : Workspace):
+    analyze_net_data(workspace)
 
 def analyze_net_data(workspace : Workspace):
     # step 0: create workspace list
@@ -453,8 +456,8 @@ if __name__ == "__main__":
     # step 4 : generate vectors
     generate_vectors(workspace, 9, 9)
     
-    # step 5: analysis vectors
-    analyze_net_data(workspace)
+    # step 5: analysis
+    analyse(workspace)
     
 
     exit(0)
