@@ -161,6 +161,80 @@ class WireDensityAnalyzer(BaseAnalyzer):
 
         print(f"Analysis completed for {len(self.design_stats)} designs.")
 
+    def report(self) -> str:
+        """Generate a text report summarizing wire density analysis."""
+        if not self.design_stats:
+            return "No wire density data available for analysis. Please run analyze() first."
+
+        report_lines = []
+        report_lines.append("Wire Density Analysis Report")
+        report_lines.append("=" * 28)
+        
+        # Overall statistics
+        total_designs = len(self.design_stats)
+        total_patches = sum(stats['file_count'] for stats in self.design_stats.values())
+        
+        report_lines.append(f"Analyzed {total_designs} design(s) with {total_patches:,} total patches")
+        report_lines.append("")
+        
+        # Layer-wise congestion summary
+        report_lines.append("Layer-wise Congestion Summary:")
+        for layer in self.valid_layers:
+            layer_congestions = []
+            for stats in self.design_stats.values():
+                congestion = stats.get(f'layer_{layer}_congestion', 0.0)
+                if congestion > 0:
+                    layer_congestions.append(congestion)
+            
+            if layer_congestions:
+                avg_congestion = np.mean(layer_congestions)
+                max_congestion = np.max(layer_congestions)
+                report_lines.append(f"  Layer {layer}: Avg={avg_congestion:.3f}, Max={max_congestion:.3f} ({len(layer_congestions)} designs)")
+        
+        report_lines.append("")
+        
+        # Layer-wise wire density summary
+        report_lines.append("Layer-wise Wire Density Summary:")
+        for layer in self.valid_layers:
+            layer_densities = []
+            for stats in self.design_stats.values():
+                density = stats.get(f'layer_{layer}_wire_density', 0.0)
+                if density > 0:
+                    layer_densities.append(density)
+            
+            if layer_densities:
+                avg_density = np.mean(layer_densities)
+                max_density = np.max(layer_densities)
+                report_lines.append(f"  Layer {layer}: Avg={avg_density:.3f}, Max={max_density:.3f} ({len(layer_densities)} designs)")
+        
+        report_lines.append("")
+        
+        # Per-design summary
+        report_lines.append("Per-Design Summary:")
+        for design_name, stats in self.design_stats.items():
+            display_name = stats['display_name']
+            patch_count = stats['file_count']
+            
+            # Calculate overall congestion and density averages
+            avg_congestion = np.mean([stats.get(f'layer_{layer}_congestion', 0.0) for layer in self.valid_layers])
+            avg_density = np.mean([stats.get(f'layer_{layer}_wire_density', 0.0) for layer in self.valid_layers])
+            
+            # Find most congested layer
+            max_congestion_layer = None
+            max_congestion_value = 0
+            for layer in self.valid_layers:
+                congestion = stats.get(f'layer_{layer}_congestion', 0.0)
+                if congestion > max_congestion_value:
+                    max_congestion_value = congestion
+                    max_congestion_layer = layer
+            
+            congestion_info = f"Most congested: Layer {max_congestion_layer} ({max_congestion_value:.3f})" if max_congestion_layer else "No congestion data"
+            
+            report_lines.append(f"  {display_name}: {patch_count:,} patches, Avg Congestion: {avg_congestion:.3f}, Avg Density: {avg_density:.3f}")
+            report_lines.append(f"    {congestion_info}")
+        
+        return "\n".join(report_lines)
+
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
         Visualize wire density analysis results
@@ -487,6 +561,79 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
 
         print(f"Correlation analysis completed for {len(self.feature_stats)} designs.")
 
+    def report(self) -> str:
+        """Generate a text report summarizing feature correlation analysis."""
+        if not self.feature_stats or not hasattr(self, 'correlation_matrix'):
+            return "No feature correlation data available for analysis. Please run analyze() first."
+
+        report_lines = []
+        report_lines.append("Feature Correlation Analysis Report")
+        report_lines.append("=" * 35)
+        
+        # Overall statistics
+        total_designs = len(self.feature_stats)
+        total_patches = sum(stats['file_count'] for stats in self.feature_stats.values())
+        
+        report_lines.append(f"Analyzed {total_designs} design(s) with {total_patches:,} total patches")
+        report_lines.append(f"Features analyzed: {', '.join(self.correlation_features)}")
+        report_lines.append("")
+        
+        # Strong correlations
+        report_lines.append("Strong Feature Correlations (|r| > 0.5):")
+        strong_corrs = []
+        for i, feature1 in enumerate(self.correlation_features):
+            for j, feature2 in enumerate(self.correlation_features):
+                if i < j:  # Avoid duplicates and self-correlations
+                    corr_val = self.correlation_matrix.loc[feature1, feature2]
+                    if abs(corr_val) > 0.5:
+                        strong_corrs.append((feature1, feature2, corr_val))
+        
+        # Sort by absolute correlation strength
+        strong_corrs.sort(key=lambda x: abs(x[2]), reverse=True)
+        
+        if strong_corrs:
+            for feature1, feature2, corr_val in strong_corrs[:8]:  # Show top 8
+                direction = "positive" if corr_val > 0 else "negative"
+                report_lines.append(f"  {feature1} vs {feature2}: {corr_val:.3f} ({direction})")
+        else:
+            report_lines.append("  No strong correlations found between features")
+        
+        report_lines.append("")
+        
+        # Feature statistics summary
+        report_lines.append("Feature Statistics Summary:")
+        for feature in self.correlation_features:
+            all_means = [stats.get(f'{feature}_mean', 0) for stats in self.feature_stats.values()]
+            all_stds = [stats.get(f'{feature}_std', 0) for stats in self.feature_stats.values()]
+            
+            if any(mean > 0 for mean in all_means):
+                avg_mean = np.mean([m for m in all_means if m > 0])
+                avg_std = np.mean([s for s in all_stds if s > 0])
+                min_val = min(stats.get(f'{feature}_min', 0) for stats in self.feature_stats.values())
+                max_val = max(stats.get(f'{feature}_max', 0) for stats in self.feature_stats.values())
+                
+                report_lines.append(f"  {feature}: Avg={avg_mean:.3e}, Std={avg_std:.3e}, Range=[{min_val:.3e}, {max_val:.3e}]")
+        
+        report_lines.append("")
+        
+        # Per-design summary
+        report_lines.append("Per-Design Summary:")
+        for design_name, stats in self.feature_stats.items():
+            display_name = stats['display_name']
+            patch_count = stats['file_count']
+            
+            # Show key metrics for each design
+            cell_density = stats.get('CellDensity_mean', 0)
+            congestion = stats.get('Congestion_mean', 0)
+            timing = stats.get('Timing_mean', 0)
+            power = stats.get('Power_mean', 0)
+            
+            report_lines.append(f"  {display_name}: {patch_count:,} patches")
+            report_lines.append(f"    Cell Density: {cell_density:.3f}, Congestion: {congestion:.3f}")
+            report_lines.append(f"    Timing: {timing:.3e}, Power: {power:.3e}")
+        
+        return "\n".join(report_lines)
+
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
         Visualize feature correlation analysis results
@@ -712,6 +859,99 @@ class MapAnalyzer(BaseAnalyzer):
             }
 
         print("Spatial analysis completed")
+
+    def report(self) -> str:
+        """Generate a text report summarizing spatial feature distribution analysis."""
+        if not self.analysis_results:
+            return "No spatial analysis data available. Please run analyze() first."
+
+        report_lines = []
+        report_lines.append("Spatial Feature Distribution Analysis Report")
+        report_lines.append("=" * 43)
+        
+        # Overall statistics
+        total_designs = len(self.analysis_results)
+        total_patches = sum(result['dimensions'][0] * result['dimensions'][1] for result in self.analysis_results.values())
+        
+        report_lines.append(f"Analyzed {total_designs} design(s) with {total_patches:,} total patches")
+        report_lines.append(f"Features analyzed: {', '.join(self.features)}")
+        report_lines.append("")
+        
+        # Design layout summary
+        report_lines.append("Design Layout Summary:")
+        for design, result in self.analysis_results.items():
+            display_name = self.dir_to_display_name.get(design, design)
+            dims = result['dimensions']
+            patch_count = dims[0] * dims[1]
+            report_lines.append(f"  {display_name}: {dims[0]} x {dims[1]} grid ({patch_count:,} patches)")
+        
+        report_lines.append("")
+        
+        # Feature statistics across all designs
+        report_lines.append("Feature Statistics Across All Designs:")
+        for feature in self.features:
+            all_means = []
+            all_maxes = []
+            all_hotspot_ratios = []
+            
+            for result in self.analysis_results.values():
+                if feature in result['spatial_stats']:
+                    stats = result['spatial_stats'][feature]
+                    all_means.append(stats['mean'])
+                    all_maxes.append(stats['max'])
+                    all_hotspot_ratios.append(stats['hotspot_ratio'])
+            
+            if all_means:
+                avg_mean = np.mean(all_means)
+                avg_max = np.mean(all_maxes)
+                avg_hotspot_ratio = np.mean(all_hotspot_ratios)
+                
+                report_lines.append(f"  {feature}:")
+                report_lines.append(f"    Avg Mean: {avg_mean:.3e}, Avg Max: {avg_max:.3e}")
+                report_lines.append(f"    Avg Hotspot Ratio (>90th percentile): {avg_hotspot_ratio:.1%}")
+        
+        report_lines.append("")
+        
+        # Per-design detailed summary
+        report_lines.append("Per-Design Detailed Summary:")
+        for design, result in self.analysis_results.items():
+            display_name = self.dir_to_display_name.get(design, design)
+            dims = result['dimensions']
+            spatial_stats = result['spatial_stats']
+            
+            report_lines.append(f"  {display_name} ({dims[0]}x{dims[1]}):")
+            
+            # Find most critical features
+            max_congestion = spatial_stats.get('Congestion', {}).get('max', 0)
+            max_timing = spatial_stats.get('Timing', {}).get('max', 0)
+            max_power = spatial_stats.get('Power', {}).get('max', 0)
+            
+            # Find feature with highest spatial variance (most non-uniform)
+            max_variance_feature = None
+            max_variance_value = 0
+            for feature in self.features:
+                if feature in spatial_stats:
+                    variance = spatial_stats[feature].get('spatial_variance', 0)
+                    if variance > max_variance_value:
+                        max_variance_value = variance
+                        max_variance_feature = feature
+            
+            report_lines.append(f"    Max Congestion: {max_congestion:.3f}, Max Timing: {max_timing:.3e}, Max Power: {max_power:.3e}")
+            if max_variance_feature:
+                report_lines.append(f"    Most non-uniform feature: {max_variance_feature} (variance: {max_variance_value:.3e})")
+            
+            # Show hotspot information
+            hotspot_features = []
+            for feature in self.features:
+                if feature in spatial_stats:
+                    hotspot_ratio = spatial_stats[feature].get('hotspot_ratio', 0)
+                    if hotspot_ratio > 0.1:  # More than 10% hotspots
+                        hotspot_features.append(f"{feature} ({hotspot_ratio:.1%})")
+            
+            if hotspot_features:
+                report_lines.append(f"    Features with significant hotspots: {', '.join(hotspot_features)}")
+        
+        return "\n".join(report_lines)
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """

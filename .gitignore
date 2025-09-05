@@ -149,3 +149,4 @@ cython_debug/
 *.zip
 
 /example/sky130_test/
+*.gitmodules
