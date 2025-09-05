@@ -177,11 +177,19 @@ class DataGeneration(RunFlowBase):
             step=DbFlow.FlowStep.vectorization,
             input_def=input_def,
             input_verilog=input_verilog,
+            output_def=output_def,
+            output_verilog=output_verilog
         )
 
         if input_def is None:
             # use output def of step route as input def
             flow.input_def = self.workspace.configs.get_output_def(
+                DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
+            )
+            
+        if input_verilog is None:
+            # use output def of step route as input def
+            flow.input_verilog = self.workspace.configs.get_output_verilog(
                 DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
             )
 
@@ -223,11 +231,19 @@ class DataGeneration(RunFlowBase):
             step=DbFlow.FlowStep.net_pattern,
             input_def=input_def,
             input_verilog=input_verilog,
+            output_def=output_def,
+            output_verilog=output_verilog
         )
 
         if input_def is None:
             # use output def of step route as input def
             flow.input_def = self.workspace.configs.get_output_def(
+                DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
+            )
+            
+        if input_verilog is None:
+            # use output def of step route as input def
+            flow.input_verilog = self.workspace.configs.get_output_verilog(
                 DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
             )
 
