@@ -17,7 +17,10 @@ os.environ["iEDA"] = "ON"
 from aieda.workspace import Workspace, workspace_create
 from aieda.flows import DbFlow, RunIEDA, DataGeneration
 from aieda.data.database import EDAParameters
-from aieda.analysis import WireDistributionAnalyzer
+from aieda.analysis import CellTypeAnalyzer, CoreUsageAnalyzer, PinDistributionAnalyzer, ResultStatisAnalyzer
+from aieda.analysis import WireDistributionAnalyzer, MetricsCorrelationAnalyzer
+from aieda.analysis import DelayAnalyzer, StageAnalyzer
+from aieda.analysis import WireDensityAnalyzer, FeatureCorrelationAnalyzer, MapAnalyzer
 
 
 def create_workspace_sky130_gcd(workspace_dir):
@@ -410,7 +413,58 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
     )
     
 def analyse(workspace : Workspace):
+    analyse_design_data(workspace)
     analyze_net_data(workspace)
+    analyse_path_data(workspace)
+    analyse_patch_data(workspace)
+    
+def analyse_design_data(workspace : Workspace):
+    # step 0: create workspace list
+    workspace_list = []
+    workspace_list.append(workspace)
+    
+    # name map
+    DISPLAY_NAME = {"gcd": "GCD"}
+    
+    # step 1:  Cell Type Analysis
+    cell_analyzer = CellTypeAnalyzer()
+    cell_analyzer.load(
+        workspace_dirs=workspace_list,
+        flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
+        dir_to_display_name=DISPLAY_NAME,
+    )
+    cell_analyzer.analyze()
+    cell_analyzer.visualize(save_path=workspace_dir)
+    
+    # step 2:  Core Usage Analysis
+    core_analyzer = CoreUsageAnalyzer()
+    core_analyzer.load(
+        workspace_dirs=workspace_list,
+        flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
+    )
+    core_analyzer.analyze()
+    core_analyzer.visualize(save_path=workspace_dir)
+    
+    # step 3: Pin Distribution Analysis
+    pin_analyzer = PinDistributionAnalyzer()
+    pin_analyzer.load(
+        workspace_dirs=workspace_list,
+        flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
+    )
+    pin_analyzer.analyze()
+    pin_analyzer.visualize(save_path=workspace_dir)
+    
+    # step 4:  Result Statistics
+    result_analyzer = ResultStatisAnalyzer()
+    result_analyzer.load(
+        workspace_dirs=workspace_list,
+        pattern="/output/iEDA/vectors",
+        dir_to_display_name=DISPLAY_NAME,
+        calc_wire_num=False,  # set to False to avoid calculating wire number
+    )
+    result_analyzer.analyze()
+    result_analyzer.visualize(save_path=workspace_dir)
+    
 
 def analyze_net_data(workspace : Workspace):
     # step 0: create workspace list
@@ -429,6 +483,84 @@ def analyze_net_data(workspace : Workspace):
     )
     wire_analyzer.analyze()
     wire_analyzer.visualize()
+    
+    # step 2: Metrics Correlation Analysis
+    metric_analyzer = MetricsCorrelationAnalyzer()
+    metric_analyzer.load(
+        workspace_dirs=workspace_list,
+        dir_to_display_name=DISPLAY_NAME,
+        pattern="/output/iEDA/vectors/nets",
+    )
+    metric_analyzer.analyze()
+    metric_analyzer.visualize(save_path=workspace_dir)
+
+
+def analyse_path_data(workspace : Workspace):
+    # step 0: create workspace list
+    workspace_list = []
+    workspace_list.append(workspace)
+    
+    # name map
+    DISPLAY_NAME = {"gcd": "GCD"}
+    
+    # step 1: Path Delay Analysis
+    delay_analyzer = DelayAnalyzer()
+    delay_analyzer.load(
+        workspace_dirs=workspace_list,
+        pattern="/output/iEDA/vectors/wire_paths",
+        dir_to_display_name=DISPLAY_NAME,
+    )
+    delay_analyzer.analyze()
+    delay_analyzer.visualize(save_path=workspace_dir)
+
+    # step 2: Path Stage Analysis
+    stage_analyzer = StageAnalyzer()
+    stage_analyzer.load(
+        workspace_dirs=workspace_list,
+        pattern="/output/iEDA/vectors/wire_paths",
+        dir_to_display_name=DISPLAY_NAME,
+    )
+    stage_analyzer.analyze()
+    stage_analyzer.visualize(save_path=workspace_dir)
+    
+
+def analyse_patch_data(workspace : Workspace):
+    # step 0: create workspace list
+    workspace_list = []
+    workspace_list.append(workspace)
+    
+    # name map
+    DISPLAY_NAME = {"gcd": "GCD"}
+    
+    # step 1: Wire Density Analysis
+    wire_analyzer = WireDensityAnalyzer()
+    wire_analyzer.load(
+        workspace_dirs=workspace_list,
+        pattern="/output/iEDA/vectors/patchs",
+        dir_to_display_name=DISPLAY_NAME,
+    )
+    wire_analyzer.analyze()
+    wire_analyzer.visualize()
+    
+    # step 2: Feature Correlation Analysis
+    feature_analyzer = FeatureCorrelationAnalyzer()
+    feature_analyzer.load(
+        workspace_dirs=workspace_list,
+        pattern="/output/iEDA/vectors/patchs",
+        dir_to_display_name=DISPLAY_NAME,
+    )
+    feature_analyzer.analyze()
+    feature_analyzer.visualize()
+    
+    # step 3: Map Analysis
+    map_analyzer = MapAnalyzer()
+    map_analyzer.load(
+        workspace_dirs=workspace_list,
+        pattern="/output/iEDA/vectors/patchs",
+        dir_to_display_name=DISPLAY_NAME,
+    )
+    map_analyzer.analyze()
+    map_analyzer.visualize(save_path=workspace_dir)
 
 
 if __name__ == "__main__":
