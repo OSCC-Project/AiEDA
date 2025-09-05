@@ -95,7 +95,7 @@ class Workspace:
         parser.create_json(self.configs.workspace)
 
         #########################################################################
-        # step 6, create parameters.json
+        # step 6, create parameter.json
         #########################################################################
         from .config import ParametersParser
 
@@ -527,10 +527,10 @@ class Workspace:
         parser.set_enable_timing(enable_timing)
 
     def update_parameters(self, parameters: EDAParameters):
-        """update parameters and save to parameters.json"""
+        """update parameters and save to parameter.json"""
         # update data in configs
         self.configs.parameters = parameters
-        # update parameters.json
+        # update parameter.json
         from .config import ParametersParser
 
         parser = ParametersParser(self.paths_table.parameters, self.logger)
@@ -607,7 +607,7 @@ class Workspace:
         @property
         def parameters(self):
             """path for parameters setting"""
-            return "{}/config/parameters.json".format(self.directory)
+            return "{}/config/parameter.json".format(self.directory)
 
         @property
         def log_dir(self):
