@@ -13,7 +13,18 @@ from ...flows import DbFlow
 class IEDAPlacement(IEDAIO):
     """placement api"""
 
-    def __init__(self, workspace: Workspace, flow: DbFlow):
+    def __init__(self, workspace: Workspace, 
+                 flow: DbFlow, 
+                 onnx_path : str = None, 
+                 normalization_path : str = None):
+        self.use_ai = False
+        if flow.step is DbFlow.FlowStep.ai_place:
+            self.use_ai = True
+            flow.step = DbFlow.FlowStep.place
+            
+            self.onnx_path=onnx_path
+            self.normalization_path=normalization_path
+        
         super().__init__(workspace=workspace, flow=flow)
 
     def _configs(self):
@@ -24,7 +35,10 @@ class IEDAPlacement(IEDAIO):
     def _run_flow(self):
         match self.flow.step:
             case DbFlow.FlowStep.place:
-                self._run_placement()
+                if self.use_ai:
+                    self._run_ai_placement(onnx_path=self.onnx_path, normalization_path=self.normalization_path)
+                else:
+                    self._run_placement()
             case DbFlow.FlowStep.legalization:
                 self._run_legalization()
             case DbFlow.FlowStep.filler:
@@ -191,9 +205,9 @@ class IEDAPlacement(IEDAIO):
         self.def_save()
         self.verilog_save(self.cell_names)
 
-        # self._generate_placement_feature_summary()
-        # self._generate_placement_feature_tool()
-        # self._generate_feature_map()
+        self._generate_placement_feature_summary()
+        self._generate_placement_feature_tool()
+        self._generate_feature_map()
 
     # build macro drc distribution
     def feature_macro_drc_distribution(self, path: str, drc_path: str):
