@@ -10,7 +10,7 @@ from .io import IEDAIO
 from ...workspace import Workspace
 from ...flows import DbFlow
 
-from ...data import WirelengthType, CongestionType, RudyType, Direction
+from ...data.database import WirelengthType, CongestionType, RudyType, Direction
 
 
 class IEDAEvaluation(IEDAIO):

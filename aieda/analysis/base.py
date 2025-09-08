@@ -106,3 +106,23 @@ class BaseAnalyzer(ABC):
         # for the analyzed data and save them to the specified location, if provided.
 
         pass
+
+    @abstractmethod
+    def report(self) -> str:
+        """
+        Generate a string summarizing the analysis results.
+
+        This method should return a concise string report that describes
+        the key findings from the analysis, including statistics, distributions,
+        and other relevant insights.
+
+        Returns:
+            A string containing the analysis report
+
+        Raises:
+            NotImplementedError: If not implemented by subclass
+        """
+        # Subclasses should implement the logic to generate a text report
+        # summarizing the analysis results.
+
+        pass

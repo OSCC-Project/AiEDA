@@ -11,7 +11,8 @@
 # import_aieda()
 ######################################################################################
 
-from aieda import workspace_create, DbFlow
+from aieda.workspace import workspace_create
+from aieda.flows import DbFlow
 
 
 def create_workspace_sky130_gcd(workspace_dir):

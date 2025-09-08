@@ -15,13 +15,11 @@ import os
 
 os.environ["iEDA"] = "ON"
 
-
-from aieda import workspace_create, RunIEDA
+from aieda.workspace import workspace_create
+from aieda.flows import RunIEDA
 
 if __name__ == "__main__":
     # step 1 : create workspace
-    import os
-
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
 

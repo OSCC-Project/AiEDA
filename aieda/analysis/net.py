@@ -159,6 +159,90 @@ class WireDistributionAnalyzer(BaseAnalyzer):
         if not self.net_data:
             raise ValueError("No data loaded. Please call load() first.")
 
+    def report(self) -> str:
+        """Generate a text report summarizing wire distribution analysis."""
+        if not self.net_data:
+            return "No wire distribution data available for analysis."
+
+        report_lines = []
+        report_lines.append("Wire Distribution Analysis Report")
+        report_lines.append("=" * 37)
+        
+        # Overall statistics
+        total_designs = len(self.net_data)
+        total_nets = sum(len(data["df"]) for data in self.net_data)
+        
+        report_lines.append(f"Analyzed {total_designs} design(s) with {total_nets:,} total nets")
+        report_lines.append("")
+        
+        # Aggregate statistics across all designs
+        all_hpwl = []
+        all_rwl = []
+        all_delay = []
+        all_power = []
+        
+        for data in self.net_data:
+            df = data["df"]
+            all_hpwl.extend(df["hpwl"].tolist())
+            all_rwl.extend(df["rwl"].tolist())
+            all_delay.extend(df["delay"].tolist())
+            all_power.extend(df["power"].tolist())
+        
+        # Wire length statistics
+        report_lines.append("Wire Length Statistics:")
+        if all_hpwl:
+            hpwl_array = np.array(all_hpwl)
+            report_lines.append(f"  HPWL - Mean: {hpwl_array.mean():.1f}, Min: {hpwl_array.min():.1f}, Max: {hpwl_array.max():.1f}")
+        
+        if all_rwl:
+            rwl_array = np.array(all_rwl)
+            report_lines.append(f"  RWL - Mean: {rwl_array.mean():.1f}, Min: {rwl_array.min():.1f}, Max: {rwl_array.max():.1f}")
+        
+        report_lines.append("")
+        
+        # Performance metrics
+        report_lines.append("Performance Metrics:")
+        if all_delay:
+            delay_array = np.array(all_delay)
+            report_lines.append(f"  Delay - Mean: {delay_array.mean():.3f}, Min: {delay_array.min():.3f}, Max: {delay_array.max():.3f}")
+        
+        if all_power:
+            power_array = np.array(all_power)
+            report_lines.append(f"  Power - Mean: {power_array.mean():.3e}, Min: {power_array.min():.3e}, Max: {power_array.max():.3e}")
+        
+        report_lines.append("")
+        
+        # Layer distribution summary
+        report_lines.append("Layer Distribution Summary:")
+        total_layer_usage = np.zeros(20)
+        for data in self.net_data:
+            total_layer_usage += data["layer_proportions"]
+        
+        # Normalize and show top layers
+        if np.sum(total_layer_usage) > 0:
+            avg_layer_usage = total_layer_usage / total_designs
+            top_layers = np.argsort(avg_layer_usage)[::-1][:5]
+            
+            for i, layer_idx in enumerate(top_layers):
+                if avg_layer_usage[layer_idx] > 0.01:  # Only show layers with >1% usage
+                    report_lines.append(f"  Layer {layer_idx}: {avg_layer_usage[layer_idx]:.1%} average usage")
+        
+        report_lines.append("")
+        
+        # Per-design summary
+        report_lines.append("Per-Design Summary:")
+        for data in self.net_data:
+            design_name = data["design_name"]
+            display_name = self.dir_to_display_name.get(design_name, design_name)
+            df = data["df"]
+            net_count = len(df)
+            avg_hpwl = df["hpwl"].mean() if not df["hpwl"].empty else 0
+            avg_rwl = df["rwl"].mean() if not df["rwl"].empty else 0
+            
+            report_lines.append(f"  {display_name}: {net_count:,} nets, Avg HPWL: {avg_hpwl:.1f}, Avg RWL: {avg_rwl:.1f}")
+        
+        return "\n".join(report_lines)
+
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
         Visualize the net data.
@@ -381,6 +465,87 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
                 "layer_proportions": result["layer_proportions"],
             }
             self.design_stats[design_name] = stats
+
+    def report(self) -> str:
+        """Generate a text report summarizing metrics correlation analysis."""
+        if not self.net_data or not hasattr(self, 'combined_df'):
+            return "No metrics correlation data available for analysis. Please run analyze() first."
+
+        report_lines = []
+        report_lines.append("Metrics Correlation Analysis Report")
+        report_lines.append("=" * 35)
+        
+        # Overall statistics
+        total_designs = len(self.net_data)
+        total_nets = len(self.combined_df)
+        
+        report_lines.append(f"Analyzed {total_designs} design(s) with {total_nets:,} total nets")
+        report_lines.append("")
+        
+        # Combined metrics statistics
+        report_lines.append("Overall Metrics Statistics:")
+        metrics = ['hpwl', 'rwl', 'R', 'C', 'power', 'delay', 'slew']
+        for metric in metrics:
+            if metric in self.combined_df.columns:
+                values = self.combined_df[metric]
+                report_lines.append(f"  {metric.upper()}: Mean={values.mean():.3e}, Std={values.std():.3e}, Range=[{values.min():.3e}, {values.max():.3e}]")
+        
+        report_lines.append("")
+        
+        # Key correlations
+        report_lines.append("Key Correlations:")
+        corr_matrix = self.combined_df[metrics].corr()
+        
+        # Find strongest correlations (excluding self-correlations)
+        strong_corrs = []
+        for i, metric1 in enumerate(metrics):
+            for j, metric2 in enumerate(metrics):
+                if i < j:  # Avoid duplicates and self-correlations
+                    corr_val = corr_matrix.loc[metric1, metric2]
+                    if abs(corr_val) > 0.5:  # Only show strong correlations
+                        strong_corrs.append((metric1, metric2, corr_val))
+        
+        # Sort by absolute correlation strength
+        strong_corrs.sort(key=lambda x: abs(x[2]), reverse=True)
+        
+        if strong_corrs:
+            for metric1, metric2, corr_val in strong_corrs[:5]:  # Show top 5
+                direction = "positive" if corr_val > 0 else "negative"
+                report_lines.append(f"  {metric1.upper()} vs {metric2.upper()}: {corr_val:.3f} ({direction})")
+        else:
+            report_lines.append("  No strong correlations (>0.5) found between metrics")
+        
+        report_lines.append("")
+        
+        # Per-design summary
+        report_lines.append("Per-Design Summary:")
+        for design_name, stats in self.design_stats.items():
+            display_name = self.dir_to_display_name.get(design_name, design_name)
+            net_count = stats['count']
+            avg_hpwl = stats['mean_hpwl']
+            avg_delay = stats['mean_delay']
+            avg_power = stats['mean_power']
+            
+            report_lines.append(f"  {display_name}: {net_count:,} nets, Avg HPWL: {avg_hpwl:.1f}, Avg Delay: {avg_delay:.3e}, Avg Power: {avg_power:.3e}")
+        
+        report_lines.append("")
+        
+        # Layer usage summary
+        report_lines.append("Layer Usage Summary:")
+        if self.design_stats:
+            # Average layer proportions across all designs
+            avg_layer_props = np.zeros(20)
+            for stats in self.design_stats.values():
+                avg_layer_props += np.array(stats['layer_proportions'])
+            avg_layer_props /= len(self.design_stats)
+            
+            # Show top used layers
+            top_layers = np.argsort(avg_layer_props)[::-1][:5]
+            for layer_idx in top_layers:
+                if avg_layer_props[layer_idx] > 0.01:  # Only show layers with >1% usage
+                    report_lines.append(f"  Layer {layer_idx}: {avg_layer_props[layer_idx]:.1%} average usage")
+        
+        return "\n".join(report_lines)
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
