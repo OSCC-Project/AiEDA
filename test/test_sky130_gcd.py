@@ -235,7 +235,7 @@ def set_parameters(workspace: Workspace):
 def run_eda_flow(workspace: Workspace):
     def run_floorplan_sky130_gcd(workspace: Workspace):
         def run_floorplan():
-            from aieda import IEDAFloorplan
+            from aieda.eda import IEDAFloorplan
 
             flow = DbFlow(
                 eda_tool="iEDA",
