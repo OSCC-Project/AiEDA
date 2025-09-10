@@ -28,3 +28,9 @@ class ReportPatch(ReportBase):
     
     def generate_pdf(self, path : str):
         pass
+    
+    def patch_congestion_wire_density_regression(self):  
+        table = self.Image(image_path=self.workspace.paths_table.get_image_path(
+            image_type="patch_congestion_wire_density_regression",
+            design_name=self.workspace.design
+        ))

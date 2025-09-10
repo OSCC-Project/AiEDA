@@ -12,6 +12,8 @@ import sys
 import os
 import logging
 
+from aieda.workspace.workspace import Workspace
+
 def setup_paths():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.join(current_dir, "..", "..", "..")
@@ -24,7 +26,7 @@ from aieda.flows.base import DbFlow
 from aieda.ai.design_parameter_optimization.parameter import iEDAParameter
 
 class ConfigManagement:
-    def __init__(self, workspace, eda_tool, step=None):
+    def __init__(self, workspace : Workspace, eda_tool, step=None):
         self.workspace = workspace
         self.eda_tool = eda_tool
         self.step = step

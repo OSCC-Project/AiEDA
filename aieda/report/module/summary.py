@@ -19,6 +19,7 @@ from ...flows import DbFlow
 
 from .flow import ReportFlow
 from .foundry import ReportFoundry
+from .patch import ReportPatch
 
 
 class ReportSummary:
@@ -66,10 +67,11 @@ class ReportSummary:
         self.content.append("### Tech.".strip())
         self.content.extend(report.content_tech())
         
-    def summary_design(self):
-        self.content.append("## Technology information".strip())
+    def summary_patch(self):
+        self.content.append("## Vector patchs analysis".strip())
         
-        report = ReportFoundry(self.workspace)
+        report = ReportPatch(self.workspace)
+        
         self.content.append("### foundry configs".strip())
         self.content.extend(report.content_path())
         

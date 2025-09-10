@@ -331,7 +331,7 @@ def run_eda_flow(workspace: Workspace):
         p.start()
         p.join()
         
-    def run_placement_dse(workspace, design):
+    def run_placement_dse(workspace):
         from aieda.ai.design_parameter_optimization.dse_facade import DSEFacade
         from aieda.data.database.enum import DSEMethod
 
@@ -345,7 +345,7 @@ def run_eda_flow(workspace: Workspace):
     # run each step of physical flow by iEDA
     run_floorplan_sky130_gcd(workspace)
 
-    # init iEDA by workspace
+    # # init iEDA by workspace
     run_ieda = RunIEDA(workspace)
 
     run_ieda.run_pdn(
@@ -361,7 +361,7 @@ def run_eda_flow(workspace: Workspace):
     )
 
     # run placement by DSE method
-    run_placement_dse(workspace, "gcd")
+    run_placement_dse(workspace)
     
     run_ieda.run_CTS(
         input_def=workspace.configs.get_output_def(
@@ -734,7 +734,7 @@ def analyse_patch_data(workspace : Workspace):
 def report_summary(workspace):
     from aieda.report import ReportGenerator
     report = ReportGenerator(workspace)
-    report.generate_summary()
+    report.generate_report_workspace()
 
 
 if __name__ == "__main__":

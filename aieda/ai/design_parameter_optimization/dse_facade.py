@@ -117,7 +117,6 @@ class DSEFacade:
         config_manage = ConfigManagement(
             workspace=self.workspace, eda_tool=eda_tool, step=self.step
         )
-        dir_workspace = config_manage.getWorkspacePath()
         self.params = config_manage.getParameters()
 
         os.environ["OMP_NUM_THREADS"] = "%d" % (self.params.num_threads)
@@ -125,7 +124,7 @@ class DSEFacade:
         if optimize == DSEMethod.NNI:
             method = NNIOptimization(
                 args=None,
-                workspace=dir_workspace,
+                workspace=self.workspace,
                 parameter=self.params,
                 step=self.step,
             )
