@@ -889,28 +889,28 @@ class Workspace:
             """Analysis visualization image paths"""
             image_paths = {
                 # Design analysis images
-                "design_cell_type_bottom_10": "{}/design_cell_type_bottom_10.png".format(self.analysis_path),
-                "design_cell_type_top_10": "{}/design_cell_type_top_10.png".format(self.analysis_path),
-                "design_core_usage_hist": "{}/design_core_usage_hist.png".format(self.analysis_path),
-                "design_pin_vs_net_ratio": "{}/design_pin_vs_net_ratio.png".format(self.analysis_path),
-                "design_result_stats_heatmap": "{}/design_result_stats_heatmap.png".format(self.analysis_path),
-                "design_result_stats_overview": "{}/design_result_stats_overview.png".format(self.analysis_path),
+                "design_cell_type_bottom_10": "{}/design_cell_type_bottom_10.png".format(self.analysis_dir),
+                "design_cell_type_top_10": "{}/design_cell_type_top_10.png".format(self.analysis_dir),
+                "design_core_usage_hist": "{}/design_core_usage_hist.png".format(self.analysis_dir),
+                "design_pin_vs_net_ratio": "{}/design_pin_vs_net_ratio.png".format(self.analysis_dir),
+                "design_result_stats_heatmap": "{}/design_result_stats_heatmap.png".format(self.analysis_dir),
+                "design_result_stats_overview": "{}/design_result_stats_overview.png".format(self.analysis_dir),
                 
                 # Net analysis images
-                "net_correlation_matrix": "{}/net_correlation_matrix.png".format(self.analysis_path),
-                "net_wire_length_distribution": "{}/net_wire_length_distribution.png".format(self.analysis_path),
+                "net_correlation_matrix": "{}/net_correlation_matrix.png".format(self.analysis_dir),
+                "net_wire_length_distribution": "{}/net_wire_length_distribution.png".format(self.analysis_dir),
                 
                 # Patch analysis images
-                "patch_congestion_wire_density_regression": "{}/patch_congestion_wire_density_regression.png".format(self.analysis_path),
-                "patch_feature_correlation": "{}/patch_feature_correlation.png".format(self.analysis_path),
-                "patch_feature_distributions": "{}/patch_feature_distributions.png".format(self.analysis_path),
-                "patch_layer_comparison": "{}/patch_layer_comparison.png".format(self.analysis_path),
+                "patch_congestion_wire_density_regression": "{}/patch_congestion_wire_density_regression.png".format(self.analysis_dir),
+                "patch_feature_correlation": "{}/patch_feature_correlation.png".format(self.analysis_dir),
+                "patch_feature_distributions": "{}/patch_feature_distributions.png".format(self.analysis_dir),
+                "patch_layer_comparison": "{}/patch_layer_comparison.png".format(self.analysis_dir),
                 
                 # Path analysis images
-                "path_delay_boxplot": "{}/path_delay_boxplot.png".format(self.analysis_path),
-                "path_delay_scatter": "{}/path_delay_scatter.png".format(self.analysis_path),
-                "path_stage_delay_scatter": "{}/path_stage_delay_scatter.png".format(self.analysis_path),
-                "path_stage_errorbar": "{}/path_stage_errorbar.png".format(self.analysis_path),
+                "path_delay_boxplot": "{}/path_delay_boxplot.png".format(self.analysis_dir),
+                "path_delay_scatter": "{}/path_delay_scatter.png".format(self.analysis_dir),
+                "path_stage_delay_scatter": "{}/path_stage_delay_scatter.png".format(self.analysis_dir),
+                "path_stage_errorbar": "{}/path_stage_errorbar.png".format(self.analysis_dir),
             }
             return image_paths
 
@@ -923,9 +923,9 @@ class Workspace:
             if design_name and image_type.startswith('patch_map_'):
                 # For individual feature maps: patch_map_{design}_{feature}
                 feature = image_type.replace('patch_map_', '')
-                return "{}/patch_map_{}_{}.png".format(self.analysis_path, design_name, feature.replace(' ', '_'))
+                return "{}/patch_map_{}_{}.png".format(self.analysis_dir, design_name, feature.replace(' ', '_'))
             elif design_name and image_type == 'patch_map_union':
-                return "{}/patch_map_{}_union.png".format(self.analysis_path, design_name)
+                return "{}/patch_map_{}_union.png".format(self.analysis_dir, design_name)
             
             return self.analysis_images.get(image_type, None)
 

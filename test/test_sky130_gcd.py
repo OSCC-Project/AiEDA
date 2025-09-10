@@ -727,7 +727,7 @@ def analyse_patch_data(workspace : Workspace):
 def report_summary(workspace):
     from aieda.report import ReportGenerator
     report = ReportGenerator(workspace)
-    report.generate_summary()
+    report.generate_report_workspace()
 
 
 if __name__ == "__main__":
@@ -736,19 +736,19 @@ if __name__ == "__main__":
     root = current_dir.rsplit("/", 1)[0]
 
     workspace_dir = "{}/example/sky130_test".format(root)
-    workspace = create_workspace_sky130_gcd(workspace_dir)
+    workspace = workspace_create(workspace_dir, "gcd")
 
     # step 2 : set paramters
-    set_parameters(workspace)
+    # set_parameters(workspace)
 
-    # # step 3 : run physical design flow
-    run_eda_flow(workspace)
+    # # # step 3 : run physical design flow
+    # run_eda_flow(workspace)
 
-    # step 4 : generate vectors
-    generate_vectors(workspace, 9, 9)
+    # # step 4 : generate vectors
+    # generate_vectors(workspace, 9, 9)
     
     # step 5: analysis 
-    analyse(workspace)
+    # analyse(workspace)
     # generate_all_reports(workspace)
     
     # step 6 report summary for workspace
