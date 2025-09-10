@@ -5,21 +5,22 @@
 @Author : yhqiu
 @Desc : data process module for tabnet
 """
-import os
+
 import json
-import pandas as pd
-import numpy as np
+import logging
+import os
+import time
+from typing import Any, Dict
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-from typing import Dict, Any
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
-import logging
-import time
 
+from ...data import DataVectors
 from .tabnet_config import TabNetDataConfig
-
-from aieda import DataVectors
 
 # Configure logging
 logging.basicConfig(
@@ -84,7 +85,6 @@ class TabNetDataProcess:
         all_dataframes = []
 
         for workspace in self.config.raw_input_dirs:
-
             self.logger.info(f"Processing workspace: {workspace.directory}")
 
             vector_loader = DataVectors(workspace)
@@ -420,7 +420,9 @@ class TabNetDataProcess:
         bin_counts = df["target_bin"].value_counts()
         self.logger.info("Target value interval distribution:")
         for bin_name, count in bin_counts.items():
-            self.logger.info(f"{bin_name}: {count} samples ({count/len(df)*100:.2f}%)")
+            self.logger.info(
+                f"{bin_name}: {count} samples ({count / len(df) * 100:.2f}%)"
+            )
 
         # Prepare datasets for different stages
         X_via = df[self.config.via_feature_columns]

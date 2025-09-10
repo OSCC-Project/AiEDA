@@ -157,31 +157,6 @@ class DataGeneration(RunFlowBase):
         )
         ieda_flow.generate_vectors(patch_row_step, patch_col_step)
 
-    def generate_patterns(self, vectors_dir: str = None):
-        # create wire patterns
-        from ..data import DataPatterns
-
-        data_gen = DataPatterns(workspace=self.workspace)
-
-        if vectors_dir is None:
-            nets_dir = self.workspace.paths_table.ieda_vectors["nets"]
-            pattern_csv = self.workspace.paths_table.ieda_vectors["wire_patterns"]
-            sequences_json = self.workspace.paths_table.ieda_vectors["wire_sequences"]
-        else:
-            nets_dir = "{}/nets".format(vectors_dir)
-            pattern_csv = "{}/patterns/wire_patterns.csv".format(vectors_dir)
-            sequences_json = "{}/patterns/wire_sequences.json".format(vectors_dir)
-
-        # create wire patterns
-        vector_nets = data_gen.load_nets(nets_dir=nets_dir)
-        data_gen.generate_wire_patterns(
-            vector_nets=vector_nets, epsilon=100, patterns_csv=pattern_csv
-        )
-
-        data_gen.generate_wire_sequences(
-            vector_nets=vector_nets, epsilon=100, sequences_json=sequences_json
-        )
-
     def vectors_nets_to_def(
         self,
         input_def: str = None,
@@ -202,11 +177,19 @@ class DataGeneration(RunFlowBase):
             step=DbFlow.FlowStep.vectorization,
             input_def=input_def,
             input_verilog=input_verilog,
+            output_def=output_def,
+            output_verilog=output_verilog
         )
 
         if input_def is None:
             # use output def of step route as input def
             flow.input_def = self.workspace.configs.get_output_def(
+                DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
+            )
+            
+        if input_verilog is None:
+            # use output def of step route as input def
+            flow.input_verilog = self.workspace.configs.get_output_verilog(
                 DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
             )
 
@@ -248,11 +231,19 @@ class DataGeneration(RunFlowBase):
             step=DbFlow.FlowStep.net_pattern,
             input_def=input_def,
             input_verilog=input_verilog,
+            output_def=output_def,
+            output_verilog=output_verilog
         )
 
         if input_def is None:
             # use output def of step route as input def
             flow.input_def = self.workspace.configs.get_output_def(
+                DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
+            )
+            
+        if input_verilog is None:
+            # use output def of step route as input def
+            flow.input_verilog = self.workspace.configs.get_output_verilog(
                 DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
             )
 

@@ -178,41 +178,6 @@ class VectorPatch:
     power_map: Optional[float] = None
     ir_drop_map: Optional[float] = None
 
-
-@dataclass
-class VectorWirePatternPoint(object):
-    x: int = None
-    y: int = None
-    z: int = None
-
-
-@dataclass
-class VectorWirePatternDirection(Enum):
-    TOP = "TOP"
-    BOTTOM = "BOTTOM"
-    LEFT = "LEFT"
-    RIGHT = "RIGHT"
-    VIA = "VIA"
-
-
-@dataclass
-class VectorWirePatternUnit:
-    direction: VectorWirePatternDirection = None
-    length: int = None
-
-
-@dataclass
-class VectorWirePatternSeq:
-    name: str = None
-    units: List[VectorWirePatternUnit] = field(default_factory=list)
-
-
-@dataclass
-class VectorNetSeq:
-    loc_seq: List[VectorWirePatternPoint] = field(default_factory=list)
-    pattern_seq: List[VectorWirePatternSeq] = field(default_factory=list)
-
-
 @dataclass
 class VectorTimingWireGraphNode:
     id: str = None

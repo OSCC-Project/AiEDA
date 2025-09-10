@@ -12,7 +12,7 @@
 ######################################################################################
 
 from aieda.analysis import WireDensityAnalyzer, FeatureCorrelationAnalyzer, MapAnalyzer
-from aieda import workspace_create
+from aieda.workspace import workspace_create
 
 import os
 

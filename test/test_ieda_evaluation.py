@@ -17,13 +17,12 @@ import os
 os.environ["iEDA"] = "ON"
 ######################################################################################
 
-
-from aieda import workspace_create, DbFlow, IEDAEvaluation
+from aieda.workspace import workspace_create
+from aieda.flows import DbFlow
+from aieda.eda import IEDAEvaluation
 
 if __name__ == "__main__":
     # step 1 : create workspace
-    import os
-
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
 

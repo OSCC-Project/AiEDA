@@ -15,7 +15,10 @@ import os
 
 os.environ["iEDA"] = "ON"
 
-from aieda import workspace_create, DbFlow, DataFeature, DataGeneration
+from aieda.workspace import workspace_create
+from aieda.flows import DbFlow
+from aieda.data import DataFeature
+from aieda.flows import DataGeneration
 
 steps = [
     "fixFanout",
@@ -75,7 +78,6 @@ def test_data_load(workspace):
 
 
 if __name__ == "__main__":
-    import os
 
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]

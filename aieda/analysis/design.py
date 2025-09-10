@@ -5,22 +5,24 @@
 @Author : yhqiu
 @Desc : design level data ananlysis, including cell type distribution, core usage, pin distribution and result statistics
 """
-import os
+
 import glob
+import multiprocessing
+import os
 import re
+from concurrent.futures import ProcessPoolExecutor
+from functools import partial
+from typing import Dict, List, Optional
+
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import seaborn as sns
-from typing import Dict, List, Optional
-from concurrent.futures import ProcessPoolExecutor
-import multiprocessing
-from functools import partial
 
-from .base import BaseAnalyzer
+from ..data import DataFeature
+from ..flows import DbFlow
 from ..workspace import Workspace
-
-from aieda import DbFlow, DataFeature
+from .base import BaseAnalyzer
 
 
 class CellTypeAnalyzer(BaseAnalyzer):
@@ -90,6 +92,44 @@ class CellTypeAnalyzer(BaseAnalyzer):
         for inst_type in ["clock", "logic", "macros", "iopads"]:
             type_sum = df[inst_type].sum()
             print(f"  {inst_type}: {type_sum / total:.2%}")
+
+    def report(self) -> str:
+        """Generate a text report summarizing cell type distribution."""
+        if not self.inst_count:
+            return "No instance data available for cell type analysis."
+
+        df = pd.DataFrame.from_dict(self.inst_count, orient="index")
+        if "total" not in df.columns:
+            df["total"] = df[["clock", "logic", "macros", "iopads"]].sum(axis=1)
+
+        df_sorted = df.sort_values(by="total", ascending=False)
+        
+        report_lines = []
+        report_lines.append("Cell Type Distribution Analysis Report")
+        report_lines.append("=" * 40)
+        
+        # Overall statistics
+        total_designs = len(df)
+        total_instances = df["total"].sum()
+        report_lines.append(f"Analyzed {total_designs} design(s) with {total_instances:,} total instances")
+        report_lines.append("")
+        
+        # Instance type statistics
+        report_lines.append("Instance Type Statistics:")
+        for inst_type in ["clock", "logic", "macros", "iopads"]:
+            values = df_sorted[inst_type]
+            type_sum = values.sum()
+            proportion = type_sum / total_instances if total_instances > 0 else 0
+            report_lines.append(f"  {inst_type.capitalize()}: {type_sum:,} ({proportion:.1%}) - Min: {values.min()}, Max: {values.max()}, Avg: {values.mean():.1f}")
+        
+        report_lines.append("")
+        
+        # Top designs by instance count
+        report_lines.append("Top 3 Designs by Total Instance Count:")
+        for i, (design, row) in enumerate(df_sorted.head(3).iterrows()):
+            report_lines.append(f"  {i+1}. {design}: {row['total']:,} instances")
+        
+        return "\n".join(report_lines)
 
     def visualize(self, save_path: Optional[str] = None):
         """Create visualizations for cell type distribution."""
@@ -253,6 +293,58 @@ class CoreUsageAnalyzer(BaseAnalyzer):
             value = np.percentile(sorted_usages, p)
             print(f"{p}%: {value:.4f}")
 
+    def report(self) -> str:
+        """Generate a text report summarizing core usage statistics."""
+        if not self.core_usage:
+            return "No core usage data available for analysis."
+
+        usages = list(self.core_usage.values())
+        designs = list(self.core_usage.keys())
+        
+        report_lines = []
+        report_lines.append("Core Usage Analysis Report")
+        report_lines.append("=" * 30)
+        
+        # Overall statistics
+        total_designs = len(usages)
+        avg_usage = np.mean(usages)
+        min_usage = np.min(usages)
+        max_usage = np.max(usages)
+        std_usage = np.std(usages)
+        
+        report_lines.append(f"Analyzed {total_designs} design(s)")
+        report_lines.append(f"Average core usage: {avg_usage:.2%}")
+        report_lines.append(f"Usage range: {min_usage:.2%} - {max_usage:.2%}")
+        report_lines.append(f"Standard deviation: {std_usage:.2%}")
+        report_lines.append("")
+        
+        # Usage categories
+        low_usage = [d for d, u in self.core_usage.items() if u < 0.5]
+        medium_usage = [d for d, u in self.core_usage.items() if 0.5 <= u < 0.8]
+        high_usage = [d for d, u in self.core_usage.items() if u >= 0.8]
+        
+        report_lines.append("Usage Distribution:")
+        report_lines.append(f"  Low usage (<50%): {len(low_usage)} designs")
+        report_lines.append(f"  Medium usage (50-80%): {len(medium_usage)} designs")
+        report_lines.append(f"  High usage (≥80%): {len(high_usage)} designs")
+        report_lines.append("")
+        
+        # Top and bottom designs
+        sorted_designs = sorted(self.core_usage.items(), key=lambda x: x[1], reverse=True)
+        
+        report_lines.append("Top 3 Designs by Core Usage:")
+        for i, (design, usage) in enumerate(sorted_designs[:3]):
+            report_lines.append(f"  {i+1}. {design}: {usage:.2%}")
+        
+        if len(sorted_designs) > 3:
+            report_lines.append("")
+            report_lines.append("Bottom 3 Designs by Core Usage:")
+            for i, (design, usage) in enumerate(sorted_designs[-3:]):
+                report_lines.append(f"  {i+1}. {design}: {usage:.2%}")
+        
+        return "\n".join(report_lines)
+
+
     def visualize(self, save_path: Optional[str] = None):
         """Create visualizations for cell usage distribution."""
         if not self.core_usage:
@@ -391,6 +483,57 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         )
         print("\nStatistical Summary by Pin Count:")
         print(df_summary.to_string())
+
+    def report(self) -> str:
+        """Generate a text report summarizing pin distribution analysis."""
+        if not self.pin_dist:
+            return "No pin distribution data available for analysis."
+
+        all_data = []
+        for design_name, pin_data in self.pin_dist.items():
+            for item in pin_data:
+                all_data.append({
+                    "design": design_name,
+                    "pin_num": item["pin_num"],
+                    "net_num": item["net_num"],
+                    "net_ratio": item["net_ratio"]
+                })
+
+        if not all_data:
+            return "No valid pin distribution data found."
+
+        df = pd.DataFrame(all_data)
+        
+        report_lines = []
+        report_lines.append("Pin Distribution Analysis Report")
+        report_lines.append("=" * 35)
+        
+        # Overall statistics
+        total_designs = len(self.pin_dist)
+        unique_pin_counts = df['pin_num'].nunique()
+        total_entries = len(df)
+        
+        report_lines.append(f"Analyzed {total_designs} design(s) with {total_entries} pin distribution entries")
+        report_lines.append(f"Pin count range: {df['pin_num'].min()} - {df['pin_num'].max()} pins")
+        report_lines.append(f"Unique pin counts: {unique_pin_counts}")
+        report_lines.append("")
+        
+        # Net statistics
+        report_lines.append("Net Statistics:")
+        report_lines.append(f"  Average nets per pin group: {df['net_num'].mean():.1f}")
+        report_lines.append(f"  Net count range: {df['net_num'].min()} - {df['net_num'].max()}")
+        report_lines.append(f"  Average net ratio: {df['net_ratio'].mean():.3f}")
+        report_lines.append(f"  Net ratio range: {df['net_ratio'].min():.3f} - {df['net_ratio'].max():.3f}")
+        report_lines.append("")
+        
+        # Most common pin counts
+        pin_count_freq = df['pin_num'].value_counts().head(5)
+        report_lines.append("Top 5 Most Common Pin Counts:")
+        for pin_count, freq in pin_count_freq.items():
+            avg_nets = df[df['pin_num'] == pin_count]['net_num'].mean()
+            report_lines.append(f"  {pin_count} pins: {freq} occurrences (avg {avg_nets:.1f} nets)")
+        
+        return "\n".join(report_lines)
 
     def visualize(self, save_path: Optional[str] = None):
         """Create visualizations for pin distribution."""
@@ -650,7 +793,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         print(
             f"{'Designs':<16} | {'Nets Dir':<25} | {'Patches Dir':<25} | {'Paths Dir':<25} | {'Wire Num':<20}"
         )
-        print(f"{'-'*16} | {'-'*25} | {'-'*25} | {'-'*25} | {'-'*12}")
+        print(f"{'-' * 16} | {'-' * 25} | {'-' * 25} | {'-' * 25} | {'-' * 12}")
 
         for design, data in self.stats_data.items():
             nets_info = (
@@ -666,7 +809,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             )
 
         # Print totals
-        print(f"{'-'*16} | {'-'*25} | {'-'*25} | {'-'*25} | {'-'*12}")
+        print(f"{'-' * 16} | {'-' * 25} | {'-' * 25} | {'-' * 25} | {'-' * 12}")
         print(
             f"{'Total':<16} | {self.total_stats['nets_count']} files, {self._format_size(self.total_stats['nets_size']):<10} | "
             f"{self.total_stats['patches_count']} files, {self._format_size(self.total_stats['patches_size']):<10} | "
@@ -713,6 +856,59 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             print(f"  Total: {wire_values.sum()}")
             print(f"  Std Dev: {wire_values.std():.2f}")
 
+    def report(self) -> str:
+        """Generate a text report summarizing result statistics."""
+        if not self.stats_data:
+            return "No statistics data available for analysis."
+
+        df = pd.DataFrame.from_dict(self.stats_data, orient="index")
+        
+        report_lines = []
+        report_lines.append("Result Statistics Analysis Report")
+        report_lines.append("=" * 37)
+        
+        # Overall summary
+        total_designs = len(self.stats_data)
+        accessible_designs = self.total_stats['accessible_designs']
+        
+        report_lines.append(f"Total designs analyzed: {total_designs}")
+        report_lines.append(f"Accessible designs: {accessible_designs}/{total_designs} ({accessible_designs/total_designs:.1%})")
+        report_lines.append("")
+        
+        # File statistics summary
+        report_lines.append("File Statistics Summary:")
+        report_lines.append(f"  Nets: {self.total_stats['nets_count']} files, {self._format_size(self.total_stats['nets_size'])}")
+        report_lines.append(f"  Patches: {self.total_stats['patches_count']} files, {self._format_size(self.total_stats['patches_size'])}")
+        report_lines.append(f"  Paths: {self.total_stats['paths_count']} files, {self._format_size(self.total_stats['paths_size'])}")
+        
+        if self.calc_wire_num:
+            report_lines.append(f"  Total wire numbers: {self.total_stats['wire_num_sum']:,}")
+        
+        report_lines.append("")
+        
+        # Average statistics per design
+        if accessible_designs > 0:
+            report_lines.append("Average per Accessible Design:")
+            report_lines.append(f"  Nets: {self.total_stats['nets_count']/accessible_designs:.1f} files, {self._format_size(self.total_stats['nets_size']/accessible_designs)}")
+            report_lines.append(f"  Patches: {self.total_stats['patches_count']/accessible_designs:.1f} files, {self._format_size(self.total_stats['patches_size']/accessible_designs)}")
+            report_lines.append(f"  Paths: {self.total_stats['paths_count']/accessible_designs:.1f} files, {self._format_size(self.total_stats['paths_size']/accessible_designs)}")
+            
+            if self.calc_wire_num:
+                report_lines.append(f"  Wire numbers: {self.total_stats['wire_num_sum']/accessible_designs:.1f}")
+        
+        report_lines.append("")
+        
+        # Top designs by total file count
+        df['total_files'] = df['nets_count'] + df['patches_count'] + df['paths_count']
+        top_designs = df.nlargest(3, 'total_files')
+        
+        report_lines.append("Top 3 Designs by Total File Count:")
+        for i, (design, row) in enumerate(top_designs.iterrows()):
+            total_size = row['nets_size'] + row['patches_size'] + row['paths_size']
+            report_lines.append(f"  {i+1}. {design}: {int(row['total_files'])} files, {self._format_size(total_size)}")
+        
+        return "\n".join(report_lines)
+
     def visualize(self, save_path: Optional[str] = None):
         """Create visualizations for the statistics data."""
         if not self.stats_data:
@@ -740,7 +936,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             values = df[count_type].sort_values(ascending=False)
             ax.bar(range(len(values)), values, color=color)
             ax.set_title(
-                f'All Designs - {count_type.replace("_count", "").title()} File Count'
+                f"All Designs - {count_type.replace('_count', '').title()} File Count"
             )
             ax.set_xlabel("Design Rank")
             ax.set_ylabel("File Count")

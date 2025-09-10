@@ -5,17 +5,18 @@
 @Author : yhqiu
 @Desc : Path-level data analysis, including delay and stage analysis.
 """
+
 import os
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib import ticker
 from typing import Dict, List, Optional
 
-from .base import BaseAnalyzer
-from ..workspace import Workspace
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib import ticker
 
-from aieda import DataVectors
+from ..data import DataVectors
+from ..workspace import Workspace
+from .base import BaseAnalyzer
 
 
 class DelayAnalyzer(BaseAnalyzer):
@@ -119,6 +120,56 @@ class DelayAnalyzer(BaseAnalyzer):
             self.design_stats[design_name] = stats
 
         print(f"Analysis completed for {len(self.design_stats)} designs.")
+
+    def report(self) -> str:
+        """
+        Generate a text report of the path delay analysis.
+        
+        Returns:
+            str: Formatted report string
+        """
+        if not self.design_stats:
+            return "No analysis results available. Please run analyze() first."
+        
+        report_lines = []
+        report_lines.append("=" * 60)
+        report_lines.append("PATH DELAY ANALYSIS REPORT")
+        report_lines.append("=" * 60)
+        
+        # Overall statistics
+        total_paths = sum(stats['file_count'] for stats in self.design_stats.values())
+        report_lines.append(f"\nOVERALL STATISTICS:")
+        report_lines.append(f"  Total designs analyzed: {len(self.design_stats)}")
+        report_lines.append(f"  Total paths analyzed: {total_paths}")
+        
+        # Delay statistics summary
+        all_inst_delays = []
+        all_net_delays = []
+        all_total_delays = []
+        
+        for stats in self.design_stats.values():
+            all_inst_delays.append(stats['inst_delay_mean'])
+            all_net_delays.append(stats['net_delay_mean'])
+            all_total_delays.append(stats['total_delay_mean'])
+        
+        report_lines.append(f"\nDELAY STATISTICS SUMMARY:")
+        report_lines.append(f"  Instance Delay - Mean: {np.mean(all_inst_delays):.3f}, Std: {np.std(all_inst_delays):.3f}")
+        report_lines.append(f"  Net Delay - Mean: {np.mean(all_net_delays):.3f}, Std: {np.std(all_net_delays):.3f}")
+        report_lines.append(f"  Total Delay - Mean: {np.mean(all_total_delays):.3f}, Std: {np.std(all_total_delays):.3f}")
+        
+        # Per-design summary
+        report_lines.append(f"\nPER-DESIGN SUMMARY:")
+        for design_name, stats in self.design_stats.items():
+            display_name = stats['display_name']
+            report_lines.append(f"\n  Design: {display_name} ({design_name})")
+            report_lines.append(f"    Paths: {stats['file_count']}")
+            report_lines.append(f"    Instance Delay: {stats['inst_delay_mean']:.3f} ± {stats['inst_delay_std']:.3f} (median: {stats['inst_delay_median']:.3f})")
+            report_lines.append(f"    Net Delay: {stats['net_delay_mean']:.3f} ± {stats['net_delay_std']:.3f} (median: {stats['net_delay_median']:.3f})")
+            report_lines.append(f"    Total Delay: {stats['total_delay_mean']:.3f} ± {stats['total_delay_std']:.3f} (median: {stats['total_delay_median']:.3f})")
+        
+        report_lines.append("\n" + "=" * 60)
+        
+        return "\n".join(report_lines)
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -367,6 +418,58 @@ class StageAnalyzer(BaseAnalyzer):
             self.design_stats[design_name] = stats
 
         print(f"Analysis completed for {len(self.design_stats)} designs.")
+
+    def report(self) -> str:
+        """
+        Generate a text report of the stage analysis.
+        
+        Returns:
+            str: Formatted report string
+        """
+        if not self.design_stats:
+            return "No analysis results available. Please run analyze() first."
+        
+        report_lines = []
+        report_lines.append("=" * 60)
+        report_lines.append("STAGE ANALYSIS REPORT")
+        report_lines.append("=" * 60)
+        
+        # Overall statistics
+        total_paths = sum(stats['file_count'] for stats in self.design_stats.values())
+        report_lines.append(f"\nOVERALL STATISTICS:")
+        report_lines.append(f"  Total designs analyzed: {len(self.design_stats)}")
+        report_lines.append(f"  Total paths analyzed: {total_paths}")
+        
+        # Stage statistics summary
+        all_stage_means = []
+        all_stage_mins = []
+        all_stage_maxs = []
+        all_delay_means = []
+        
+        for stats in self.design_stats.values():
+            all_stage_means.append(stats['stage_mean'])
+            all_stage_mins.append(stats['stage_min'])
+            all_stage_maxs.append(stats['stage_max'])
+            all_delay_means.append(stats['total_delay_mean'])
+        
+        report_lines.append(f"\nSTAGE STATISTICS SUMMARY:")
+        report_lines.append(f"  Average Stage Count - Mean: {np.mean(all_stage_means):.2f}, Std: {np.std(all_stage_means):.2f}")
+        report_lines.append(f"  Stage Range - Min: {min(all_stage_mins)}, Max: {max(all_stage_maxs)}")
+        report_lines.append(f"  Total Delay - Mean: {np.mean(all_delay_means):.3f}, Std: {np.std(all_delay_means):.3f}")
+        
+        # Per-design summary
+        report_lines.append(f"\nPER-DESIGN SUMMARY:")
+        for design_name, stats in self.design_stats.items():
+            display_name = stats['display_name']
+            report_lines.append(f"\n  Design: {display_name} ({design_name})")
+            report_lines.append(f"    Paths: {stats['file_count']}")
+            report_lines.append(f"    Stage Count: {stats['stage_mean']:.2f} ± {stats['stage_std']:.2f} (median: {stats['stage_median']:.2f})")
+            report_lines.append(f"    Stage Range: {stats['stage_min']} - {stats['stage_max']}")
+            report_lines.append(f"    Average Total Delay: {stats['total_delay_mean']:.3f}")
+        
+        report_lines.append("\n" + "=" * 60)
+        
+        return "\n".join(report_lines)
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """

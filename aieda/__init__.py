@@ -1,18 +1,24 @@
 __version__ = "0.1.dev"
 
-import sys
-import os
+from . import ai
+from . import analysis  
+from . import data
+from . import eda
+from . import flows
+from . import gui
+from . import third_party
+from . import utility
+from . import workspace
 
-current_dir = os.path.split(os.path.abspath(__file__))[0]
-root = current_dir.rsplit("/", 1)[0]
-sys.path.append(root)
-
-from .data import *
-from .eda import *
-from .flows import *
-from .workspace import *
-from .analysis import *
-from .ai import *
-from .utility import *
-from .third_party import *
-from .gui import *
+__all__ = [
+    '__version__',
+    'ai',
+    'analysis',
+    'data', 
+    'eda',
+    'flows',
+    'gui',
+    'third_party',
+    'utility',
+    'workspace',
+]

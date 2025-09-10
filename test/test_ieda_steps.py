@@ -15,8 +15,8 @@ import os
 
 os.environ["iEDA"] = "ON"
 
-from aieda import Workspace, workspace_create, RunIEDA, DbFlow
-
+from aieda.workspace import Workspace, workspace_create
+from aieda.flows import RunIEDA, DbFlow
 
 def run_floorplan_sky130_gcd(workspace: Workspace):
     def run_floorplan():
@@ -119,8 +119,6 @@ def run_floorplan_sky130_gcd(workspace: Workspace):
 
 if __name__ == "__main__":
     # step 1 : create workspace
-    import os
-
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
 
