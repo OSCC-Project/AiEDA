@@ -296,7 +296,11 @@ class WireDistributionAnalyzer(BaseAnalyzer):
         plt.tight_layout()
 
         # Save plot
-        output_path = os.path.join(save_path, "net_wire_length_distribution.png")
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("net_wire_length_distribution")
+        else:
+            output_path = os.path.join(save_path, "net_wire_length_distribution.png")
+        
         plt.savefig(output_path)
         plt.close()
 
@@ -575,7 +579,11 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
         plt.tight_layout()
 
         # Save plot
-        output_path = os.path.join(save_path, "net_correlation_matrix.png")
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("net_correlation_matrix")
+        else:
+            output_path = os.path.join(save_path, "net_correlation_matrix.png")
+        
         plt.savefig(output_path)
         plt.close()
 

@@ -50,7 +50,6 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
     ):
         self._method = algorithm
         self._goal = goal
-        # self._args = args
         self._workspace = workspace
         self._parameter = parameter
         self._step = step
@@ -123,7 +122,7 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
         self,
         step=DbFlow.FlowStep.place,
         option=FeatureOption.tools,
-        metrics={"hpwl": 1.0, "tns": 0.0, "wns": 0.0},
+        metrics={"hpwl": 1.0, "tns": -20.0, "wns": -0.55},
         pre_step=DbFlow.FlowStep.fixFanout,
         tool="iEDA",
     ):
@@ -134,21 +133,22 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
         raise NotImplementedError
 
     def getPlaceResults(self):
-        hpwl, wns, tns = None, 0.0, 0.0
+        hpwl, wns, tns = None, None, None
         try:
             workspace = self._workspace
-            output_dir = os.path.join(
-                workspace, "output/iEDA/data/pl/report/summary_report.txt"
-            )
-
+            output_dir = os.path.join(workspace, "output/iEDA/data/pl/report/summary_report.txt")
             out_lines = open(output_dir).readlines()
             for i in range(len(out_lines)):
                 line = out_lines[i]
                 if "Total HPWL" in line:
                     hpwl = line.replace(" ", "").split("|")[-2]
+                elif "Late TNS".lower() in line.lower() and "|" in out_lines[i+2]:
+                    new_line = out_lines[i+2]
+                    datas = new_line.replace(" ", "").split("|")
+                    wns = datas[-3]
+                    tns = datas[-2]
         except Exception as e:
             print(e)
-
         return float(hpwl), float(wns), float(tns)
 
     def getOperationEngine(self, step, tool, pre_step):
@@ -259,13 +259,29 @@ class NNIOptimization(AbstractOptimizationMethod):
         metric = 0.0
 
         hpwl_ref = metrics.get("hpwl", 1.0)
+        hpwl_contrib = hpwl / hpwl_ref
         messages += f"hpwl: {hpwl}, "
-        metric += hpwl / hpwl_ref
+        metric += hpwl_contrib
+
+        messages += f"wns: {wns}, "
+        wns_ref = metrics.get("wns", 0.0)  
+        wns_contrib = np.exp(wns_ref)/np.exp(wns)
+        print(f"DEBUG WNS: wns_ref={wns_ref}, wns={wns}, exp(wns_ref)={np.exp(wns_ref):.6f}, exp(wns)={np.exp(wns):.6f}, wns_contrib={wns_contrib:.6f}")
+        metric += wns_contrib
+        
+        messages += f"tns: {tns}, "
+        tns_ref = metrics.get("tns", 0.0)  
+        tns_contrib = np.exp(tns_ref)/np.exp(tns)
+        print(f"DEBUG TNS: tns_ref={tns_ref}, tns={tns}, exp(tns_ref)={np.exp(tns_ref):.2e}, exp(tns)={np.exp(tns):.2e}, tns_contrib={tns_contrib:.6f}")
+        metric += tns_contrib
 
         results["place_hpwl"] = hpwl
         results["place_wns"] = wns
         results["place_tns"] = tns
+            
+        # print the contributions of each metric
         messages += f"place_hpwl: {hpwl}, place_wns: {wns}, place_tns: {tns}\n"
+        messages += f"Contributions - HPWL: {hpwl_contrib:.6f}, WNS: {wns_contrib:.6f}, TNS: {tns_contrib:.6f}, Total: {metric:.6f}\n"
         logging.info(messages)
         return metric
 
@@ -367,7 +383,7 @@ class NNIOptimization(AbstractOptimizationMethod):
         if metric is not None:
             data["metric"] = metric
         else:
-            metrics = {"hpwl": 1.0, "tns": 0.0, "wns": 0.0}
+            metrics = {"hpwl": 1.0, "tns": -20.0, "wns": -0.55}
             results = {}
             metric = self.logPlaceMetrics(metrics, results)
             data["metric"] = metric
@@ -407,7 +423,7 @@ class NNIOptimization(AbstractOptimizationMethod):
         self,
         step=DbFlow.FlowStep.place,
         option=FeatureOption.tools,
-        metrics={"hpwl": 1.0, "tns": 0.0, "wns": 0.0},
+        metrics={"hpwl": 1.0, "tns": -20.0, "wns": -0.55},
         pre_step=DbFlow.FlowStep.cts,
         tool="iEDA",
     ):
@@ -479,7 +495,7 @@ def main():
             tool=eda_tool,
             step=step_enum,
             pre_step=DbFlow.FlowStep.fixFanout,
-            metrics={"hpwl": 1.0, "tns": 0.0, "wns": 0.0},
+            metrics={"hpwl": 1.0, "tns": -20.0, "wns": -0.55},
         )
 
     except Exception as e:

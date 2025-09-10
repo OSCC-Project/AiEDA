@@ -177,8 +177,14 @@ class CellTypeAnalyzer(BaseAnalyzer):
         plt.ylabel("Design", fontsize=12)
         plt.tight_layout()
 
+        # Save plot
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_cell_type_top_10")
+        else:
+            output_path = save_path + "/design_cell_type_top_10.png"
+        
         plt.savefig(
-            save_path + "/design_cell_type_top_10.png", dpi=300, bbox_inches="tight"
+            output_path, dpi=300, bbox_inches="tight"
         )
         plt.close()
 
@@ -212,8 +218,14 @@ class CellTypeAnalyzer(BaseAnalyzer):
         plt.ylabel("Design", fontsize=12)
         plt.tight_layout()
 
+        # Save plot
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_cell_type_bottom_10")
+        else:
+            output_path = save_path + "/design_cell_type_bottom_10.png"
+        
         plt.savefig(
-            save_path + "/design_cell_type_bottom_10.png", dpi=300, bbox_inches="tight"
+            output_path, dpi=300, bbox_inches="tight"
         )
         plt.close()
 
@@ -367,10 +379,17 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         plt.gca().xaxis.set_major_locator(MultipleLocator(0.1))
 
         plt.tight_layout()
-        plt.savefig(save_path + "/design_core_usage_hist.png", bbox_inches="tight")
+        
+        # Save plot
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_core_usage_hist")
+        else:
+            output_path = save_path + "/design_core_usage_hist.png"
+        
+        plt.savefig(output_path, bbox_inches="tight")
         plt.close()
 
-        print("Saved core usage chart:")
+        print(f"Saved core usage chart to {output_path}:")
         print("- 'design_core_usage_hist.png' (Histogram)")
 
 
@@ -621,8 +640,15 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         plt.tick_params(axis="both", which="major", direction="out", length=4, width=1)
 
         plt.tight_layout()
-        plt.savefig(save_path + "/design_pin_vs_net_ratio.png", bbox_inches="tight")
-        print("Saved design_pin_vs_net_ratio.png")
+        
+        # Save plot
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_pin_vs_net_ratio")
+        else:
+            output_path = save_path + "/design_pin_vs_net_ratio.png"
+        
+        plt.savefig(output_path, bbox_inches="tight")
+        print(f"Saved design_pin_vs_net_ratio.png to {output_path}")
         plt.close()
 
     def _parse_pin_num(self, pin_num_str):
@@ -961,8 +987,15 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         axes[1, 1].grid(axis="y", alpha=0.3)
 
         plt.tight_layout()
+        
+        # Save plot
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_result_stats_overview")
+        else:
+            output_path = save_path + "/design_result_stats_overview.png"
+        
         plt.savefig(
-            save_path + "/design_result_stats_overview.png",
+            output_path,
             dpi=300,
             bbox_inches="tight",
         )
@@ -993,8 +1026,15 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         plt.ylabel("Design", fontsize=12)
         plt.setp(ax.get_yticklabels(), style="italic")
         plt.tight_layout()
+        
+        # Save plot
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_result_stats_heatmap")
+        else:
+            output_path = save_path + "/design_result_stats_heatmap.png"
+        
         plt.savefig(
-            save_path + "/design_result_stats_heatmap.png", dpi=300, bbox_inches="tight"
+            output_path, dpi=300, bbox_inches="tight"
         )
         plt.close()
 

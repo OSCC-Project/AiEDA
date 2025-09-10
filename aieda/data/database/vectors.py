@@ -63,6 +63,17 @@ class VectorPin:
 
 
 @dataclass
+class VectorPlaceFeature:
+    pin_num: Optional[int] = None
+    aspect_ratio: Optional[float] = None
+    width: Optional[float] = None
+    height: Optional[float] = None
+    area: Optional[float] = None
+    l_ness: Optional[float] = None
+    rsmt: Optional[float] = None
+    hpwl: Optional[float] = None
+
+@dataclass
 class VectorNetFeature:
     llx: Optional[int] = None
     lly: Optional[int] = None
@@ -76,7 +87,6 @@ class VectorNetFeature:
     power: Optional[float] = None
     delay: Optional[float] = None
     slew: Optional[float] = None
-    fanout: Optional[int] = None
     aspect_ratio: Optional[int] = None
     width: Optional[int] = None
     height: Optional[int] = None
@@ -85,7 +95,7 @@ class VectorNetFeature:
     drc_type: List[str] = field(default_factory=list)
     volume: Optional[int] = None
     layer_ratio: List[float] = field(default_factory=list)
-    rsmt: Optional[int] = None
+    place_feature: Optional[VectorPlaceFeature] = None
 
 
 @dataclass
@@ -167,7 +177,6 @@ class VectorPatch:
     col_min: Optional[int] = None
     col_max: Optional[int] = None
     patch_layer: List[VectorPatchLayer] = field(default_factory=list)
-    area: Optional[int] = None
     cell_density: Optional[float] = None
     pin_density: Optional[int] = None
     net_density: Optional[float] = None
@@ -176,7 +185,7 @@ class VectorPatch:
     EGR_congestion: Optional[float] = None
     timing_map: Optional[float] = None
     power_map: Optional[float] = None
-    ir_drop_map: Optional[float] = None
+    ir_drop_map: Optional[float] = None  
 
 @dataclass
 class VectorTimingWireGraphNode:
@@ -249,8 +258,8 @@ class VectorInstance:
     id: int = None
     cell_id: int = None
     name: str = None
-    x: int = None
-    y: int = None
+    cx: int = None
+    cy: int = None
     width: int = None
     height: int = None
     llx: int = None

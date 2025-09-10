@@ -42,18 +42,29 @@ class VectorsParserJson(JsonParser):
                 net_feature.power = feature_data.get("power")
                 net_feature.delay = feature_data.get("delay")
                 net_feature.slew = feature_data.get("slew")
-                net_feature.fanout = feature_data.get("fanout")
 
                 if "aspect_ratio" in feature_data:
                     net_feature.aspect_ratio = feature_data.get("aspect_ratio")
                     net_feature.width = feature_data.get("width")
                     net_feature.height = feature_data.get("height")
                     net_feature.area = feature_data.get("area")
-                    net_feature.l_ness = feature_data.get("l_ness")
                     net_feature.drc_type = feature_data.get("drc_type")
                     net_feature.volume = feature_data.get("volume")
                     net_feature.layer_ratio = feature_data.get("layer_ratio")
-                    net_feature.rsmt = feature_data.get("rsmt")
+
+                # parse place_feature
+                if "place_feature" in feature_data:
+                    place_feature_data = feature_data.get("place_feature", {})
+                    place_feature = VectorPlaceFeature()
+                    place_feature.pin_num = place_feature_data.get("pin_num")
+                    place_feature.aspect_ratio = place_feature_data.get("aspect_ratio")
+                    place_feature.width = place_feature_data.get("width")
+                    place_feature.height = place_feature_data.get("height")
+                    place_feature.area = place_feature_data.get("area")
+                    place_feature.l_ness = place_feature_data.get("l_ness")
+                    place_feature.rsmt = place_feature_data.get("rsmt")
+                    place_feature.hpwl = place_feature_data.get("hpwl")
+                    net_feature.place_feature = place_feature
 
                 vec_net.feature = net_feature
 
@@ -205,7 +216,6 @@ class VectorsParserJson(JsonParser):
                 vec_patch.row_max = json_patch.get("row_max")
                 vec_patch.col_min = json_patch.get("col_min")
                 vec_patch.col_max = json_patch.get("col_max")
-                vec_patch.area = json_patch.get("area")
                 vec_patch.cell_density = json_patch.get("cell_density")
                 vec_patch.pin_density = json_patch.get("pin_density")
                 vec_patch.net_density = json_patch.get("net_density")
@@ -345,8 +355,8 @@ class VectorsParserJson(JsonParser):
                 vec_inst.id = json_inst.get("id")
                 vec_inst.cell_id = json_inst.get("cell_id")
                 vec_inst.name = json_inst.get("name")
-                vec_inst.x = json_inst.get("x")
-                vec_inst.y = json_inst.get("y")
+                vec_inst.cx = json_inst.get("cx")
+                vec_inst.cy = json_inst.get("cy")
                 vec_inst.width = json_inst.get("width")
                 vec_inst.height = json_inst.get("height")
                 vec_inst.llx = json_inst.get("llx")

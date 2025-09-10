@@ -239,7 +239,10 @@ class DelayAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        output_path = os.path.join(save_path, "path_delay_boxplot.png")
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("path_delay_boxplot")
+        else:
+            output_path = os.path.join(save_path, "path_delay_boxplot.png")
         plt.savefig(output_path, bbox_inches="tight")
         plt.close()
 
@@ -308,7 +311,10 @@ class DelayAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        output_path = os.path.join(save_path, "path_delay_scatter.png")
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("path_delay_scatter")
+        else:
+            output_path = os.path.join(save_path, "path_delay_scatter.png")
         plt.savefig(output_path, bbox_inches="tight")
         plt.close()
 
@@ -536,7 +542,10 @@ class StageAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        output_path = os.path.join(save_path, "path_stage_errorbar.png")
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("path_stage_errorbar")
+        else:
+            output_path = os.path.join(save_path, "path_stage_errorbar.png")
         plt.savefig(output_path, bbox_inches="tight")
         plt.close()
 
@@ -602,7 +611,10 @@ class StageAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        output_path = os.path.join(save_path, "path_stage_delay_scatter.png")
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("path_stage_delay_scatter")
+        else:
+            output_path = os.path.join(save_path, "path_stage_delay_scatter.png")
         plt.savefig(output_path, bbox_inches="tight")
         plt.close()
 

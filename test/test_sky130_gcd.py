@@ -398,7 +398,7 @@ def run_eda_flow(workspace: Workspace):
     )
 
 
-def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int):
+def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int, batch_mode : bool = True):
     # step 1 : init by workspace
     data_gen = DataGeneration(workspace)
 
@@ -410,6 +410,7 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
         vectors_dir=workspace.paths_table.ieda_output["vectors"],
         patch_row_step=patch_row_step,
         patch_col_step=patch_col_step,
+        batch_mode=batch_mode,
     )
     
 def analyse(workspace : Workspace):

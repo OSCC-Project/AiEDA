@@ -248,7 +248,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
         # Set output directory
         if save_path is None:
             save_path = "."
-        if self.workspace_dirs.__len__() == 1:
+        if len(self.workspace_dirs) == 1:
             save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
@@ -318,9 +318,13 @@ class WireDensityAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        output_path = os.path.join(
-            save_path, "patch_congestion_wire_density_regression.png"
-        )
+        # Save plot
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_congestion_wire_density_regression")
+        else:
+            output_path = os.path.join(
+                save_path, "patch_congestion_wire_density_regression.png"
+            )
         plt.savefig(output_path, bbox_inches="tight")
         plt.close()
 
@@ -393,8 +397,13 @@ class WireDensityAnalyzer(BaseAnalyzer):
         ax2.grid(axis="y", alpha=0.3)
 
         plt.tight_layout()
-
-        output_path = os.path.join(save_path, "patch_layer_comparison.png")
+        
+        # Save Plots
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_layer_comparison")
+        else:
+            output_path = os.path.join(save_path, "patch_layer_comparison.png")
+            
         plt.savefig(output_path, bbox_inches="tight")
         plt.close()
 
@@ -677,7 +686,10 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         plt.tight_layout(pad=1.1)
 
         # Save plots
-        output_path = os.path.join(save_path, "patch_feature_correlation.png")
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_feature_correlation")
+        else:
+            output_path = os.path.join(save_path, "patch_feature_correlation.png")
         plt.savefig(output_path)
         plt.close()
 
@@ -723,8 +735,12 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
                 ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
 
         plt.tight_layout()
-
-        output_path = os.path.join(save_path, "patch_feature_distributions.png")
+        
+        # Save Plots
+        if len(self.workspace_dirs) == 1:
+            output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_feature_distributions")
+        else:
+            output_path = os.path.join(save_path, "patch_feature_distributions.png")
         plt.savefig(output_path, bbox_inches="tight")
         plt.close()
 
@@ -979,9 +995,6 @@ class MapAnalyzer(BaseAnalyzer):
     def _create_individual_feature_maps(self, save_path: str, cmap: str) -> None:
         """Create individual heatmaps for each feature and design."""
         for design, results in self.analysis_results.items():
-            design_dir = os.path.join(save_path, f"patch_{design}_individual_maps")
-            os.makedirs(design_dir, exist_ok=True)
-
             layouts = results["layouts"]
 
             for feature in self.features:
@@ -1022,11 +1035,13 @@ class MapAnalyzer(BaseAnalyzer):
                 plt.grid(True, alpha=0.3, linewidth=0.5)
 
                 plt.tight_layout()
-                plt.savefig(
-                    os.path.join(
-                        design_dir, f"patch_{feature.replace(' ', '_')}_layout.png"
-                    )
-                )
+                
+                if len(self.workspace_dirs) == 1:
+                    output_path = self.workspace_dirs[0].paths_table.get_image_path(f"patch_map_{feature}", design)
+                else:
+                    output_path = os.path.join(save_path, f"patch_map_{design}_{feature.replace(' ', '_')}.png")
+                
+                plt.savefig(output_path)
                 plt.close()
 
     def _create_feature_comparison_grid(self, save_path: str, cmap: str) -> None:
@@ -1077,5 +1092,11 @@ class MapAnalyzer(BaseAnalyzer):
                 ax.set_yticks([])
 
             plt.tight_layout()
-            plt.savefig(os.path.join(save_path, f"patch_{design}_feature_grid.png"))
+            
+            if len(self.workspace_dirs) == 1:
+                output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_map_union", design)
+            else:
+                output_path = os.path.join(save_path, f"patch_map_{design}_union.png")
+            
+            plt.savefig(output_path)
             plt.close()
