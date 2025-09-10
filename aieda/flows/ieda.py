@@ -34,7 +34,7 @@ class RunIEDA(RunFlowBase):
             "filler",
         ]
 
-    def run_flow(self, flow: DbFlow, output_path: str = None):
+    def run_flow(self, flow: DbFlow):
         """run flow"""
 
         def _run_eda(flow: DbFlow):
@@ -58,10 +58,19 @@ class RunIEDA(RunFlowBase):
                     ieda_flow = IEDANetOpt(workspace=self.workspace, flow=flow)
                     ieda_flow.run_flow()
 
-                case DbFlow.FlowStep.place:
+                case DbFlow.FlowStep.place | DbFlow.FlowStep.ai_place:
                     from ..eda import IEDAPlacement
-
-                    ieda_flow = IEDAPlacement(workspace=self.workspace, flow=flow)
+                    
+                    onnx_path = None
+                    normalization_path = None
+                    if hasattr(self, 'onnx_path') and hasattr(self, 'normalization_path') :
+                        onnx_path=self.onnx_path
+                        normalization_path=self.normalization_path
+                        
+                    ieda_flow = IEDAPlacement(workspace=self.workspace, 
+                                              flow=flow,
+                                              onnx_path=onnx_path,
+                                              normalization_path=normalization_path)
                     ieda_flow.run_flow()
 
                 case DbFlow.FlowStep.cts:
@@ -108,14 +117,24 @@ class RunIEDA(RunFlowBase):
 
                 case DbFlow.FlowStep.vectorization:
                     from ..eda import IEDAVectorization
+                    
+                    output_path: str = None
+                    
+                    if hasattr(self, 'output_path'):
+                        output_path = self.output_path
 
                     ieda_flow = IEDAVectorization(
-                        workspace=self.workspace, flow=flow, vectors_dir=output_path
+                        workspace=self.workspace, flow=flow
                     )
                     ieda_flow.generate_vectors()
 
                 case DbFlow.FlowStep.drc:
                     from ..eda import IEDADrc
+                    
+                    output_path: str = None
+                    
+                    if hasattr(self, 'output_path'):
+                        output_path = self.output_path
 
                     ieda_flow = IEDADrc(
                         workspace=self.workspace, flow=flow, output_path=output_path
@@ -131,44 +150,6 @@ class RunIEDA(RunFlowBase):
 
         # run eda tool
         _run_eda(flow)
-
-        # save flow state
-        is_success = False
-        if self.check_flow_state(flow) is True:
-            flow.set_state_finished()
-            is_success = True
-        else:
-            flow.set_state_imcomplete()
-            is_success = False
-
-        self.workspace.configs.save_flow_state(flow)
-        return is_success
-
-    def run_ai_flow(
-        self, flow: DbFlow, onnx_path: str = None, normalization_path: str = None
-    ):
-        """run ai eda tool"""
-
-        def _run_ai_eda(flow: DbFlow):
-            """run eda tool"""
-            match flow.step:
-                case DbFlow.FlowStep.ai_place:
-                    from ..eda import IEDAPlacement
-
-                    ieda_flow = IEDAPlacement(workspace=self.workspace, flow=flow)
-                    ieda_flow._run_ai_placement(
-                        onnx_path=onnx_path, normalization_path=normalization_path
-                    )
-
-        if flow.is_finish() is True:
-            return True
-
-        # set state running
-        flow.set_state_running()
-        self.workspace.configs.save_flow_state(flow)
-
-        # run eda tool
-        _run_ai_eda(flow)
 
         # save flow state
         is_success = False
@@ -263,16 +244,9 @@ class RunIEDA(RunFlowBase):
             output_verilog=output_verilog,
         )
 
-        # check flow path, if None, set to default path in workspace
-        if output_def is None:
-            flow.output_def = self.workspace.configs.get_output_def(flow)
-
-        if output_verilog is None:
-            flow.output_verilog = self.workspace.configs.get_output_verilog(flow)
-
-        return self.run_ai_flow(
-            flow, onnx_path=onnx_path, normalization_path=normalization_path
-        )
+        self.onnx_path=onnx_path
+        self.normalization_path=normalization_path
+        return self.run_flow(flow)
 
     def run_CTS(
         self,
@@ -503,8 +477,10 @@ class RunIEDA(RunFlowBase):
             input_def=input_def,
             input_verilog=input_verilog,
         )
+        
+        self.output_path = drc_path
 
-        return self.run_flow(flow, output_path=drc_path)
+        return self.run_flow(flow)
 
     def run_pdn(self, input_def: str, input_verilog: str = None):
         """run instances filling flow by iEDA
