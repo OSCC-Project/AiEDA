@@ -38,6 +38,6 @@ if __name__ == "__main__":
         workspace_root=workspace_dir,
         project_name=project_name,
         step=step,
-        run_count=100,
+        run_count=10,
     )
     factory.start(optimize=DSEMethod.NNI)
