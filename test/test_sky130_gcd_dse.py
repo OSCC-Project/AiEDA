@@ -330,6 +330,17 @@ def run_eda_flow(workspace: Workspace):
         p = Process(target=run_floorplan, args=())
         p.start()
         p.join()
+        
+    def run_placement_dse(workspace, design):
+        from aieda.ai.design_parameter_optimization.dse_facade import DSEFacade
+        from aieda.data.database.enum import DSEMethod
+
+        factory = DSEFacade(
+            workspace=workspace,
+            step=DbFlow.FlowStep.place,
+            run_count=100,
+        )
+        factory.start(optimize=DSEMethod.NNI)
 
     # run each step of physical flow by iEDA
     run_floorplan_sky130_gcd(workspace)
@@ -349,12 +360,9 @@ def run_eda_flow(workspace: Workspace):
         )
     )
 
-    run_ieda.run_placement(
-        input_def=workspace.configs.get_output_def(
-            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)
-        )
-    )
-
+    # run placement by DSE method
+    run_placement_dse(workspace, "gcd")
+    
     run_ieda.run_CTS(
         input_def=workspace.configs.get_output_def(
             DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.place)
@@ -734,7 +742,7 @@ if __name__ == "__main__":
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
 
-    workspace_dir = "{}/example/sky130_test".format(root)
+    workspace_dir = "{}/example/sky130_test_des".format(root)
     workspace = create_workspace_sky130_gcd(workspace_dir)
 
     # step 2 : set paramters

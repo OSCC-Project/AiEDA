@@ -20,7 +20,7 @@ class DataFeature:
         summary_key = "{}_summary".format(flow.step.value)
 
         if flow.eda_tool == "iEDA":
-            feature_path = self.workspace.paths_table.ieda_feature_json[summary_key]
+            feature_path = self.workspace.paths_table.ieda_feature_json.get(summary_key, "")
 
             parser = FeatureParserJson(feature_path)
             return parser.get_summary()
@@ -32,7 +32,7 @@ class DataFeature:
         tool_key = "{}_tool".format(flow.step.value)
 
         if flow.eda_tool == "iEDA":
-            feature_path = self.workspace.paths_table.ieda_feature_json[tool_key]
+            feature_path = self.workspace.paths_table.ieda_feature_json.get(tool_key, "")
 
             parser = FeatureParserJson(feature_path)
             return parser.get_tools()

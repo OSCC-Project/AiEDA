@@ -256,7 +256,7 @@ class WireDistributionAnalyzer(BaseAnalyzer):
             save_path = "."
 
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
         # Generate stacked bar chart for layer wire length proportions
         plt.figure(figsize=(5, 4))
@@ -561,7 +561,7 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
         if save_path is None:
             save_path = "."
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         plt.figure(figsize=(5, 4))

@@ -186,7 +186,7 @@ class DelayAnalyzer(BaseAnalyzer):
         if save_path is None:
             save_path = "."
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
         # create DataFrame for visualization
         df_summary = pd.DataFrame([stats for stats in self.design_stats.values()])
@@ -485,7 +485,7 @@ class StageAnalyzer(BaseAnalyzer):
         if save_path is None:
             save_path = "."
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         # create DataFrame for visualization

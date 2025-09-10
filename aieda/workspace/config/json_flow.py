@@ -15,18 +15,18 @@ class FlowParser(JsonParser):
     @property
     def ieda_default_flows(self):
         default_steps = [
-            # DbFlow.FlowStep.floorplan,
-            # DbFlow.FlowStep.fixFanout,
+            DbFlow.FlowStep.floorplan,
+            DbFlow.FlowStep.fixFanout,
             DbFlow.FlowStep.place,
             DbFlow.FlowStep.cts,
-            # DbFlow.FlowStep.optDrv,
-            # DbFlow.FlowStep.optHold,
-            # DbFlow.FlowStep.optSetup,
+            DbFlow.FlowStep.optDrv,
+            DbFlow.FlowStep.optHold,
+            DbFlow.FlowStep.optSetup,
             DbFlow.FlowStep.legalization,
             DbFlow.FlowStep.route,
-            # DbFlow.FlowStep.drc,
-            # DbFlow.FlowStep.vectorization,
-            # DbFlow.FlowStep.filler
+            DbFlow.FlowStep.drc,
+            DbFlow.FlowStep.vectorization,
+            DbFlow.FlowStep.filler
         ]
 
         flow_db_list = []
@@ -52,6 +52,7 @@ class FlowParser(JsonParser):
                         "eda_tool": flow.eda_tool,
                         "step": flow.step.value,
                         "state": flow.state.value,
+                        "runtime": flow.runtime
                     }
                 )
 
@@ -65,9 +66,10 @@ class FlowParser(JsonParser):
             node_flow_dict = self.json_data["flow"]
             for flow_dict in node_flow_dict:
                 flow = DbFlow(
-                    eda_tool=flow_dict["eda_tool"],
-                    step=DbFlow.FlowStep(flow_dict["step"]),
-                    state=DbFlow.FlowState(flow_dict["state"]),
+                    eda_tool=flow_dict.get("eda_tool"),
+                    step=DbFlow.FlowStep(flow_dict.get("step")),
+                    state=DbFlow.FlowState(flow_dict.get("state")),
+                    runtime=flow_dict.get("runtime", "")
                 )
 
                 flow_db_list.append(flow)
@@ -87,6 +89,7 @@ class FlowParser(JsonParser):
                 ):
                     # set state
                     flow_dict["state"] = flow.state.value
+                    flow_dict["runtime"] = flow.runtime
                     # save file
                     return self.write()
 
@@ -99,6 +102,7 @@ class FlowParser(JsonParser):
 
             for flow_dict in node_flow_dict:
                 flow_dict["state"] = "unstart"
+                flow_dict["runtime"] = ""
 
             return self.write()
 

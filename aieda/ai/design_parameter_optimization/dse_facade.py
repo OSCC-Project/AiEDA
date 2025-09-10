@@ -32,8 +32,8 @@ from aieda.ai.design_parameter_optimization.model import NNIOptimization
 
 
 class DSEFacade:
-    def __init__(self, workspace_root=None, project_name=None, step=None, **kwargs):
-        self.workspace = Workspace(workspace_root, project_name)
+    def __init__(self, workspace : Workspace, step=None, **kwargs):
+        self.workspace = workspace
 
         self.experiment_name = kwargs.get("experiment_name")
         self.scenario_name = kwargs.get("scenario_name", "test_sweep")
@@ -43,9 +43,9 @@ class DSEFacade:
         self.multobj_flag = kwargs.get("multobj_flag", 0)
         self.store_ref = kwargs.get("store_ref", 0)
         self.benchmark_flag = kwargs.get("benchmark_flag", False)
-        self.workspace_root = workspace_root
-        self.project_name = project_name
-        self.tech = kwargs.get("tech", "sky130")
+        self.workspace_root = self.workspace.directory
+        self.project_name = self.workspace.design
+        self.tech = kwargs.get("tech", workspace.configs.workspace.process_node)
         self.step = step
 
         self.params = None

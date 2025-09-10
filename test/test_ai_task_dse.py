@@ -17,6 +17,7 @@
 from aieda.ai.design_parameter_optimization.dse_facade import DSEFacade
 from aieda.data.database.enum import DSEMethod
 from aieda.flows.base import DbFlow
+from aieda.workspace import Workspace, workspace_create
 
 import os
 
@@ -31,13 +32,11 @@ if __name__ == "__main__":
     root = current_dir.rsplit("/", 1)[0]
 
     workspace_dir = "{}/example/sky130_test".format(root)
-    project_name = "gcd"
-    step = DbFlow.FlowStep.place
+    workspace = workspace_create(directory=workspace_dir, design="gcd")
 
     factory = DSEFacade(
-        workspace_root=workspace_dir,
-        project_name=project_name,
-        step=step,
+        workspace=workspace,
+        step=DbFlow.FlowStep.place,
         run_count=100,
     )
     factory.start(optimize=DSEMethod.NNI)

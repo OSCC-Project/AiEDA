@@ -583,11 +583,16 @@ class Workspace:
                 "{}/feature".format(self.directory),
                 "{}/output".format(self.directory),
                 "{}/script".format(self.directory),
+                "{}/report".format(self.directory)
             ]
 
         @property
-        def analysis_path(self):
-            return self.workspace_top[0]
+        def analysis_dir(self):
+            return "{}/analyse".format(self.directory)
+        
+        @property
+        def output_dir(self):
+            return "{}/output".format(self.directory)
 
         @property
         def flow(self):
@@ -618,6 +623,19 @@ class Workspace:
         def log(self):
             """path for log file"""
             return "{}/{}.log".format(self.log_dir, self.design)
+        
+        @property
+        def report_dir(self):
+            return "{}/report".format(self.directory)
+        
+        @property
+        def report(self):
+            """path for workspace report file"""
+            report_paths = {
+                "summary_md": "{}/report/summary.md".format(self.directory),
+                "summary_html": "{}/report/summary.html".format(self.directory)
+            }
+            return report_paths
 
         @property
         def ieda_output_dirs(self):

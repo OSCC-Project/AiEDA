@@ -151,11 +151,17 @@ class DataGeneration(RunFlowBase):
 
         # create nets, patchs, wire_graph, wire_paths by iEDA
         from ..eda import IEDAVectorization
-
+        
+        flow.set_state_running()
+        self.workspace.configs.save_flow_state(flow)
+        
         ieda_flow = IEDAVectorization(
             workspace=self.workspace, flow=flow, vectors_dir=vectors_dir
         )
         ieda_flow.generate_vectors(patch_row_step, patch_col_step)
+        
+        flow.set_state_finished()
+        self.workspace.configs.save_flow_state(flow)
 
     def vectors_nets_to_def(
         self,

@@ -138,7 +138,7 @@ class CellTypeAnalyzer(BaseAnalyzer):
             return
 
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         df = pd.DataFrame.from_dict(self.inst_count, orient="index")
@@ -352,7 +352,7 @@ class CoreUsageAnalyzer(BaseAnalyzer):
             return
 
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         usages = list(self.core_usage.values())
@@ -542,7 +542,7 @@ class PinDistributionAnalyzer(BaseAnalyzer):
             return
 
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         all_data = []
@@ -919,7 +919,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             save_path = ""
 
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         df = pd.DataFrame.from_dict(self.stats_data, orient="index")

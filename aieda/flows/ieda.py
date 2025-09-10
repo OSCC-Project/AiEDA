@@ -36,7 +36,6 @@ class RunIEDA(RunFlowBase):
 
     def run_flow(self, flow: DbFlow):
         """run flow"""
-
         def _run_eda(flow: DbFlow):
             """run eda tool"""
             match flow.step:
@@ -159,7 +158,7 @@ class RunIEDA(RunFlowBase):
         else:
             flow.set_state_imcomplete()
             is_success = False
-
+        
         self.workspace.configs.save_flow_state(flow)
         return is_success
 

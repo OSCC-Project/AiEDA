@@ -9,6 +9,7 @@ from . import gui
 from . import third_party
 from . import utility
 from . import workspace
+from . import report
 
 __all__ = [
     '__version__',
@@ -21,4 +22,5 @@ __all__ = [
     'third_party',
     'utility',
     'workspace',
+    'report'
 ]

@@ -249,7 +249,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
         if save_path is None:
             save_path = "."
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         # Generate visualizations
@@ -648,7 +648,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         if save_path is None:
             save_path = "."
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
         # Generate visualizations
         self._create_correlation_heatmap(save_path)
@@ -965,7 +965,7 @@ class MapAnalyzer(BaseAnalyzer):
         if save_path is None:
             save_path = "."
         if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_path
+            save_path = self.workspace_dirs[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         # 1. Create individual feature maps for each design

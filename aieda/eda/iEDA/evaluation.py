@@ -66,7 +66,7 @@ class IEDAEvaluation(IEDAIO):
         self.read_output_def()
 
         if not save_path:
-            save_path = self.workspace.paths_table.analysis_path + "/cell_density.csv"
+            save_path = self.workspace.paths_table.analysis_dir + "/cell_density.csv"
             print(f"Using the default save path: {save_path}")
 
         max_density, avg_density = self.ieda.cell_density(
@@ -82,7 +82,7 @@ class IEDAEvaluation(IEDAIO):
         self.read_output_def()
 
         if not save_path:
-            save_path = self.workspace.paths_table.analysis_path + "/pin_density.csv"
+            save_path = self.workspace.paths_table.analysis_dir + "/pin_density.csv"
             print(f"Using the default save path: {save_path}")
 
         max_density, avg_density = self.ieda.pin_density(
@@ -98,7 +98,7 @@ class IEDAEvaluation(IEDAIO):
         self.read_output_def()
 
         if not save_path:
-            save_path = self.workspace.paths_table.analysis_path + "/net_density.csv"
+            save_path = self.workspace.paths_table.analysis_dir + "/net_density.csv"
             print(f"Using the default save path: {save_path}")
 
         max_density, avg_density = self.ieda.net_density(
@@ -118,7 +118,7 @@ class IEDAEvaluation(IEDAIO):
 
         if not save_path:
             save_path = (
-                self.workspace.paths_table.analysis_path + "/rudy_congestion.csv"
+                self.workspace.paths_table.analysis_dir + "/rudy_congestion.csv"
             )
             print(f"Using the default save path: {save_path}")
 
@@ -136,7 +136,7 @@ class IEDAEvaluation(IEDAIO):
 
         if not save_path:
             save_path = (
-                self.workspace.paths_table.analysis_path + "/lut_rudy_congestion.csv"
+                self.workspace.paths_table.analysis_dir + "/lut_rudy_congestion.csv"
             )
             print(f"Using the default save path: {save_path}")
 
@@ -151,7 +151,7 @@ class IEDAEvaluation(IEDAIO):
         self.read_output_def()
 
         if not save_path:
-            save_path = self.workspace.paths_table.analysis_path + "/egr_congestion.csv"
+            save_path = self.workspace.paths_table.analysis_dir + "/egr_congestion.csv"
             print(f"Using the default save path: {save_path}")
 
         max_congestion, total_congestion = self.ieda.egr_congestion(save_path)

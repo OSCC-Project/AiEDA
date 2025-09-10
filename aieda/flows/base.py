@@ -6,7 +6,7 @@
 @Desc : flow data structure
 """
 from enum import Enum
-
+import time
 
 class DbFlow(object):
     class FlowStep(Enum):
@@ -53,7 +53,8 @@ class DbFlow(object):
         self,
         eda_tool,
         step: FlowStep,
-        state: FlowState = FlowState.Ignored,
+        state: FlowState=FlowState.Ignored,
+        runtime="",
         input_def=None,
         input_verilog=None,
         output_def=None,
@@ -62,11 +63,13 @@ class DbFlow(object):
         self.eda_tool = eda_tool
         self.step: self.FlowStep = step
         self.state: self.FlowState = state
-
+        self.runtime = runtime
         self.input_def = input_def
         self.input_verilog = input_verilog
         self.output_def = output_def
         self.output_verilog = output_verilog
+        
+        self.start_time = 0
 
     def set_state_unstart(self):
         """set_state_unstart"""
@@ -74,15 +77,31 @@ class DbFlow(object):
 
     def set_state_running(self):
         """set_state_running"""
+        self._start()
         self.state = self.FlowState.Ongoing
 
     def set_state_finished(self):
         """set_state_finished"""
         self.state = self.FlowState.Success
+        self._stop()
 
     def set_state_imcomplete(self):
         """set_state_imcomplete"""
         self.state = self.FlowState.Imcomplete
+        self._stop()
+    
+    def _start(self):
+        self.start_time = time.time()
+            
+    def _stop(self):
+        end_time = time.time()
+        elapsed_time = end_time - self.start_time
+         
+        hours = int(elapsed_time // 3600)
+        minutes = int((elapsed_time % 3600) // 60)
+        seconds = (int)(elapsed_time % 60)
+        
+        self.runtime = "{}:{}:{}".format(hours, minutes, seconds)
 
     def set_first_flow(self):
         """set_first_flow"""

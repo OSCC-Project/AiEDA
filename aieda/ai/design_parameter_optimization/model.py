@@ -42,7 +42,7 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
     def __init__(
         self,
         args,
-        workspace,
+        workspace : Workspace,
         parameter,
         algorithm="TPE",
         goal="minimize",
@@ -54,10 +54,10 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
         self._workspace = workspace
         self._parameter = parameter
         self._step = step
-        self._project_name = "gcd"
+        self._project_name = workspace.design
         self._run_count = 100
-        self._result_dir = f"{workspace}/output"
-        self._tech = "sky130"
+        self._result_dir = workspace.paths_table.output_dir
+        self._tech = workspace.configs.workspace.process_node
         self.initOptimization()
 
     def getFeatureMetrics(
@@ -217,7 +217,7 @@ class NNIOptimization(AbstractOptimizationMethod):
     def __init__(
         self,
         args,
-        workspace,
+        workspace : Workspace,
         parameter,
         algorithm="TPE",
         goal="minimize",
@@ -303,8 +303,9 @@ class NNIOptimization(AbstractOptimizationMethod):
         return metric
 
     def logFeature(self, metrics, step):
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        best_metric_file = os.path.join(current_dir, "best_metric.txt")
+        # current_dir = os.path.dirname(os.path.abspath(__file__))
+        # best_metric_file = os.path.join(current_dir, "best_metric.txt")
+        best_metric_file = "{}/best_metric.txt".format(self._workspace.paths_table.analysis_dir)
         try:
             with open(best_metric_file, "r") as f:
                 current_best = float(f.read().strip())
