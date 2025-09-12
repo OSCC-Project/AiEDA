@@ -45,8 +45,8 @@ class GuiLayout:
         ax.set_title(f"{self.workspace.design} - Instance Graph", fontsize=16)
 
         # calculate image range
-        x_coords = [inst.x for inst in vec_instances.instances]
-        y_coords = [inst.y for inst in vec_instances.instances]
+        x_coords = [inst.cx for inst in vec_instances.instances]
+        y_coords = [inst.cy for inst in vec_instances.instances]
         widths = [inst.width for inst in vec_instances.instances]
         heights = [inst.height for inst in vec_instances.instances]
 

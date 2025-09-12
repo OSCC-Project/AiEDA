@@ -29,7 +29,7 @@ class DelayAnalyzer(BaseAnalyzer):
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         dir_to_display_name: Optional[Dict[str, str]] = None,
         pattern: Optional[str] = None,
     ) -> None:
@@ -37,21 +37,19 @@ class DelayAnalyzer(BaseAnalyzer):
         Load path data from multiple directories.
 
         Args:
-            workspace_dirs: List of base directories containing net data
+            workspaces: List of workspacecontaining net data
             dir_to_display_name: Optional mapping from directory names to display names
             pattern : File pattern to search for wire path files
         """
         self.dir_to_display_name = dir_to_display_name or {}
-        self.workspace_dirs = workspace_dirs
+        self.workspaces = workspaces
 
-        for workspace in workspace_dirs:
+        for workspace in workspaces:
             design_name = workspace.design
 
             vector_loader = DataVectors(workspace)
 
-            path_dir = workspace.directory + pattern
-
-            path_db = vector_loader.load_timing_paths_metrics(path_dir)
+            path_db = vector_loader.load_timing_paths_metrics(workspace.paths_table.ieda_vectors["wire_paths"])
 
             path_list = []
             for path_metric in path_db:
@@ -132,15 +130,14 @@ class DelayAnalyzer(BaseAnalyzer):
             return "No analysis results available. Please run analyze() first."
         
         report_lines = []
-        report_lines.append("=" * 60)
-        report_lines.append("PATH DELAY ANALYSIS REPORT")
-        report_lines.append("=" * 60)
+        report_lines.append("**PATH DELAY ANALYSIS REPORT**")
+        report_lines.append(f"")
         
         # Overall statistics
         total_paths = sum(stats['file_count'] for stats in self.design_stats.values())
-        report_lines.append(f"\nOVERALL STATISTICS:")
-        report_lines.append(f"  Total designs analyzed: {len(self.design_stats)}")
-        report_lines.append(f"  Total paths analyzed: {total_paths}")
+        report_lines.append(f"**OVERALL STATISTICS**")
+        report_lines.append(f"- Total designs analyzed: {len(self.design_stats)}")
+        report_lines.append(f"- Total paths analyzed: {total_paths}")
         
         # Delay statistics summary
         all_inst_delays = []
@@ -152,24 +149,25 @@ class DelayAnalyzer(BaseAnalyzer):
             all_net_delays.append(stats['net_delay_mean'])
             all_total_delays.append(stats['total_delay_mean'])
         
-        report_lines.append(f"\nDELAY STATISTICS SUMMARY:")
-        report_lines.append(f"  Instance Delay - Mean: {np.mean(all_inst_delays):.3f}, Std: {np.std(all_inst_delays):.3f}")
-        report_lines.append(f"  Net Delay - Mean: {np.mean(all_net_delays):.3f}, Std: {np.std(all_net_delays):.3f}")
-        report_lines.append(f"  Total Delay - Mean: {np.mean(all_total_delays):.3f}, Std: {np.std(all_total_delays):.3f}")
+        report_lines.append(f"")
+        report_lines.append(f"**DELAY STATISTICS SUMMARY**")
+        report_lines.append(f"- Instance Delay - Mean: {np.mean(all_inst_delays):.3f}, Std: {np.std(all_inst_delays):.3f}")
+        report_lines.append(f"- Net Delay - Mean: {np.mean(all_net_delays):.3f}, Std: {np.std(all_net_delays):.3f}")
+        report_lines.append(f"- Total Delay - Mean: {np.mean(all_total_delays):.3f}, Std: {np.std(all_total_delays):.3f}")
         
         # Per-design summary
-        report_lines.append(f"\nPER-DESIGN SUMMARY:")
+        report_lines.append(f"")
+        report_lines.append(f"**PER-DESIGN SUMMARY**")
         for design_name, stats in self.design_stats.items():
             display_name = stats['display_name']
-            report_lines.append(f"\n  Design: {display_name} ({design_name})")
-            report_lines.append(f"    Paths: {stats['file_count']}")
-            report_lines.append(f"    Instance Delay: {stats['inst_delay_mean']:.3f} ± {stats['inst_delay_std']:.3f} (median: {stats['inst_delay_median']:.3f})")
-            report_lines.append(f"    Net Delay: {stats['net_delay_mean']:.3f} ± {stats['net_delay_std']:.3f} (median: {stats['net_delay_median']:.3f})")
-            report_lines.append(f"    Total Delay: {stats['total_delay_mean']:.3f} ± {stats['total_delay_std']:.3f} (median: {stats['total_delay_median']:.3f})")
+            report_lines.append(f"")
+            report_lines.append(f"**Design: {display_name} ({design_name})**")
+            report_lines.append(f"- Paths: {stats['file_count']}")
+            report_lines.append(f"- Instance Delay: {stats['inst_delay_mean']:.3f} ± {stats['inst_delay_std']:.3f} (median: {stats['inst_delay_median']:.3f})")
+            report_lines.append(f"- Net Delay: {stats['net_delay_mean']:.3f} ± {stats['net_delay_std']:.3f} (median: {stats['net_delay_median']:.3f})")
+            report_lines.append(f"- Total Delay: {stats['total_delay_mean']:.3f} ± {stats['total_delay_std']:.3f} (median: {stats['total_delay_median']:.3f})")
         
-        report_lines.append("\n" + "=" * 60)
-        
-        return "\n".join(report_lines)
+        return report_lines
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -185,8 +183,8 @@ class DelayAnalyzer(BaseAnalyzer):
         # set default save path
         if save_path is None:
             save_path = "."
-        if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if len(self.workspaces) == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
         # create DataFrame for visualization
         df_summary = pd.DataFrame([stats for stats in self.design_stats.values()])
@@ -239,8 +237,8 @@ class DelayAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("path_delay_boxplot")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("path_delay_boxplot")
         else:
             output_path = os.path.join(save_path, "path_delay_boxplot.png")
         plt.savefig(output_path, bbox_inches="tight")
@@ -311,8 +309,8 @@ class DelayAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("path_delay_scatter")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("path_delay_scatter")
         else:
             output_path = os.path.join(save_path, "path_delay_scatter.png")
         plt.savefig(output_path, bbox_inches="tight")
@@ -331,7 +329,7 @@ class StageAnalyzer(BaseAnalyzer):
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         dir_to_display_name: Optional[Dict[str, str]] = None,
         pattern: Optional[str] = None,
     ) -> None:
@@ -339,21 +337,19 @@ class StageAnalyzer(BaseAnalyzer):
         load stage data from multiple directories
 
         Args:
-            workspace_dirs: List of base directories containing stage data
+            workspaces: List of workspacecontaining stage data
             dir_to_display_name: map directory names to display names
             pattern : File pattern to search for wire path files
         """
         self.dir_to_display_name = dir_to_display_name or {}
-        self.workspace_dirs = workspace_dirs
+        self.workspaces = workspaces
 
-        for workspace in workspace_dirs:
+        for workspace in workspaces:
             design_name = workspace.design
 
             vector_loader = DataVectors(workspace)
 
-            path_dir = workspace.directory + pattern
-
-            path_db = vector_loader.load_timing_paths_metrics(path_dir)
+            path_db = vector_loader.load_timing_paths_metrics(workspace.paths_table.ieda_vectors["wire_paths"])
 
             path_list = []
             for path_metric in path_db:
@@ -436,15 +432,14 @@ class StageAnalyzer(BaseAnalyzer):
             return "No analysis results available. Please run analyze() first."
         
         report_lines = []
-        report_lines.append("=" * 60)
-        report_lines.append("STAGE ANALYSIS REPORT")
-        report_lines.append("=" * 60)
+        report_lines.append("**STAGE ANALYSIS REPORT**")
         
         # Overall statistics
         total_paths = sum(stats['file_count'] for stats in self.design_stats.values())
-        report_lines.append(f"\nOVERALL STATISTICS:")
-        report_lines.append(f"  Total designs analyzed: {len(self.design_stats)}")
-        report_lines.append(f"  Total paths analyzed: {total_paths}")
+        report_lines.append(f"")
+        report_lines.append(f"**OVERALL STATISTICS**")
+        report_lines.append(f"- Total designs analyzed: {len(self.design_stats)}")
+        report_lines.append(f"- Total paths analyzed: {total_paths}")
         
         # Stage statistics summary
         all_stage_means = []
@@ -458,24 +453,24 @@ class StageAnalyzer(BaseAnalyzer):
             all_stage_maxs.append(stats['stage_max'])
             all_delay_means.append(stats['total_delay_mean'])
         
-        report_lines.append(f"\nSTAGE STATISTICS SUMMARY:")
-        report_lines.append(f"  Average Stage Count - Mean: {np.mean(all_stage_means):.2f}, Std: {np.std(all_stage_means):.2f}")
-        report_lines.append(f"  Stage Range - Min: {min(all_stage_mins)}, Max: {max(all_stage_maxs)}")
-        report_lines.append(f"  Total Delay - Mean: {np.mean(all_delay_means):.3f}, Std: {np.std(all_delay_means):.3f}")
+        report_lines.append(f"")
+        report_lines.append(f"**STAGE STATISTICS SUMMARY**")
+        report_lines.append(f"- Average Stage Count - Mean: {np.mean(all_stage_means):.2f}, Std: {np.std(all_stage_means):.2f}")
+        report_lines.append(f"- Stage Range - Min: {min(all_stage_mins)}, Max: {max(all_stage_maxs)}")
+        report_lines.append(f"- Total Delay - Mean: {np.mean(all_delay_means):.3f}, Std: {np.std(all_delay_means):.3f}")
         
         # Per-design summary
-        report_lines.append(f"\nPER-DESIGN SUMMARY:")
+        report_lines.append(f"")
+        report_lines.append(f"**PER-DESIGN SUMMARY**")
         for design_name, stats in self.design_stats.items():
             display_name = stats['display_name']
-            report_lines.append(f"\n  Design: {display_name} ({design_name})")
-            report_lines.append(f"    Paths: {stats['file_count']}")
-            report_lines.append(f"    Stage Count: {stats['stage_mean']:.2f} ± {stats['stage_std']:.2f} (median: {stats['stage_median']:.2f})")
-            report_lines.append(f"    Stage Range: {stats['stage_min']} - {stats['stage_max']}")
-            report_lines.append(f"    Average Total Delay: {stats['total_delay_mean']:.3f}")
+            report_lines.append(f"**Design: {display_name} ({design_name})**")
+            report_lines.append(f"- Paths: {stats['file_count']}")
+            report_lines.append(f"- Stage Count: {stats['stage_mean']:.2f} ± {stats['stage_std']:.2f} (median: {stats['stage_median']:.2f})")
+            report_lines.append(f"- Stage Range: {stats['stage_min']} - {stats['stage_max']}")
+            report_lines.append(f"- Average Total Delay: {stats['total_delay_mean']:.3f}")
         
-        report_lines.append("\n" + "=" * 60)
-        
-        return "\n".join(report_lines)
+        return report_lines
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -490,8 +485,8 @@ class StageAnalyzer(BaseAnalyzer):
         # set default save path
         if save_path is None:
             save_path = "."
-        if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if self.workspaces.__len__() == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         # create DataFrame for visualization
@@ -542,8 +537,8 @@ class StageAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("path_stage_errorbar")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("path_stage_errorbar")
         else:
             output_path = os.path.join(save_path, "path_stage_errorbar.png")
         plt.savefig(output_path, bbox_inches="tight")
@@ -611,8 +606,8 @@ class StageAnalyzer(BaseAnalyzer):
 
         plt.tight_layout()
 
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("path_stage_delay_scatter")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("path_stage_delay_scatter")
         else:
             output_path = os.path.join(save_path, "path_stage_delay_scatter.png")
         plt.savefig(output_path, bbox_inches="tight")

@@ -4,5 +4,6 @@ __all__ = [
     'ReportSummary',
     'ReportFlow',
     'ReportFoundry',
-    'ReportPatch'
+    'ReportVectors',
+    'ReportDesign'
 ]

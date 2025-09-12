@@ -13,8 +13,8 @@ class ReportGenerator:
     def __init__(self, workspace: Workspace):
         self.workspace = workspace
         
-    def generate_report_workspace(self):
-        report = ReportSummary(workspace=self.workspace)
+    def generate_report_workspace(self, display_names_map):
+        report = ReportSummary(workspace=self.workspace, display_names_map=display_names_map)
         report.generate_markdown(self.workspace.paths_table.report["summary_md"])
         # report.generate_html(self.workspace.paths_table.report["summary_html"])
     

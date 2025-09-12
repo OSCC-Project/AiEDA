@@ -31,11 +31,11 @@ class CellTypeAnalyzer(BaseAnalyzer):
     def __init__(self):
         super().__init__()
         self.inst_count = {}
-        self.workspace_dirs = []
+        self.workspaces = []
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         flow: Optional[DbFlow] = None,
         dir_to_display_name: Optional[Dict[str, str]] = None,
     ):
@@ -43,12 +43,12 @@ class CellTypeAnalyzer(BaseAnalyzer):
         Load data from multiple workspaces.
 
         Args:
-            workspace_dirs: List of workspace directories to process
+            workspaces: List of workspace to process
             flow: DbFlow object representing the flow context
             dir_to_display_name: Optional mapping from directory name to display name
         """
-        self.workspace_dirs = workspace_dirs
-        for workspace in workspace_dirs:
+        self.workspaces = workspaces
+        for workspace in workspaces:
             design_name = workspace.design
             display_name = dir_to_display_name.get(design_name, design_name)
 
@@ -105,31 +105,30 @@ class CellTypeAnalyzer(BaseAnalyzer):
         df_sorted = df.sort_values(by="total", ascending=False)
         
         report_lines = []
-        report_lines.append("Cell Type Distribution Analysis Report")
-        report_lines.append("=" * 40)
+        report_lines.append("**Cell Type Distribution Analysis Report**")
         
         # Overall statistics
         total_designs = len(df)
         total_instances = df["total"].sum()
-        report_lines.append(f"Analyzed {total_designs} design(s) with {total_instances:,} total instances")
+        report_lines.append(f"- Analyzed {total_designs} design(s) with {total_instances:,} total instances")
         report_lines.append("")
         
         # Instance type statistics
-        report_lines.append("Instance Type Statistics:")
+        report_lines.append("**Instance Type Statistics**")
         for inst_type in ["clock", "logic", "macros", "iopads"]:
             values = df_sorted[inst_type]
             type_sum = values.sum()
             proportion = type_sum / total_instances if total_instances > 0 else 0
-            report_lines.append(f"  {inst_type.capitalize()}: {type_sum:,} ({proportion:.1%}) - Min: {values.min()}, Max: {values.max()}, Avg: {values.mean():.1f}")
+            report_lines.append(f"- {inst_type.capitalize()}: {type_sum:,} ({proportion:.1%}) - Min: {values.min()}, Max: {values.max()}, Avg: {values.mean():.1f}")
         
         report_lines.append("")
         
         # Top designs by instance count
-        report_lines.append("Top 3 Designs by Total Instance Count:")
+        report_lines.append("**Top 3 Designs by Total Instance Count**")
         for i, (design, row) in enumerate(df_sorted.head(3).iterrows()):
-            report_lines.append(f"  {i+1}. {design}: {row['total']:,} instances")
+            report_lines.append(f"- {i+1}. {design}: {row['total']:,} instances")
         
-        return "\n".join(report_lines)
+        return report_lines
 
     def visualize(self, save_path: Optional[str] = None):
         """Create visualizations for cell type distribution."""
@@ -137,8 +136,8 @@ class CellTypeAnalyzer(BaseAnalyzer):
             print("No instance data found")
             return
 
-        if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if self.workspaces.__len__() == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         df = pd.DataFrame.from_dict(self.inst_count, orient="index")
@@ -178,8 +177,8 @@ class CellTypeAnalyzer(BaseAnalyzer):
         plt.tight_layout()
 
         # Save plot
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_cell_type_top_10")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("design_cell_type_top_10")
         else:
             output_path = save_path + "/design_cell_type_top_10.png"
         
@@ -219,8 +218,8 @@ class CellTypeAnalyzer(BaseAnalyzer):
         plt.tight_layout()
 
         # Save plot
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_cell_type_bottom_10")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("design_cell_type_bottom_10")
         else:
             output_path = save_path + "/design_cell_type_bottom_10.png"
         
@@ -246,11 +245,11 @@ class CoreUsageAnalyzer(BaseAnalyzer):
     def __init__(self):
         super().__init__()
         self.core_usage = {}
-        self.workspace_dirs = []
+        self.workspaces = []
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         flow: Optional[DbFlow] = None,
         dir_to_display_name: Optional[Dict[str, str]] = None,
     ):
@@ -258,12 +257,12 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         Load data from multiple directories.
 
         Args:
-            workspace_dirs: List of base directories to process
+            workspaces: List of workspace to process
             flow: DbFlow object representing the flow context
             dir_to_display_name: Optional mapping from directory name to display name
         """
-        self.workspace_dirs = workspace_dirs
-        for workspace in workspace_dirs:
+        self.workspaces = workspaces
+        for workspace in workspaces:
             design_name = workspace.design
 
             feature = DataFeature(workspace=workspace)
@@ -314,8 +313,7 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         designs = list(self.core_usage.keys())
         
         report_lines = []
-        report_lines.append("Core Usage Analysis Report")
-        report_lines.append("=" * 30)
+        report_lines.append("**Core Usage Analysis Report**")
         
         # Overall statistics
         total_designs = len(usages)
@@ -324,10 +322,10 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         max_usage = np.max(usages)
         std_usage = np.std(usages)
         
-        report_lines.append(f"Analyzed {total_designs} design(s)")
-        report_lines.append(f"Average core usage: {avg_usage:.2%}")
-        report_lines.append(f"Usage range: {min_usage:.2%} - {max_usage:.2%}")
-        report_lines.append(f"Standard deviation: {std_usage:.2%}")
+        report_lines.append(f"- Analyzed {total_designs} design(s)")
+        report_lines.append(f"- Average core usage: {avg_usage:.2%}")
+        report_lines.append(f"- Usage range: {min_usage:.2%} - {max_usage:.2%}")
+        report_lines.append(f"- Standard deviation: {std_usage:.2%}")
         report_lines.append("")
         
         # Usage categories
@@ -335,26 +333,26 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         medium_usage = [d for d, u in self.core_usage.items() if 0.5 <= u < 0.8]
         high_usage = [d for d, u in self.core_usage.items() if u >= 0.8]
         
-        report_lines.append("Usage Distribution:")
-        report_lines.append(f"  Low usage (<50%): {len(low_usage)} designs")
-        report_lines.append(f"  Medium usage (50-80%): {len(medium_usage)} designs")
-        report_lines.append(f"  High usage (≥80%): {len(high_usage)} designs")
+        report_lines.append("**Usage Distribution**")
+        report_lines.append(f"- Low usage (<50%): {len(low_usage)} designs")
+        report_lines.append(f"- Medium usage (50-80%): {len(medium_usage)} designs")
+        report_lines.append(f"- High usage (≥80%): {len(high_usage)} designs")
         report_lines.append("")
         
         # Top and bottom designs
         sorted_designs = sorted(self.core_usage.items(), key=lambda x: x[1], reverse=True)
         
-        report_lines.append("Top 3 Designs by Core Usage:")
+        report_lines.append("**Top 3 Designs by Core Usage**")
         for i, (design, usage) in enumerate(sorted_designs[:3]):
             report_lines.append(f"  {i+1}. {design}: {usage:.2%}")
         
         if len(sorted_designs) > 3:
             report_lines.append("")
-            report_lines.append("Bottom 3 Designs by Core Usage:")
+            report_lines.append("**Bottom 3 Designs by Core Usage**")
             for i, (design, usage) in enumerate(sorted_designs[-3:]):
                 report_lines.append(f"  {i+1}. {design}: {usage:.2%}")
         
-        return "\n".join(report_lines)
+        return report_lines
 
 
     def visualize(self, save_path: Optional[str] = None):
@@ -363,8 +361,8 @@ class CoreUsageAnalyzer(BaseAnalyzer):
             print("No core usage data found")
             return
 
-        if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if self.workspaces.__len__() == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         usages = list(self.core_usage.values())
@@ -381,8 +379,8 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         plt.tight_layout()
         
         # Save plot
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_core_usage_hist")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("design_core_usage_hist")
         else:
             output_path = save_path + "/design_core_usage_hist.png"
         
@@ -399,11 +397,11 @@ class PinDistributionAnalyzer(BaseAnalyzer):
     def __init__(self):
         super().__init__()
         self.pin_dist = {}
-        self.workspace_dirs = []
+        self.workspaces = []
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         flow: Optional[DbFlow] = None,
         dir_to_display_name: Optional[Dict[str, str]] = None,
     ):
@@ -411,12 +409,12 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         Load data from multiple directories.
 
         Args:
-            workspace_dirs: List of base directories to process
+            workspaces: List of base directories to process
             flow: DbFlow object representing the flow context
             dir_to_display_name: Optional mapping from directory name to display name
         """
-        self.workspace_dirs = workspace_dirs
-        for workspace in workspace_dirs:
+        self.workspaces = workspaces
+        for workspace in workspaces:
             design_name = workspace.design
 
             feature = DataFeature(workspace=workspace)
@@ -524,35 +522,34 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         df = pd.DataFrame(all_data)
         
         report_lines = []
-        report_lines.append("Pin Distribution Analysis Report")
-        report_lines.append("=" * 35)
+        report_lines.append("**Pin Distribution Analysis Report**")
         
         # Overall statistics
         total_designs = len(self.pin_dist)
         unique_pin_counts = df['pin_num'].nunique()
         total_entries = len(df)
         
-        report_lines.append(f"Analyzed {total_designs} design(s) with {total_entries} pin distribution entries")
-        report_lines.append(f"Pin count range: {df['pin_num'].min()} - {df['pin_num'].max()} pins")
-        report_lines.append(f"Unique pin counts: {unique_pin_counts}")
+        report_lines.append(f"- Analyzed {total_designs} design(s) with {total_entries} pin distribution entries")
+        report_lines.append(f"- Pin count range: {df['pin_num'].min()} - {df['pin_num'].max()} pins")
+        report_lines.append(f"- Unique pin counts: {unique_pin_counts}")
         report_lines.append("")
         
         # Net statistics
-        report_lines.append("Net Statistics:")
-        report_lines.append(f"  Average nets per pin group: {df['net_num'].mean():.1f}")
-        report_lines.append(f"  Net count range: {df['net_num'].min()} - {df['net_num'].max()}")
-        report_lines.append(f"  Average net ratio: {df['net_ratio'].mean():.3f}")
-        report_lines.append(f"  Net ratio range: {df['net_ratio'].min():.3f} - {df['net_ratio'].max():.3f}")
+        report_lines.append("**Net Statistics**")
+        report_lines.append(f"- Average nets per pin group: {df['net_num'].mean():.1f}")
+        report_lines.append(f"- Net count range: {df['net_num'].min()} - {df['net_num'].max()}")
+        report_lines.append(f"- Average net ratio: {df['net_ratio'].mean():.3f}")
+        report_lines.append(f"- Net ratio range: {df['net_ratio'].min():.3f} - {df['net_ratio'].max():.3f}")
         report_lines.append("")
         
         # Most common pin counts
         pin_count_freq = df['pin_num'].value_counts().head(5)
-        report_lines.append("Top 5 Most Common Pin Counts:")
+        report_lines.append("**Top 5 Most Common Pin Counts**")
         for pin_count, freq in pin_count_freq.items():
             avg_nets = df[df['pin_num'] == pin_count]['net_num'].mean()
-            report_lines.append(f"  {pin_count} pins: {freq} occurrences (avg {avg_nets:.1f} nets)")
+            report_lines.append(f"- {pin_count} pins: {freq} occurrences (avg {avg_nets:.1f} nets)")
         
-        return "\n".join(report_lines)
+        return report_lines
 
     def visualize(self, save_path: Optional[str] = None):
         """Create visualizations for pin distribution."""
@@ -560,8 +557,8 @@ class PinDistributionAnalyzer(BaseAnalyzer):
             print("No pin_dist data found")
             return
 
-        if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if self.workspaces.__len__() == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         all_data = []
@@ -642,8 +639,8 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         plt.tight_layout()
         
         # Save plot
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_pin_vs_net_ratio")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("design_pin_vs_net_ratio")
         else:
             output_path = save_path + "/design_pin_vs_net_ratio.png"
         
@@ -716,7 +713,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         dir_to_display_name: Optional[Dict[str, str]] = None,
         pattern: Optional[str] = None,
         calc_wire_num: bool = False,
@@ -725,22 +722,22 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         Load data from multiple directories.
 
         Args:
-            workspace_dirs: List of base directories to process
+            workspaces: List of base directories to process
             dir_to_display_name: Optional mapping from directory name to display name
-            pattern: Path pattern to append to workspace_dirs (required)
+            pattern: Path pattern to append to workspaces (required)
             calc_wire_num: Whether to calculate wire number sum (time-consuming)
         """
         if pattern is None:
             raise ValueError("Pattern must be specified for result statistics analysis")
 
-        self.workspace_dirs = workspace_dirs
+        self.workspaces = workspaces
         self.calc_wire_num = calc_wire_num
 
         # Build complete design path list
         design_paths = []
         design_name_mapping = {}
 
-        for workspace in workspace_dirs:
+        for workspace in workspaces:
             # Build complete path
             full_path = workspace.directory + pattern
             design_paths.append(full_path)
@@ -890,22 +887,21 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         df = pd.DataFrame.from_dict(self.stats_data, orient="index")
         
         report_lines = []
-        report_lines.append("Result Statistics Analysis Report")
-        report_lines.append("=" * 37)
+        report_lines.append("**Result Statistics Analysis Report**")
         
         # Overall summary
         total_designs = len(self.stats_data)
         accessible_designs = self.total_stats['accessible_designs']
         
-        report_lines.append(f"Total designs analyzed: {total_designs}")
-        report_lines.append(f"Accessible designs: {accessible_designs}/{total_designs} ({accessible_designs/total_designs:.1%})")
+        report_lines.append(f"- Total designs analyzed: {total_designs}")
+        report_lines.append(f"- Accessible designs: {accessible_designs}/{total_designs} ({accessible_designs/total_designs:.1%})")
         report_lines.append("")
         
         # File statistics summary
-        report_lines.append("File Statistics Summary:")
-        report_lines.append(f"  Nets: {self.total_stats['nets_count']} files, {self._format_size(self.total_stats['nets_size'])}")
-        report_lines.append(f"  Patches: {self.total_stats['patches_count']} files, {self._format_size(self.total_stats['patches_size'])}")
-        report_lines.append(f"  Paths: {self.total_stats['paths_count']} files, {self._format_size(self.total_stats['paths_size'])}")
+        report_lines.append("**File Statistics Summary**")
+        report_lines.append(f"- Nets: {self.total_stats['nets_count']} files, {self._format_size(self.total_stats['nets_size'])}")
+        report_lines.append(f"- Patches: {self.total_stats['patches_count']} files, {self._format_size(self.total_stats['patches_size'])}")
+        report_lines.append(f"- Paths: {self.total_stats['paths_count']} files, {self._format_size(self.total_stats['paths_size'])}")
         
         if self.calc_wire_num:
             report_lines.append(f"  Total wire numbers: {self.total_stats['wire_num_sum']:,}")
@@ -928,12 +924,12 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         df['total_files'] = df['nets_count'] + df['patches_count'] + df['paths_count']
         top_designs = df.nlargest(3, 'total_files')
         
-        report_lines.append("Top 3 Designs by Total File Count:")
+        report_lines.append("**Top 3 Designs by Total File Count**")
         for i, (design, row) in enumerate(top_designs.iterrows()):
             total_size = row['nets_size'] + row['patches_size'] + row['paths_size']
             report_lines.append(f"  {i+1}. {design}: {int(row['total_files'])} files, {self._format_size(total_size)}")
         
-        return "\n".join(report_lines)
+        return report_lines
 
     def visualize(self, save_path: Optional[str] = None):
         """Create visualizations for the statistics data."""
@@ -944,8 +940,8 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         if save_path is None:
             save_path = ""
 
-        if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if self.workspaces.__len__() == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         df = pd.DataFrame.from_dict(self.stats_data, orient="index")
@@ -989,8 +985,8 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         plt.tight_layout()
         
         # Save plot
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_result_stats_overview")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("design_result_stats_overview")
         else:
             output_path = save_path + "/design_result_stats_overview.png"
         
@@ -1028,8 +1024,8 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         plt.tight_layout()
         
         # Save plot
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("design_result_stats_heatmap")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("design_result_stats_heatmap")
         else:
             output_path = save_path + "/design_result_stats_heatmap.png"
         

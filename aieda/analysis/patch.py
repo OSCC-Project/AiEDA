@@ -32,7 +32,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         dir_to_display_name: Optional[Dict[str, str]] = None,
         pattern: Optional[str] = None,
     ) -> None:
@@ -40,22 +40,20 @@ class WireDensityAnalyzer(BaseAnalyzer):
         Load wire density data from multiple directories
 
         Args:
-            workspace_dirs: List of base directories containing patch data
+            workspaces: List of workspace containing patch data
             dir_to_display_name: Optional mapping from directory names to display names
             pattern : Pattern to match patch files
             max_workers: Maximum number of worker processes (default: min(8, cpu_count()))
             verbose: Whether to show progress information
         """
         self.dir_to_display_name = dir_to_display_name or {}
-        self.workspace_dirs = workspace_dirs
-        for workspace in workspace_dirs:
+        self.workspaces = workspaces
+        for workspace in workspaces:
             design_name = workspace.design
 
             vector_loader = DataVectors(workspace)
 
-            patch_dir = workspace.directory + pattern
-
-            patch_db = vector_loader.load_patchs(patch_dir)
+            patch_db = vector_loader.load_patchs(workspace.paths_table.ieda_vectors["patchs"])
 
             patch_list = []
             for vec_patch in patch_db:
@@ -167,18 +165,17 @@ class WireDensityAnalyzer(BaseAnalyzer):
             return "No wire density data available for analysis. Please run analyze() first."
 
         report_lines = []
-        report_lines.append("Wire Density Analysis Report")
-        report_lines.append("=" * 28)
+        report_lines.append("**Wire Density Analysis Report**")
         
         # Overall statistics
         total_designs = len(self.design_stats)
         total_patches = sum(stats['file_count'] for stats in self.design_stats.values())
         
-        report_lines.append(f"Analyzed {total_designs} design(s) with {total_patches:,} total patches")
+        report_lines.append(f"- Analyzed {total_designs} design(s) with {total_patches:,} total patches")
         report_lines.append("")
         
         # Layer-wise congestion summary
-        report_lines.append("Layer-wise Congestion Summary:")
+        report_lines.append("**Layer-wise Congestion Summary**")
         for layer in self.valid_layers:
             layer_congestions = []
             for stats in self.design_stats.values():
@@ -189,12 +186,12 @@ class WireDensityAnalyzer(BaseAnalyzer):
             if layer_congestions:
                 avg_congestion = np.mean(layer_congestions)
                 max_congestion = np.max(layer_congestions)
-                report_lines.append(f"  Layer {layer}: Avg={avg_congestion:.3f}, Max={max_congestion:.3f} ({len(layer_congestions)} designs)")
+                report_lines.append(f"- Layer {layer}: Avg={avg_congestion:.3f}, Max={max_congestion:.3f} ({len(layer_congestions)} designs)")
         
         report_lines.append("")
         
         # Layer-wise wire density summary
-        report_lines.append("Layer-wise Wire Density Summary:")
+        report_lines.append("**Layer-wise Wire Density Summary**")
         for layer in self.valid_layers:
             layer_densities = []
             for stats in self.design_stats.values():
@@ -205,12 +202,12 @@ class WireDensityAnalyzer(BaseAnalyzer):
             if layer_densities:
                 avg_density = np.mean(layer_densities)
                 max_density = np.max(layer_densities)
-                report_lines.append(f"  Layer {layer}: Avg={avg_density:.3f}, Max={max_density:.3f} ({len(layer_densities)} designs)")
+                report_lines.append(f"- Layer {layer}: Avg={avg_density:.3f}, Max={max_density:.3f} ({len(layer_densities)} designs)")
         
         report_lines.append("")
         
         # Per-design summary
-        report_lines.append("Per-Design Summary:")
+        report_lines.append("**Per-Design Summary**")
         for design_name, stats in self.design_stats.items():
             display_name = stats['display_name']
             patch_count = stats['file_count']
@@ -228,12 +225,12 @@ class WireDensityAnalyzer(BaseAnalyzer):
                     max_congestion_value = congestion
                     max_congestion_layer = layer
             
-            congestion_info = f"Most congested: Layer {max_congestion_layer} ({max_congestion_value:.3f})" if max_congestion_layer else "No congestion data"
+            congestion_info = f"- Most congested: Layer {max_congestion_layer} ({max_congestion_value:.3f})" if max_congestion_layer else "No congestion data"
             
-            report_lines.append(f"  {display_name}: {patch_count:,} patches, Avg Congestion: {avg_congestion:.3f}, Avg Density: {avg_density:.3f}")
-            report_lines.append(f"    {congestion_info}")
+            report_lines.append(f"- {display_name}: {patch_count:,} patches, Avg Congestion: {avg_congestion:.3f}, Avg Density: {avg_density:.3f}")
+            report_lines.append(f"- {congestion_info}")
         
-        return "\n".join(report_lines)
+        return report_lines
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -248,8 +245,8 @@ class WireDensityAnalyzer(BaseAnalyzer):
         # Set output directory
         if save_path is None:
             save_path = "."
-        if len(self.workspace_dirs) == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if len(self.workspaces) == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         # Generate visualizations
@@ -319,8 +316,8 @@ class WireDensityAnalyzer(BaseAnalyzer):
         plt.tight_layout()
 
         # Save plot
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_congestion_wire_density_regression")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("patch_congestion_wire_density_regression")
         else:
             output_path = os.path.join(
                 save_path, "patch_congestion_wire_density_regression.png"
@@ -399,8 +396,8 @@ class WireDensityAnalyzer(BaseAnalyzer):
         plt.tight_layout()
         
         # Save Plots
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_layer_comparison")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("patch_layer_comparison")
         else:
             output_path = os.path.join(save_path, "patch_layer_comparison.png")
             
@@ -431,7 +428,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         dir_to_display_name: Optional[Dict[str, str]] = None,
         pattern: Optional[str] = None,
     ) -> None:
@@ -439,20 +436,18 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         Load patch feature data from multiple directories
 
         Args:
-            workspace_dirs: List of base directories containing patch data
+            workspaces: List of base directories containing patch data
             dir_to_display_name: Optional mapping from directory names to display names
             pattern : Pattern to match patch files
         """
         self.dir_to_display_name = dir_to_display_name or {}
-        self.workspace_dirs = workspace_dirs
-        for workspace in workspace_dirs:
+        self.workspaces = workspaces
+        for workspace in workspaces:
             design_name = workspace.design
 
             vector_loader = DataVectors(workspace)
 
-            patch_dir = workspace.directory + pattern
-
-            patch_db = vector_loader.load_patchs(patch_dir)
+            patch_db = vector_loader.load_patchs(workspace.paths_table.ieda_vectors["patchs"])
 
             patch_list = []
             for vec_patch in patch_db:
@@ -576,19 +571,19 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
             return "No feature correlation data available for analysis. Please run analyze() first."
 
         report_lines = []
-        report_lines.append("Feature Correlation Analysis Report")
-        report_lines.append("=" * 35)
+        report_lines.append("**Feature Correlation Analysis Report**")
         
         # Overall statistics
         total_designs = len(self.feature_stats)
         total_patches = sum(stats['file_count'] for stats in self.feature_stats.values())
         
-        report_lines.append(f"Analyzed {total_designs} design(s) with {total_patches:,} total patches")
-        report_lines.append(f"Features analyzed: {', '.join(self.correlation_features)}")
+        report_lines.append(f"- Analyzed {total_designs} design(s) with {total_patches:,} total patches")
+        report_lines.append(f"- Features analyzed: {', '.join(self.correlation_features)}")
         report_lines.append("")
         
         # Strong correlations
-        report_lines.append("Strong Feature Correlations (|r| > 0.5):")
+        report_lines.append("**Strong Feature Correlations (|r| > 0.5)**")
+        report_lines.append("\n")
         strong_corrs = []
         for i, feature1 in enumerate(self.correlation_features):
             for j, feature2 in enumerate(self.correlation_features):
@@ -603,14 +598,14 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         if strong_corrs:
             for feature1, feature2, corr_val in strong_corrs[:8]:  # Show top 8
                 direction = "positive" if corr_val > 0 else "negative"
-                report_lines.append(f"  {feature1} vs {feature2}: {corr_val:.3f} ({direction})")
+                report_lines.append(f"- {feature1} vs {feature2}: {corr_val:.3f} ({direction})")
         else:
-            report_lines.append("  No strong correlations found between features")
+            report_lines.append("- No strong correlations found between features")
         
         report_lines.append("")
         
         # Feature statistics summary
-        report_lines.append("Feature Statistics Summary:")
+        report_lines.append("**Feature Statistics Summary**")
         for feature in self.correlation_features:
             all_means = [stats.get(f'{feature}_mean', 0) for stats in self.feature_stats.values()]
             all_stds = [stats.get(f'{feature}_std', 0) for stats in self.feature_stats.values()]
@@ -621,12 +616,12 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
                 min_val = min(stats.get(f'{feature}_min', 0) for stats in self.feature_stats.values())
                 max_val = max(stats.get(f'{feature}_max', 0) for stats in self.feature_stats.values())
                 
-                report_lines.append(f"  {feature}: Avg={avg_mean:.3e}, Std={avg_std:.3e}, Range=[{min_val:.3e}, {max_val:.3e}]")
+                report_lines.append(f"- {feature}: Avg={avg_mean:.3e}, Std={avg_std:.3e}, Range=[{min_val:.3e}, {max_val:.3e}]")
         
         report_lines.append("")
         
         # Per-design summary
-        report_lines.append("Per-Design Summary:")
+        report_lines.append("**Per-Design Summary**")
         for design_name, stats in self.feature_stats.items():
             display_name = stats['display_name']
             patch_count = stats['file_count']
@@ -637,11 +632,11 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
             timing = stats.get('Timing_mean', 0)
             power = stats.get('Power_mean', 0)
             
-            report_lines.append(f"  {display_name}: {patch_count:,} patches")
-            report_lines.append(f"    Cell Density: {cell_density:.3f}, Congestion: {congestion:.3f}")
-            report_lines.append(f"    Timing: {timing:.3e}, Power: {power:.3e}")
+            report_lines.append(f"- {display_name}: {patch_count:,} patches")
+            report_lines.append(f"- Cell Density: {cell_density:.3f}, Congestion: {congestion:.3f}")
+            report_lines.append(f"- Timing: {timing:.3e}, Power: {power:.3e}")
         
-        return "\n".join(report_lines)
+        return report_lines
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -656,8 +651,8 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         # Set output directory
         if save_path is None:
             save_path = "."
-        if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if len(self.workspaces) == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
         # Generate visualizations
         self._create_correlation_heatmap(save_path)
@@ -686,8 +681,8 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         plt.tight_layout(pad=1.1)
 
         # Save plots
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_feature_correlation")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("patch_feature_correlation")
         else:
             output_path = os.path.join(save_path, "patch_feature_correlation.png")
         plt.savefig(output_path)
@@ -737,8 +732,8 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
         plt.tight_layout()
         
         # Save Plots
-        if len(self.workspace_dirs) == 1:
-            output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_feature_distributions")
+        if len(self.workspaces) == 1:
+            output_path = self.workspaces[0].paths_table.get_image_path("patch_feature_distributions")
         else:
             output_path = os.path.join(save_path, "patch_feature_distributions.png")
         plt.savefig(output_path, bbox_inches="tight")
@@ -772,7 +767,7 @@ class MapAnalyzer(BaseAnalyzer):
 
     def load(
         self,
-        workspace_dirs: List[Workspace],
+        workspaces: List[Workspace],
         dir_to_display_name: Dict[str, str],
         pattern: Optional[str],
     ) -> None:
@@ -780,7 +775,7 @@ class MapAnalyzer(BaseAnalyzer):
         Load patch data with spatial position information from multiple directories.
 
         Args:
-            workspace_dirs: List of base directory paths
+            workspaces: List of workspace
             dir_to_display_name: Mapping from directory names to display names
 
         """
@@ -790,16 +785,14 @@ class MapAnalyzer(BaseAnalyzer):
             raise ValueError("Pattern must be specified to find patch files.")
 
         self.dir_to_display_name = dir_to_display_name or {}
-        self.workspace_dirs = workspace_dirs
+        self.workspaces = workspaces
 
-        for workspace in workspace_dirs:
+        for workspace in workspaces:
             design_name = workspace.design
 
             vector_loader = DataVectors(workspace)
 
-            patch_dir = workspace.directory + pattern
-
-            patch_db = vector_loader.load_patchs(patch_dir)
+            patch_db = vector_loader.load_patchs(workspace.paths_table.ieda_vectors["patchs"])
 
             patch_list = []
             for vec_patch in patch_db:
@@ -822,7 +815,7 @@ class MapAnalyzer(BaseAnalyzer):
 
         # create features DataFrame
         self.data = pd.DataFrame(patch_list)
-        print(f"Loaded {len(self.data)} patches from {len(workspace_dirs)} designs")
+        print(f"Loaded {len(self.data)} patches from {len(workspaces)} designs")
 
     def analyze(self) -> None:
         """
@@ -883,28 +876,27 @@ class MapAnalyzer(BaseAnalyzer):
 
         report_lines = []
         report_lines.append("Spatial Feature Distribution Analysis Report")
-        report_lines.append("=" * 43)
         
         # Overall statistics
         total_designs = len(self.analysis_results)
         total_patches = sum(result['dimensions'][0] * result['dimensions'][1] for result in self.analysis_results.values())
         
-        report_lines.append(f"Analyzed {total_designs} design(s) with {total_patches:,} total patches")
-        report_lines.append(f"Features analyzed: {', '.join(self.features)}")
+        report_lines.append(f"- Analyzed {total_designs} design(s) with {total_patches:,} total patches")
+        report_lines.append(f"- Features analyzed: {', '.join(self.features)}")
         report_lines.append("")
         
         # Design layout summary
-        report_lines.append("Design Layout Summary:")
+        report_lines.append("**Design Layout Summary**")
         for design, result in self.analysis_results.items():
             display_name = self.dir_to_display_name.get(design, design)
             dims = result['dimensions']
             patch_count = dims[0] * dims[1]
-            report_lines.append(f"  {display_name}: {dims[0]} x {dims[1]} grid ({patch_count:,} patches)")
+            report_lines.append(f"- {display_name}: {dims[0]} x {dims[1]} grid ({patch_count:,} patches)")
         
         report_lines.append("")
         
         # Feature statistics across all designs
-        report_lines.append("Feature Statistics Across All Designs:")
+        report_lines.append("**Feature Statistics Across All Designs**")
         for feature in self.features:
             all_means = []
             all_maxes = []
@@ -922,20 +914,21 @@ class MapAnalyzer(BaseAnalyzer):
                 avg_max = np.mean(all_maxes)
                 avg_hotspot_ratio = np.mean(all_hotspot_ratios)
                 
-                report_lines.append(f"  {feature}:")
+                report_lines.append(f"- {feature}")
                 report_lines.append(f"    Avg Mean: {avg_mean:.3e}, Avg Max: {avg_max:.3e}")
                 report_lines.append(f"    Avg Hotspot Ratio (>90th percentile): {avg_hotspot_ratio:.1%}")
+                report_lines.append("")
         
         report_lines.append("")
         
         # Per-design detailed summary
-        report_lines.append("Per-Design Detailed Summary:")
+        report_lines.append("**Per-Design Detailed Summary**")
         for design, result in self.analysis_results.items():
             display_name = self.dir_to_display_name.get(design, design)
             dims = result['dimensions']
             spatial_stats = result['spatial_stats']
             
-            report_lines.append(f"  {display_name} ({dims[0]}x{dims[1]}):")
+            report_lines.append(f"- {display_name} ({dims[0]}x{dims[1]})")
             
             # Find most critical features
             max_congestion = spatial_stats.get('Congestion', {}).get('max', 0)
@@ -952,9 +945,9 @@ class MapAnalyzer(BaseAnalyzer):
                         max_variance_value = variance
                         max_variance_feature = feature
             
-            report_lines.append(f"    Max Congestion: {max_congestion:.3f}, Max Timing: {max_timing:.3e}, Max Power: {max_power:.3e}")
+            report_lines.append(f"- Max Congestion: {max_congestion:.3f}, Max Timing: {max_timing:.3e}, Max Power: {max_power:.3e}")
             if max_variance_feature:
-                report_lines.append(f"    Most non-uniform feature: {max_variance_feature} (variance: {max_variance_value:.3e})")
+                report_lines.append(f"- Most non-uniform feature: {max_variance_feature} (variance: {max_variance_value:.3e})")
             
             # Show hotspot information
             hotspot_features = []
@@ -965,9 +958,9 @@ class MapAnalyzer(BaseAnalyzer):
                         hotspot_features.append(f"{feature} ({hotspot_ratio:.1%})")
             
             if hotspot_features:
-                report_lines.append(f"    Features with significant hotspots: {', '.join(hotspot_features)}")
+                report_lines.append(f"- Features with significant hotspots: {', '.join(hotspot_features)}")
         
-        return "\n".join(report_lines)
+        return report_lines
 
     def visualize(self, save_path: Optional[str] = None) -> None:
         """
@@ -980,8 +973,8 @@ class MapAnalyzer(BaseAnalyzer):
 
         if save_path is None:
             save_path = "."
-        if self.workspace_dirs.__len__() == 1:
-            save_path = self.workspace_dirs[0].paths_table.analysis_dir
+        if len(self.workspaces) == 1:
+            save_path = self.workspaces[0].paths_table.analysis_dir
             print(f"Only one workspace, using save path: {save_path}")
 
         # 1. Create individual feature maps for each design
@@ -991,6 +984,15 @@ class MapAnalyzer(BaseAnalyzer):
         self._create_feature_comparison_grid(save_path, unified_cmap)
 
         print(f"Visualizations saved to {save_path}/")
+        
+    @property
+    def image_paths(self):
+        paths = []
+        for feature in self.features:
+            output_path = self.workspaces[0].paths_table.get_image_path(f"patch_map_{feature}", self.workspaces[0].design)
+            paths.append(output_path)
+            
+        return paths
 
     def _create_individual_feature_maps(self, save_path: str, cmap: str) -> None:
         """Create individual heatmaps for each feature and design."""
@@ -1036,8 +1038,8 @@ class MapAnalyzer(BaseAnalyzer):
 
                 plt.tight_layout()
                 
-                if len(self.workspace_dirs) == 1:
-                    output_path = self.workspace_dirs[0].paths_table.get_image_path(f"patch_map_{feature}", design)
+                if len(self.workspaces) == 1:
+                    output_path = self.workspaces[0].paths_table.get_image_path(f"patch_map_{feature}", design)
                 else:
                     output_path = os.path.join(save_path, f"patch_map_{design}_{feature.replace(' ', '_')}.png")
                 
@@ -1093,8 +1095,8 @@ class MapAnalyzer(BaseAnalyzer):
 
             plt.tight_layout()
             
-            if len(self.workspace_dirs) == 1:
-                output_path = self.workspace_dirs[0].paths_table.get_image_path("patch_map_union", design)
+            if len(self.workspaces) == 1:
+                output_path = self.workspaces[0].paths_table.get_image_path("patch_map_union", design)
             else:
                 output_path = os.path.join(save_path, f"patch_map_{design}_union.png")
             

@@ -435,9 +435,7 @@ def generate_all_reports(workspace: Workspace):
     DISPLAY_NAME = {"gcd": "GCD"}
     
     report_content = []
-    report_content.append("=" * 80)
     report_content.append("AIEDA ANALYSIS REPORTS")
-    report_content.append("=" * 80)
     report_content.append("")
     
     # step 1 : design level 

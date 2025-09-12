@@ -230,5 +230,6 @@ class DataVectors:
             graph_path = self.workspace.paths_table.ieda_vectors[
                 "timing_instance_graph"
             ]
+        graph_path = "/data2/project_share/dataset_baseline/ASIC/workspace/output/innovus/vectors1/instance_graph/timing_instance_graph.json"
         parser = VectorsParserJson(json_path=graph_path, logger=self.workspace.logger)
         return parser.get_instance_graph()
