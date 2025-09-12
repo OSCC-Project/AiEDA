@@ -80,8 +80,8 @@ class GuiLayout:
 
         for instance in vec_instances.instances:
             # calculate rectangle parameters
-            x = instance.x
-            y = instance.y
+            x = instance.cx
+            y = instance.cy
             width = instance.width
             height = instance.height
 
@@ -207,12 +207,12 @@ class GuiLayout:
                     # draw connection line with better visibility
                     ax.plot(
                         [
-                            from_instance.x + from_instance.width / 2,
-                            to_instance.x + to_instance.width / 2,
+                            from_instance.cx + from_instance.width / 2,
+                            to_instance.cx + to_instance.width / 2,
                         ],
                         [
-                            from_instance.y + from_instance.height / 2,
-                            to_instance.y + to_instance.height / 2,
+                            from_instance.cy + from_instance.height / 2,
+                            to_instance.cy + to_instance.height / 2,
                         ],
                         "-",
                         linewidth=0.5,
