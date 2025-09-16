@@ -23,7 +23,7 @@ from aieda.analysis import DelayAnalyzer, StageAnalyzer
 from aieda.analysis import WireDensityAnalyzer, FeatureCorrelationAnalyzer, MapAnalyzer
 
 
-def create_workspace_sky130(workspace_dir, design, verilog):
+def create_workspace_sky130(workspace_dir, design, verilog, sdc, spef=""):
     flow_db_list = []
 
     flow_db_list.append(
@@ -168,10 +168,10 @@ def create_workspace_sky130(workspace_dir, design, verilog):
     workspace.set_libs(libs)
 
     # set sdc
-    workspace.set_sdc("{}/sdc/gcd.sdc".format(foundry_dir))
+    workspace.set_sdc(sdc)
 
     # set spef
-    workspace.set_spef("{}/spef/gcd.spef".format(foundry_dir))
+    workspace.set_spef(spef)
 
     # set workspace info
     workspace.set_process_node("sky130")
@@ -335,15 +335,15 @@ def run_eda_flow(workspace: Workspace, clock_nets):
     # init iEDA by workspace
     run_ieda = RunIEDA(workspace)
 
-    run_ieda.run_pdn(
-        input_def=workspace.configs.get_output_def(
-            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan)
-        )
-    )
+    # run_ieda.run_pdn(
+    #     input_def=workspace.configs.get_output_def(
+    #         DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan)
+    #     )
+    # )
 
     run_ieda.run_fix_fanout(
         input_def=workspace.configs.get_output_def(
-            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.pdn)
+            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan)
         )
     )
 
@@ -425,7 +425,9 @@ def crate_data(design_info):
     # step 1 : create workspace
     workspace = create_workspace_sky130(workspace_dir=design_info["workspace"], 
                                         design= design_info["design"], 
-                                        verilog= design_info["verilog"])
+                                        verilog= design_info["verilog"],
+                                        sdc=design_info["sdc"],
+                                        spef=design_info["spef"])
     # workspace = workspace_create(directory=workspace_dir, design="gcd")
 
     # step 2 : set paramters
@@ -447,13 +449,17 @@ if __name__ == "__main__":
             "alias" : "gcd",
             "workspace" : "/home/huangzengrong/aieda_0.1/aieda_fork/example/sky130_gcd",
             "verilog" : "/data2/project_share/dataset_skywater130/gcd/syn_netlist/gcd.v",
-            "clock" :["clk"]
+            "sdc" : "/home/huangzengrong/aieda_0.1/aieda_fork/aieda/third_party/iEDA/scripts/foundry/sky130/sdc/gcd.sdc",
+            "spef" : "/home/huangzengrong/aieda_0.1/aieda_fork/aieda/third_party/iEDA/scripts/foundry/sky130/spef/gcd.spef",
+            "clock" :["clk"],
         },
         {
             "design" : "aes",
             "alias" : "aes",
             "workspace" : "/home/huangzengrong/aieda_0.1/aieda_fork/example/sky130_aes",
             "verilog" : "/data2/project_share/dataset_skywater130/aes/syn_netlist/aes.v",
+            "sdc" : "/home/huangzengrong/aieda_0.1/aieda_fork/aieda/third_party/iEDA/scripts/foundry/sky130/sdc/gcd.sdc",
+            "spef" : "",
             "clock" :["clk"]
         }
     ]
