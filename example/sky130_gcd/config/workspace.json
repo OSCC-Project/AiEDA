@@ -1,9 +1,0 @@
-{
-    "workspace": {
-        "process_node": "sky130",
-        "version": "V1",
-        "project": "gcd",
-        "design": "gcd",
-        "task": "run_eda"
-    }
-}
