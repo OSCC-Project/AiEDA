@@ -7,8 +7,8 @@
 """
 ######################################################################################
 # # import aieda
-from import_aieda import import_aieda
-import_aieda()
+# from import_aieda import import_aieda
+# import_aieda()
 ######################################################################################
 import os
 
@@ -335,15 +335,15 @@ def run_eda_flow(workspace: Workspace, clock_nets):
     # init iEDA by workspace
     run_ieda = RunIEDA(workspace)
 
-    # run_ieda.run_pdn(
-    #     input_def=workspace.configs.get_output_def(
-    #         DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan)
-    #     )
-    # )
+    run_ieda.run_pdn(
+        input_def=workspace.configs.get_output_def(
+            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan)
+        )
+    )
 
     run_ieda.run_fix_fanout(
         input_def=workspace.configs.get_output_def(
-            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan)
+            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.pdn)
         )
     )
 
@@ -444,15 +444,15 @@ def crate_data(design_info):
     
 if __name__ == "__main__":
     design_list = [
-        {
-            "design" : "gcd",
-            "alias" : "gcd",
-            "workspace" : "/home/huangzengrong/aieda_0.1/aieda_fork/example/sky130_gcd",
-            "verilog" : "/data2/project_share/dataset_skywater130/gcd/syn_netlist/gcd.v",
-            "sdc" : "/home/huangzengrong/aieda_0.1/aieda_fork/aieda/third_party/iEDA/scripts/foundry/sky130/sdc/gcd.sdc",
-            "spef" : "/home/huangzengrong/aieda_0.1/aieda_fork/aieda/third_party/iEDA/scripts/foundry/sky130/spef/gcd.spef",
-            "clock" :["clk"],
-        },
+        # {
+        #     "design" : "gcd",
+        #     "alias" : "gcd",
+        #     "workspace" : "/home/huangzengrong/aieda_0.1/aieda_fork/example/sky130_gcd",
+        #     "verilog" : "/data2/project_share/dataset_skywater130/gcd/syn_netlist/gcd.v",
+        #     "sdc" : "/home/huangzengrong/aieda_0.1/aieda_fork/aieda/third_party/iEDA/scripts/foundry/sky130/sdc/gcd.sdc",
+        #     "spef" : "/home/huangzengrong/aieda_0.1/aieda_fork/aieda/third_party/iEDA/scripts/foundry/sky130/spef/gcd.spef",
+        #     "clock" :["clk"]
+        # },
         {
             "design" : "aes",
             "alias" : "aes",
