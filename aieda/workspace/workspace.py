@@ -660,6 +660,12 @@ class Workspace:
         parser.set_min_wirelength_force_bar(
             parameters.placement_min_wirelength_force_bar
         )
+        parser.set_max_backtrack(parameters.placement_max_backtrack)
+        parser.set_init_density_penalty(parameters.placement_init_density_penalty)
+        parser.set_target_overflow(parameters.placement_target_overflow)
+        parser.set_initial_prev_coordi_update_coef(parameters.placement_initial_prev_coordi_update_coef)
+        parser.set_min_precondition(parameters.placement_min_precondition)
+        parser.set_min_phi_coef(parameters.placement_min_phi_coef)
 
         # update iEDA_config/cts_default_config.json
         from .config import ConfigIEDACTSParser

@@ -32,6 +32,12 @@ if __name__ == "__main__":
     parameters.placement_max_phi_coef = 1.04
     parameters.placement_init_wirelength_coef = 0.15
     parameters.placement_min_wirelength_force_bar = -54.04
+    parameters.placement_max_backtrack = 20
+    parameters.placement_init_density_penalty = 0.0001
+    parameters.placement_target_overflow = 0.1
+    parameters.placement_initial_prev_coordi_update_coef = 200.0
+    parameters.placement_min_precondition = 2.0
+    parameters.placement_min_phi_coef = 0.9
     parameters.cts_skew_bound = "0.1"
     parameters.cts_max_buf_tran = "1.2"
     parameters.cts_max_sink_tran = "1.1"    
