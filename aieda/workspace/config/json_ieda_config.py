@@ -747,3 +747,129 @@ class ConfigIEDAPNPParser(JsonParser):
             )
 
         return self.write()
+    
+    def set_pnp_grid_power_layers(self, power_layers: list[str]):
+        if self.read():
+            self.json_data["grid"]["power_layers"] = power_layers
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_pnp_grid_follow_pin_layers(self, follow_pin_layers: list[str]):
+        if self.read():
+            self.json_data["grid"]["follow_pin_layers"] = follow_pin_layers
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_pnp_grid_follow_pin_width(self, follow_pin_width):
+        if self.read():
+            self.json_data["grid"]["follow_pin_width"] = follow_pin_width
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_pnp_grid_power_port_layer(self, power_port_layer: str):
+        if self.read():
+            self.json_data["grid"]["power_port_layer"] = power_port_layer
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_pnp_simulated_annealing_modifiable_layer_min(self, modifiable_layer_min: str):
+        if self.read():
+            self.json_data["simulated_annealing"]["modifiable_layer_min"] = modifiable_layer_min
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_pnp_simulated_annealing_modifiable_layer_max(self, modifiable_layer_max: str):
+        if self.read():
+            self.json_data["simulated_annealing"]["modifiable_layer_max"] = modifiable_layer_max
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_templates_horizontal_width(self, width):
+        if self.read():
+            self.json_data["templates"]["horizontal"]["width"] = width
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_templates_horizontal_pg_offset(self, pg_offset):
+        if self.read():
+            self.json_data["templates"]["horizontal"]["pg_offset"] = pg_offset
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_templates_horizontal_space(self, space):
+        if self.read():
+            self.json_data["templates"]["horizontal"]["space"] = space
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_templates_horizontal_offset(self, offset):
+        if self.read():
+            self.json_data["templates"]["horizontal"]["offset"] = offset
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_templates_vertical_width(self, width):
+        if self.read():
+            self.json_data["templates"]["vertical"]["width"] = width
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_templates_vertical_pg_offset(self, pg_offset):
+        if self.read():
+            self.json_data["templates"]["vertical"]["pg_offset"] = pg_offset
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_templates_vertical_space(self, space):
+        if self.read():
+            self.json_data["templates"]["vertical"]["space"] = space
+
+            # save file
+            return self.write()
+
+        return False
+    
+    def set_templates_vertical_offset(self, offset):
+        if self.read():
+            self.json_data["templates"]["vertical"]["offset"] = offset
+
+            # save file
+            return self.write()
+
+        return False

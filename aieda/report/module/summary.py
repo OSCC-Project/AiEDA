@@ -55,7 +55,7 @@ class ReportSummary:
         self.content.append("## flows".strip())
         
         self.content.append("### basic information".strip())
-        flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)
+        flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.place)
         report = ReportDesign(workspace=self.workspace, flow=flow)
         self.content.extend(report.common_report())
         

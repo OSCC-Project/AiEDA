@@ -448,7 +448,119 @@ class Workspace:
             self.paths_table.ieda_config["fixFanout"], self.logger
         )
         parser.set_insert_buffer(buffer)
+        
+    def set_ieda_pnp_grid_power_layers(self, power_layers: list[str]):
+        from .config import ConfigIEDAPNPParser
 
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_pnp_grid_power_layers(power_layers)
+        
+    def set_ieda_pnp_grid_follow_pin_layers(self, follow_pin_layers: list[str]):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_pnp_grid_follow_pin_layers(follow_pin_layers)
+        
+    def set_ieda_pnp_grid_follow_pin_width(self, follow_pin_width):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_pnp_grid_follow_pin_width(follow_pin_width)
+        
+    def set_ieda_pnp_grid_power_port_layer(self, power_port_layer: str):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_pnp_grid_power_port_layer(power_port_layer)
+        
+    def set_ieda_pnp_simulated_annealing_modifiable_layer_min(self, modifiable_layer_min: str):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_pnp_simulated_annealing_modifiable_layer_min(modifiable_layer_min)
+        
+    def set_ieda_pnp_simulated_annealing_modifiable_layer_max(self, modifiable_layer_max: str):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_pnp_simulated_annealing_modifiable_layer_max(modifiable_layer_max)
+        
+    def set_ieda_templates_horizontal_width(self, width):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_templates_horizontal_width(width)
+        
+    def set_ieda_templates_horizontal_pg_offset(self, pg_offset):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_templates_horizontal_pg_offset(pg_offset)
+        
+    def set_ieda_templates_horizontal_space(self, space):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_templates_horizontal_space(space)
+        
+    def set_ieda_templates_horizontal_offset(self, offset):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_templates_horizontal_offset(offset)
+        
+    def set_ieda_templates_vertical_width(self, width):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_templates_vertical_width(width)
+        
+    def set_ieda_templates_vertical_pg_offset(self, pg_offset):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_templates_vertical_pg_offset(pg_offset)
+        
+    def set_ieda_templates_vertical_space(self, space):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_templates_vertical_space(space)
+        
+    def set_ieda_templates_vertical_offset(self, offset):
+        from .config import ConfigIEDAPNPParser
+
+        parser = ConfigIEDAPNPParser(
+            self.paths_table.ieda_config["pnp"], self.logger
+        )
+        parser.set_templates_vertical_offset(offset)
+        
     def set_ieda_cts_buffers(self, buffers: list[str]):
         from .config import ConfigIEDACTSParser
 

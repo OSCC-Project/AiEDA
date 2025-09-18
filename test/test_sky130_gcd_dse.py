@@ -761,11 +761,7 @@ if __name__ == "__main__":
     # step 4 : generate vectors
     generate_vectors(workspace, 9, 9)
     
-    # step 5: analysis 
-    #analyse(workspace)
-    # generate_all_reports(workspace)
-    
-    # step 6 report summary for workspace
+    # step 5 report summary for workspace
     report_summary(workspace)
 
     exit(0)
