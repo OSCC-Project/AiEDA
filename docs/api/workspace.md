@@ -6,7 +6,7 @@
 
 | 功能类别 | 方法名 | 描述 | 参数 |
 |---------|-------|------|-----|
-| 工作空间创建 | `create_wrokspace` | 检查并创建工作空间目录结构，初始化配置文件 | `flow_list`：流程列表（可选） |
+| 工作空间创建 | `create_workspace` | 检查并创建工作空间目录结构，初始化配置文件 | `flow_list`：流程列表（可选） |
 | 路径设置 | `set_tech_lef` | 设置工艺LEF文件路径并更新配置 | `tech_lef`：工艺LEF文件路径 |
 | 路径设置 | `set_lefs` | 设置LEF文件列表并更新配置 | `lefs`：LEF文件路径列表 |
 | 路径设置 | `set_libs` | 设置库文件列表并更新配置 | `libs`：库文件路径列表 |
@@ -83,7 +83,7 @@
 
 ## 4. 工作空间初始化流程
 
-Workspace类的`create_wrokspace`方法会按照以下步骤初始化工作空间：
+Workspace类的`create_workspace`方法会按照以下步骤初始化工作空间：
 
 1. 确保工作空间目录存在，如果不存在则创建
 2. 创建工作空间顶层目录（analyse、config、feature、output、script、report）

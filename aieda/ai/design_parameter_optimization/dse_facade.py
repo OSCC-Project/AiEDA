@@ -2,10 +2,10 @@
 # -*- encoding: utf-8 -*-
 """
 @File    :   dse_facade.py
-@Time    :   2024-08-29 10:54:34
-@Author  :   SivanLaai
+@Time    :   2025-08-29 10:54:34
+@Author  :   zhanghongda
 @Version :   1.0
-@Contact :   lyhhap@163.com
+@Contact :   zhanghongda24@mails.ucas.ac.cn
 @Desc    :   dse facade
 """
 import sys
@@ -27,8 +27,8 @@ setup_paths()
 
 from aieda.data.database.enum import DSEMethod
 from aieda.workspace.workspace import Workspace
-from aieda.ai.design_parameter_optimization.config import ConfigManagement
 from aieda.ai.design_parameter_optimization.model import NNIOptimization
+from aieda.data.database.parameters import EDAParameters
 
 
 class DSEFacade:
@@ -50,6 +50,54 @@ class DSEFacade:
 
         self.params = None
         self._search_space = None
+
+    def _create_search_space(self):
+        #create search space
+        search_space = {}
+        
+        # placement parameters search space
+        search_space["placement_target_density"] = {
+            "_type": "uniform",
+            "_value": [0.3, 0.8]
+        }
+        search_space["placement_init_wirelength_coef"] = {
+            "_type": "uniform", 
+            "_value": [0.1, 0.5]
+        }
+        search_space["placement_min_wirelength_force_bar"] = {
+            "_type": "uniform",
+            "_value": [-500.0, -50.0]
+        }
+        search_space["placement_max_phi_coef"] = {
+            "_type": "uniform",
+            "_value": [0.75, 1.25]
+        }
+        search_space["placement_max_backtrack"] = {
+            "_type": "uniform",
+            "_value": [5, 50]
+        }
+        search_space["placement_init_density_penalty"] = {
+            "_type": "uniform",
+            "_value": [0.0, 0.001]
+        }
+        search_space["placement_target_overflow"] = {
+            "_type": "uniform",
+            "_value": [0.0, 0.2]
+        }
+        search_space["placement_initial_prev_coordi_update_coef"] = {
+            "_type": "uniform",
+            "_value": [50.0, 1000.0]
+        }
+        search_space["placement_min_precondition"] = {
+            "_type": "uniform",
+            "_value": [1.0, 10.0]
+        }
+        search_space["placement_min_phi_coef"] = {
+            "_type": "uniform",
+            "_value": [0.75, 1.25]
+        }
+        
+        return search_space
 
     def objective(self, trial):
         return self.start(trial=trial)
@@ -114,22 +162,23 @@ class DSEFacade:
     def start(self, optimize=DSEMethod.NNI, eda_tool="iEDA", step=None):
         if step is not None:
             self.step = step
-        config_manage = ConfigManagement(
-            workspace=self.workspace, eda_tool=eda_tool, step=self.step
-        )
-        self.params = config_manage.getParameters()
+            
+        self.params = self.workspace.configs.parameters
 
-        os.environ["OMP_NUM_THREADS"] = "%d" % (self.params.num_threads)
+        if hasattr(self.params, 'num_threads'):
+            os.environ["OMP_NUM_THREADS"] = "%d" % (self.params.num_threads)
 
         if optimize == DSEMethod.NNI:
+            self._search_space = self._create_search_space()
+            print("DSE Search Space:", self._search_space)
+            
             method = NNIOptimization(
                 args=None,
                 workspace=self.workspace,
                 parameter=self.params,
                 step=self.step,
             )
-            self._search_space = method._search_config
-            print(self._search_space)
+            method._search_config = self._search_space
             self.run_nni(search_space=self._search_space, flows=None)
         elif optimize == DSEMethod.OPTUNA:
             pass

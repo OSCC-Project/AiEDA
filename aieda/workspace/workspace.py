@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 def workspace_create(directory: str, design: str, flow_list=None):
     ws = Workspace(directory=directory, design=design)
 
-    ws.create_wrokspace(flow_list=flow_list)
+    ws.create_workspace(flow_list=flow_list)
 
     return ws
 
@@ -48,7 +48,7 @@ class Workspace:
                 design = parser.get_db().design
         return design
 
-    def create_wrokspace(self, flow_list=None):
+    def create_workspace(self, flow_list=None):
         """check if workspace exist, if not exist, create workspace"""
         #########################################################################
         # step 1, ensure workspace dir exist
@@ -669,6 +669,12 @@ class Workspace:
         parser.set_min_wirelength_force_bar(
             parameters.placement_min_wirelength_force_bar
         )
+        parser.set_max_backtrack(parameters.placement_max_backtrack)
+        parser.set_init_density_penalty(parameters.placement_init_density_penalty)
+        parser.set_target_overflow(parameters.placement_target_overflow)
+        parser.set_initial_prev_coordi_update_coef(parameters.placement_initial_prev_coordi_update_coef)
+        parser.set_min_precondition(parameters.placement_min_precondition)
+        parser.set_min_phi_coef(parameters.placement_min_phi_coef)
 
         # update iEDA_config/cts_default_config.json
         from .config import ConfigIEDACTSParser
@@ -765,7 +771,8 @@ class Workspace:
                 "{}/output/iEDA/feature".format(self.directory),
                 "{}/output/iEDA/result".format(self.directory),
                 "{}/output/iEDA/rpt".format(self.directory),
-                "{}/output/iEDA/vectors".format(self.directory),
+                "{}/output/iEDA/vectors/place".format(self.directory),
+                "{}/output/iEDA/vectors/route".format(self.directory),
             ]
 
             return top_dirs
@@ -838,6 +845,8 @@ class Workspace:
                 "rpt": "{}/output/iEDA/rpt".format(self.directory),
                 "feature": "{}/output/iEDA/feature".format(self.directory),
                 "vectors": "{}/output/iEDA/vectors".format(self.directory),
+                "pl_vectors": "{}/output/iEDA/vectors/place".format(self.directory),
+                "rt_vectors": "{}/output/iEDA/vectors/route".format(self.directory),
             }
             return output
 

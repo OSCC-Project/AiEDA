@@ -9,7 +9,9 @@ import numpy as np
 import time
 import logging
 import json
+import argparse
 import numpy as np
+import traceback
 def setup_paths():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.join(current_dir, "..", "..", "..")
@@ -31,8 +33,7 @@ from aieda.eda.iEDA.io import IEDAIO
 from aieda.data.database.enum import FeatureOption
 from aieda.workspace.workspace import Workspace
 from aieda.ai.design_parameter_optimization.config import ConfigManagement
-
-
+from aieda.data.database.parameters import EDAParameters
 
 
 class AbstractOptimizationMethod(metaclass=ABCMeta):
@@ -62,12 +63,10 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
     def getFeatureMetrics(
         self, data, eda_tool="iEDA", step=DbFlow.FlowStep.place, option=None
     ):
-        hpwl, wns, tns = self.getPlaceResults()
+        hpwl = self.getPlaceResults()
 
         place_data = dict()
         place_data["hpwl"] = hpwl
-        place_data["wns"] = wns
-        place_data["tns"] = tns
 
         if len(place_data):
             data["place"] = place_data
@@ -106,7 +105,10 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
         self._parameter = Parameter
 
     def initOptimization(self):
-        self._parameter._search_space = self._parameter.getSearchSpace()
+        if hasattr(self._parameter, 'getSearchSpace'):
+            self._parameter._search_space = self._parameter.getSearchSpace()
+        elif hasattr(self, '_search_config'):
+            self._parameter._search_space = self._search_config
         self.formatSweepConfig()
 
     @abstractmethod
@@ -133,33 +135,34 @@ class AbstractOptimizationMethod(metaclass=ABCMeta):
         raise NotImplementedError
 
     def getPlaceResults(self):
-        hpwl, wns, tns = None, None, None
+        hpwl = None
         try:
-            workspace = self._workspace
-            output_dir = os.path.join(workspace, "output/iEDA/data/pl/report/summary_report.txt")
+            workspace: Workspace = self._workspace
+            output_dir = os.path.join(
+                workspace.paths_table.output_dir,
+                "iEDA/data/pl/report/summary_report.txt",
+            )
             out_lines = open(output_dir).readlines()
-            for i in range(len(out_lines)):
-                line = out_lines[i]
+            for line in out_lines:
                 if "Total HPWL" in line:
                     hpwl = line.replace(" ", "").split("|")[-2]
-                elif "Late TNS".lower() in line.lower() and "|" in out_lines[i+2]:
-                    new_line = out_lines[i+2]
-                    datas = new_line.replace(" ", "").split("|")
-                    wns = datas[-3]
-                    tns = datas[-2]
+                    break
+
         except Exception as e:
-            print(e)
-        return float(hpwl), float(wns), float(tns)
+            print(f"Error parsing HPWL: {e}")
+            hpwl = "0.0"
+            
+        return float(hpwl)
 
     def getOperationEngine(self, step, tool, pre_step):
-        dir_workspace = self._workspace
+        workspace_obj: Workspace = self._workspace
+        dir_workspace = workspace_obj.directory
         project_name = self._project_name
         engine = None
         eda_tool = "iEDA"
 
         if step == DbFlow.FlowStep.place:
-
-            workspace = Workspace(dir_workspace, project_name)
+            workspace = workspace_obj
             input_def = (
                 f"{dir_workspace}/output/iEDA/result/{project_name}_fixFanout.def.gz"
             )
@@ -254,34 +257,21 @@ class NNIOptimization(AbstractOptimizationMethod):
 
     def logPlaceMetrics(self, metrics, results):
 
-        hpwl, wns, tns = self.getPlaceResults()
+        hpwl = self.getPlaceResults()
         messages = ""
         metric = 0.0
 
+        # 只优化 HPWL
         hpwl_ref = metrics.get("hpwl", 1.0)
         hpwl_contrib = hpwl / hpwl_ref
         messages += f"hpwl: {hpwl}, "
-        metric += hpwl_contrib
-
-        messages += f"wns: {wns}, "
-        wns_ref = metrics.get("wns", 0.0)  
-        wns_contrib = np.exp(wns_ref)/np.exp(wns)
-        print(f"DEBUG WNS: wns_ref={wns_ref}, wns={wns}, exp(wns_ref)={np.exp(wns_ref):.6f}, exp(wns)={np.exp(wns):.6f}, wns_contrib={wns_contrib:.6f}")
-        metric += wns_contrib
-        
-        messages += f"tns: {tns}, "
-        tns_ref = metrics.get("tns", 0.0)  
-        tns_contrib = np.exp(tns_ref)/np.exp(tns)
-        print(f"DEBUG TNS: tns_ref={tns_ref}, tns={tns}, exp(tns_ref)={np.exp(tns_ref):.2e}, exp(tns)={np.exp(tns):.2e}, tns_contrib={tns_contrib:.6f}")
-        metric += tns_contrib
+        metric = hpwl_contrib 
 
         results["place_hpwl"] = hpwl
-        results["place_wns"] = wns
-        results["place_tns"] = tns
             
         # print the contributions of each metric
-        messages += f"place_hpwl: {hpwl}, place_wns: {wns}, place_tns: {tns}\n"
-        messages += f"Contributions - HPWL: {hpwl_contrib:.6f}, WNS: {wns_contrib:.6f}, TNS: {tns_contrib:.6f}, Total: {metric:.6f}\n"
+        messages += f"place_hpwl: {hpwl}\n"
+        messages += f"Contributions - HPWL: {hpwl_contrib:.6f}, Total: {metric:.6f}\n"
         logging.info(messages)
         return metric
 
@@ -338,9 +328,12 @@ class NNIOptimization(AbstractOptimizationMethod):
         if metric < current_best:
             with open(best_metric_file, "w") as f:
                 f.write(str(metric))
-            flow_list = self.config_manage.getFlowList()
-            best_config_paths = self.config_manage.getBestConfigPathList()
-            self._parameter.dumpOriginalConfig(best_config_paths, flow_list)
+
+            best_params_file = "{}/best_parameters.json".format(self._workspace.paths_table.analysis_dir)
+            with open(best_params_file, "w") as f:
+                json.dump(self._workspace.configs.parameters.__dict__, f, indent=2)
+            
+            print(f"New best metric found: {metric}")
         else:
             print(f"There is no better metric that {metric} >= {current_best}")
 
@@ -350,27 +343,28 @@ class NNIOptimization(AbstractOptimizationMethod):
 
     def checkAndSyncBestToDefault(self):
         try:
-
             trial_number = os.environ.get("NNI_TRIAL_SEQ_ID", "")
-
             if trial_number:
                 current_trial = int(trial_number) + 1
                 max_trial_num = self._run_count
-
                 if current_trial >= max_trial_num:
-                    best_config_paths = self.config_manage.getBestConfigPathList()
-                    default_config_paths = self.config_manage.getConfigPathList()
-                    with open(best_config_paths["place"], "r") as f:
-                        best_content = f.read()
-                    with open(default_config_paths["place"], "w") as f:
-                        f.write(best_content)
-
-                    print(
-                        f"The best parameter has been synchronized to the default configuration file"
-                    )
+                    best_params_file = "{}/best_parameters.json".format(self._workspace.paths_table.analysis_dir)
+                    if os.path.exists(best_params_file):
+                        with open(best_params_file, "r") as f:
+                            best_params = json.load(f)
+                        
+                        
+                        best_eda_params = EDAParameters()
+                        for key, value in best_params.items():
+                            if hasattr(best_eda_params, key):
+                                setattr(best_eda_params, key, value)
+                        
+                        self._workspace.update_parameters(best_eda_params)
+                        print("The best parameter has been restored to workspace")
+                    
+                    print(f"DSE optimization completed after {max_trial_num} trials")
             else:
                 print(f"The trial number is not set, skip trial check")
-
         except Exception as e:
             print(f"Error: check trial status: {e}")
 
@@ -419,32 +413,36 @@ class NNIOptimization(AbstractOptimizationMethod):
         else:
             print(f"Engine creation failed")
 
+    def _update_workspace_parameters(self, next_params):
+        
+
+        new_params = EDAParameters()
+
+        for param_name, param_value in next_params.items():
+            if hasattr(new_params, param_name):
+                setattr(new_params, param_name, param_value)
+                print(f"Updated {param_name} = {param_value}")
+
+        self._workspace.update_parameters(new_params)
+
     def runOptimization(
         self,
         step=DbFlow.FlowStep.place,
         option=FeatureOption.tools,
         metrics={"hpwl": 1.0, "tns": -20.0, "wns": -0.55},
-        pre_step=DbFlow.FlowStep.cts,
+        pre_step=DbFlow.FlowStep.fixFanout,
         tool="iEDA",
     ):
         trial_start = time.time()
         tt = time.time()
         next_params = self.getNextParams()
-        workspace = Workspace(self._workspace, self._project_name)
-        self.config_manage = ConfigManagement(
-            workspace=workspace, eda_tool=tool, step=self._step
-        )
-        config_paths = self.config_manage.getConfigPathList()
-        self._parameter.updateParams(next_params)
-        flow_list = self.config_manage.getFlowList()
-        self._parameter.dumpOriginalConfig(config_paths, flow_list)
-        for db_flow in flow_list:
-            step = db_flow.step
-            pre_step = DbFlow.FlowStep.fixFanout
-            tool = db_flow.eda_tool
-            self.runTask(tool=tool, step=step, pre_step=pre_step)
+
+        self._update_workspace_parameters(next_params)
+
+        self.runTask(tool=tool, step=step, pre_step=pre_step)
+        
         metric = self.logFeature(metrics, step)
-        self.GenerateDataset(next_params, step, tool,metric)
+        self.GenerateDataset(next_params, step, tool, metric)
         trial_time = time.time() - trial_start
         self.trial_times.append(trial_time)
         total_time = time.time() - tt
@@ -453,7 +451,6 @@ class NNIOptimization(AbstractOptimizationMethod):
 
 
 def main():
-    import argparse
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--workspace_root", type=str, required=True)
@@ -471,17 +468,20 @@ def main():
 
     try:
         workspace = Workspace(workspace_root, project_name)
-        config_manage = ConfigManagement(
-            workspace=workspace, eda_tool=eda_tool, step=step
-        )
 
-        step_enum = config_manage.getStep()
-        dir_workspace = config_manage.getWorkspacePath()
-        params = config_manage.getParameters()
+        params = workspace.configs.parameters
+
+        if isinstance(step, str):
+            try:
+                step_enum = getattr(DbFlow.FlowStep, step)
+            except AttributeError:
+                step_enum = DbFlow.FlowStep.place
+        else:
+            step_enum = step
 
         method = NNIOptimization(
             args=None,
-            workspace=dir_workspace,
+            workspace=workspace,
             parameter=params,
             algorithm="TPE",
             goal="minimize",
@@ -499,9 +499,12 @@ def main():
         )
 
     except Exception as e:
-        import traceback
-
         traceback.print_exc()
+
+        try:
+            nni.get_next_parameter()
+        except:
+            pass
         nni.report_final_result(0.0)
 
 

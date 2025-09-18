@@ -132,6 +132,8 @@ class DataGeneration(RunFlowBase):
         patch_row_step: int = 9,
         patch_col_step: int = 9,
         batch_mode: bool = True,
+        is_placement_mode: bool = False,
+        sta_mode: int = 0,
     ):
         """run data vectorization flow by iEDA
         input_def : input def path, must be set
@@ -159,7 +161,7 @@ class DataGeneration(RunFlowBase):
         ieda_flow = IEDAVectorization(
             workspace=self.workspace, flow=flow, vectors_dir=vectors_dir
         )
-        ieda_flow.generate_vectors(patch_row_step, patch_col_step, batch_mode)
+        ieda_flow.generate_vectors(patch_row_step, patch_col_step, batch_mode, is_placement_mode, sta_mode)
         
         flow.set_state_finished()
         self.workspace.configs.save_flow_state(flow)

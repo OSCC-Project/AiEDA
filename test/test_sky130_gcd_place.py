@@ -330,22 +330,11 @@ def run_eda_flow(workspace: Workspace):
         p = Process(target=run_floorplan, args=())
         p.start()
         p.join()
-        
-    def run_placement_dse(workspace):
-        from aieda.ai.design_parameter_optimization.dse_facade import DSEFacade
-        from aieda.data.database.enum import DSEMethod
-
-        factory = DSEFacade(
-            workspace=workspace,
-            step=DbFlow.FlowStep.place,
-            run_count=5,
-        )
-        factory.start(optimize=DSEMethod.NNI)
 
     # run each step of physical flow by iEDA
     run_floorplan_sky130_gcd(workspace)
 
-    # # init iEDA by workspace
+    # init iEDA by workspace
     run_ieda = RunIEDA(workspace)
 
     run_ieda.run_pdn(
@@ -360,16 +349,12 @@ def run_eda_flow(workspace: Workspace):
         )
     )
 
-    # run placement by DSE method
-    run_placement_dse(workspace)
-    
-    #use the best parameter to run placement
     run_ieda.run_placement(
         input_def=workspace.configs.get_output_def(
             DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)
         )
     )
-    
+
     run_ieda.run_CTS(
         input_def=workspace.configs.get_output_def(
             DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.place)
@@ -413,21 +398,32 @@ def run_eda_flow(workspace: Workspace):
     )
 
 
-def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int, batch_mode : bool = True):
+def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int, batch_mode : bool = True, is_placement_mode: bool = False, sta_mode: int = 0):
     # step 1 : init by workspace
     data_gen = DataGeneration(workspace)
-    print("[NORMAL] before DataGeneration.generate_vectors")
+
     # step 2 : generate vectors
-    data_gen.generate_vectors(
-        input_def=workspace.configs.get_output_def(
+    if is_placement_mode:
+        input_def = workspace.configs.get_output_def(
+            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.place)
+        )
+        vectors_dir = workspace.paths_table.ieda_output["pl_vectors"]
+    else:
+        input_def = workspace.configs.get_output_def(
             DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
-        ),
-        vectors_dir=workspace.paths_table.ieda_output["vectors"],
+        )
+        vectors_dir = workspace.paths_table.ieda_output["rt_vectors"]
+    
+    data_gen.generate_vectors(
+        input_def=input_def,
+        vectors_dir=vectors_dir,
         patch_row_step=patch_row_step,
         patch_col_step=patch_col_step,
         batch_mode=batch_mode,
+        is_placement_mode=is_placement_mode,
+        sta_mode=sta_mode,
     )
-    print("[NORMAL] after DataGeneration.generate_vectors")
+    
 def analyse(workspace : Workspace):
     analyse_design_data(workspace)
     analyze_net_data(workspace)
@@ -739,7 +735,9 @@ def analyse_patch_data(workspace : Workspace):
     
 def report_summary(workspace):
     from aieda.report import ReportGenerator
+    
     DISPLAY_NAME = {"gcd": "GCD"}
+    
     report = ReportGenerator(workspace)
     report.generate_report_workspace(display_names_map=DISPLAY_NAME)
 
@@ -749,19 +747,20 @@ if __name__ == "__main__":
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
 
-    workspace_dir = "{}/example/sky130_test_des".format(root)
+    workspace_dir = "{}/example/sky130_test".format(root)
     workspace = create_workspace_sky130_gcd(workspace_dir)
 
     # step 2 : set paramters
-    set_parameters(workspace)
+    # set_parameters(workspace)
 
-    # # step 3 : run physical design flow
-    run_eda_flow(workspace)
+    # # # step 3 : run physical design flow
+    # run_eda_flow(workspace)
 
     # step 4 : generate vectors
-    generate_vectors(workspace, 9, 9)
+    # sta_mode = 1 : using spef for sta
+    generate_vectors(workspace, 18, 18, is_placement_mode=False, sta_mode=1)
     
-    # step 5 report summary for workspace
-    report_summary(workspace)
-
+    # # step 5 report summary for workspace
+    # report_summary(workspace)
+    
     exit(0)
