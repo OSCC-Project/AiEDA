@@ -21,6 +21,12 @@ class ParametersParser(JsonParser):
             self.json_data['placement_max_phi_coef'] = parameters.placement_max_phi_coef
             self.json_data['placement_init_wirelength_coef'] = parameters.placement_init_wirelength_coef
             self.json_data['placement_min_wirelength_force_bar'] = parameters.placement_min_wirelength_force_bar
+            self.json_data['placement_max_backtrack'] = parameters.placement_max_backtrack
+            self.json_data['placement_init_density_penalty'] = parameters.placement_init_density_penalty
+            self.json_data['placement_target_overflow'] = parameters.placement_target_overflow
+            self.json_data['placement_initial_prev_coordi_update_coef'] = parameters.placement_initial_prev_coordi_update_coef
+            self.json_data['placement_min_precondition'] = parameters.placement_min_precondition
+            self.json_data['placement_min_phi_coef'] = parameters.placement_min_phi_coef
             self.json_data['cts_skew_bound'] = parameters.cts_skew_bound
             self.json_data['cts_max_buf_tran'] = parameters.cts_max_buf_tran
             self.json_data['cts_max_sink_tran'] = parameters.cts_max_sink_tran

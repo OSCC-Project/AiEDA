@@ -338,7 +338,7 @@ def run_eda_flow(workspace: Workspace):
         factory = DSEFacade(
             workspace=workspace,
             step=DbFlow.FlowStep.place,
-            run_count=100,
+            run_count=5,
         )
         factory.start(optimize=DSEMethod.NNI)
 
@@ -362,6 +362,13 @@ def run_eda_flow(workspace: Workspace):
 
     # run placement by DSE method
     run_placement_dse(workspace)
+    
+    #use the best parameter to run placement
+    run_ieda.run_placement(
+        input_def=workspace.configs.get_output_def(
+            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)
+        )
+    )
     
     run_ieda.run_CTS(
         input_def=workspace.configs.get_output_def(
@@ -406,10 +413,10 @@ def run_eda_flow(workspace: Workspace):
     )
 
 
-def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int):
+def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int, batch_mode : bool = True):
     # step 1 : init by workspace
     data_gen = DataGeneration(workspace)
-
+    print("[NORMAL] before DataGeneration.generate_vectors")
     # step 2 : generate vectors
     data_gen.generate_vectors(
         input_def=workspace.configs.get_output_def(
@@ -418,8 +425,9 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
         vectors_dir=workspace.paths_table.ieda_output["vectors"],
         patch_row_step=patch_row_step,
         patch_col_step=patch_col_step,
+        batch_mode=batch_mode,
     )
-    
+    print("[NORMAL] after DataGeneration.generate_vectors")
 def analyse(workspace : Workspace):
     analyse_design_data(workspace)
     analyze_net_data(workspace)
@@ -447,7 +455,7 @@ def generate_all_reports(workspace: Workspace):
     # Cell Type Analysis
     cell_analyzer = CellTypeAnalyzer()
     cell_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -457,7 +465,7 @@ def generate_all_reports(workspace: Workspace):
     # Core Usage Analysis
     core_analyzer = CoreUsageAnalyzer()
     core_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
     )
     core_analyzer.analyze()
@@ -467,7 +475,7 @@ def generate_all_reports(workspace: Workspace):
     # Pin Distribution Analysis
     pin_analyzer = PinDistributionAnalyzer()
     pin_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
     )
     pin_analyzer.analyze()
@@ -477,7 +485,7 @@ def generate_all_reports(workspace: Workspace):
     # Result Statistics Analysis
     result_analyzer = ResultStatisAnalyzer()
     result_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors",
         dir_to_display_name=DISPLAY_NAME,
         calc_wire_num=False,
@@ -494,7 +502,7 @@ def generate_all_reports(workspace: Workspace):
     # Wire Distribution Analysis
     wire_analyzer = WireDistributionAnalyzer()
     wire_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/nets",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -505,7 +513,7 @@ def generate_all_reports(workspace: Workspace):
     # Metrics Correlation Analysis
     metric_analyzer = MetricsCorrelationAnalyzer()
     metric_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         dir_to_display_name=DISPLAY_NAME,
         pattern="/output/iEDA/vectors/nets",
     )
@@ -521,7 +529,7 @@ def generate_all_reports(workspace: Workspace):
     # Path Delay Analysis
     delay_analyzer = DelayAnalyzer()
     delay_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/wire_paths",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -532,7 +540,7 @@ def generate_all_reports(workspace: Workspace):
     # Path Stage Analysis
     stage_analyzer = StageAnalyzer()
     stage_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/wire_paths",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -548,7 +556,7 @@ def generate_all_reports(workspace: Workspace):
     # Wire Density Analysis
     wire_density_analyzer = WireDensityAnalyzer()
     wire_density_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -559,7 +567,7 @@ def generate_all_reports(workspace: Workspace):
     # Feature Correlation Analysis
     feature_analyzer = FeatureCorrelationAnalyzer()
     feature_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -570,7 +578,7 @@ def generate_all_reports(workspace: Workspace):
     # Map Analysis
     map_analyzer = MapAnalyzer()
     map_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -596,7 +604,7 @@ def analyse_design_data(workspace : Workspace):
     # step 1:  Cell Type Analysis
     cell_analyzer = CellTypeAnalyzer()
     cell_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -606,7 +614,7 @@ def analyse_design_data(workspace : Workspace):
     # step 2:  Core Usage Analysis
     core_analyzer = CoreUsageAnalyzer()
     core_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
     )
     core_analyzer.analyze()
@@ -615,7 +623,7 @@ def analyse_design_data(workspace : Workspace):
     # step 3: Pin Distribution Analysis
     pin_analyzer = PinDistributionAnalyzer()
     pin_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
     )
     pin_analyzer.analyze()
@@ -624,7 +632,7 @@ def analyse_design_data(workspace : Workspace):
     # step 4:  Result Statistics
     result_analyzer = ResultStatisAnalyzer()
     result_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors",
         dir_to_display_name=DISPLAY_NAME,
         calc_wire_num=False,  # set to False to avoid calculating wire number
@@ -644,7 +652,7 @@ def analyze_net_data(workspace : Workspace):
     # step 1: Wire Distribution Analysis
     wire_analyzer = WireDistributionAnalyzer()
     wire_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/nets",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -654,7 +662,7 @@ def analyze_net_data(workspace : Workspace):
     # step 2: Metrics Correlation Analysis
     metric_analyzer = MetricsCorrelationAnalyzer()
     metric_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         dir_to_display_name=DISPLAY_NAME,
         pattern="/output/iEDA/vectors/nets",
     )
@@ -673,7 +681,7 @@ def analyse_path_data(workspace : Workspace):
     # step 1: Path Delay Analysis
     delay_analyzer = DelayAnalyzer()
     delay_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/wire_paths",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -683,7 +691,7 @@ def analyse_path_data(workspace : Workspace):
     # step 2: Path Stage Analysis
     stage_analyzer = StageAnalyzer()
     stage_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/wire_paths",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -702,7 +710,7 @@ def analyse_patch_data(workspace : Workspace):
     # step 1: Wire Density Analysis
     wire_analyzer = WireDensityAnalyzer()
     wire_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -712,7 +720,7 @@ def analyse_patch_data(workspace : Workspace):
     # step 2: Feature Correlation Analysis
     feature_analyzer = FeatureCorrelationAnalyzer()
     feature_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -722,7 +730,7 @@ def analyse_patch_data(workspace : Workspace):
     # step 3: Map Analysis
     map_analyzer = MapAnalyzer()
     map_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -731,9 +739,7 @@ def analyse_patch_data(workspace : Workspace):
     
 def report_summary(workspace):
     from aieda.report import ReportGenerator
-    
     DISPLAY_NAME = {"gcd": "GCD"}
-    
     report = ReportGenerator(workspace)
     report.generate_report_workspace(display_names_map=DISPLAY_NAME)
 

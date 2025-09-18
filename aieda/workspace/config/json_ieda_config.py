@@ -459,6 +459,47 @@ class ConfigIEDAPlacementParser(JsonParser):
 
         return False
 
+    def set_max_backtrack(self, max_backtrack):
+        """Set max backtrack for Nesterov"""
+        if self.read():
+            self.json_data["PL"]["GP"]["Nesterov"]["max_backtrack"] = max_backtrack
+            return self.write()
+        return False
+
+    def set_init_density_penalty(self, init_density_penalty):
+        """Set initial density penalty for Nesterov"""
+        if self.read():
+            self.json_data["PL"]["GP"]["Nesterov"]["init_density_penalty"] = init_density_penalty
+            return self.write()
+        return False
+
+    def set_target_overflow(self, target_overflow):
+        """Set target overflow for Nesterov"""
+        if self.read():
+            self.json_data["PL"]["GP"]["Nesterov"]["target_overflow"] = target_overflow
+            return self.write()
+        return False
+
+    def set_initial_prev_coordi_update_coef(self, initial_prev_coordi_update_coef):
+        """Set initial previous coordinate update coefficient for Nesterov"""
+        if self.read():
+            self.json_data["PL"]["GP"]["Nesterov"]["initial_prev_coordi_update_coef"] = initial_prev_coordi_update_coef
+            return self.write()
+        return False
+
+    def set_min_precondition(self, min_precondition):
+        """Set min precondition for Nesterov"""
+        if self.read():
+            self.json_data["PL"]["GP"]["Nesterov"]["min_precondition"] = min_precondition
+            return self.write()
+        return False
+
+    def set_min_phi_coef(self, min_phi_coef):
+        """Set min phi coefficient for Nesterov"""
+        if self.read():
+            self.json_data["PL"]["GP"]["Nesterov"]["min_phi_coef"] = min_phi_coef
+            return self.write()
+        return False
 
 class ConfigIEDARouterParser(JsonParser):
     """config iEDA json"""

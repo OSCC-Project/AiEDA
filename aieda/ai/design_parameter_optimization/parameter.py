@@ -151,8 +151,6 @@ class iEDAParameter(AbstractParameter):
                 config["PL"]["GP"]["Density"][k] = update_params[k]
             if k in config["PL"]["GP"]["Nesterov"]:
                 config["PL"]["GP"]["Nesterov"][k] = update_params[k]
-        # Enable timing analysis
-        config["PL"]["is_timing_effort"] = 1
         
         print("dumpPlaceFlowConfig:", config)
         print("filename:", filename)
