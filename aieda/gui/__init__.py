@@ -1,5 +1,9 @@
 from .layout import GuiLayout
-from .workspace import WorkspaceUI
+try:
+    from .workspace import WorkspaceUI
+except ImportError:
+    # PyQt5 not available, GUI functionality disabled
+    WorkspaceUI = None
 
 __all__ = [
     'GuiLayout',

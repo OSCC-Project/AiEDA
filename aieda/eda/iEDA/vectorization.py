@@ -25,7 +25,7 @@ class IEDAVectorization(IEDAIO):
         if self.vectors_dir is None:
             self.vectors_dir = self.workspace.paths_table.ieda_output["vectors"]
 
-    def generate_vectors(self, patch_row_step: int = 9, patch_col_step: int = 9, batch_mode: bool = True):
+    def generate_vectors(self, patch_row_step: int = 9, patch_col_step: int = 9, batch_mode: bool = True, is_placement_mode: bool = False):
         def _generate_vectors():
             self.read_def()
 
@@ -34,6 +34,7 @@ class IEDAVectorization(IEDAIO):
                 patch_row_step=patch_row_step,
                 patch_col_step=patch_col_step,
                 batch_mode=batch_mode,
+                is_placement_mode=is_placement_mode,
             )
 
         if self.inited_flag:

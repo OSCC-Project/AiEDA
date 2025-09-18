@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 def workspace_create(directory: str, design: str, flow_list=None):
     ws = Workspace(directory=directory, design=design)
 
-    ws.create_wrokspace(flow_list=flow_list)
+    ws.create_workspace(flow_list=flow_list)
 
     return ws
 
@@ -39,7 +39,7 @@ class Workspace:
             self.logger = None
             self.configs = None
 
-    def create_wrokspace(self, flow_list=None):
+    def create_workspace(self, flow_list=None):
         """check if workspace exist, if not exist, create workspace"""
         #########################################################################
         # step 1, ensure workspace dir exist
@@ -756,7 +756,8 @@ class Workspace:
                 "{}/output/iEDA/feature".format(self.directory),
                 "{}/output/iEDA/result".format(self.directory),
                 "{}/output/iEDA/rpt".format(self.directory),
-                "{}/output/iEDA/vectors".format(self.directory),
+                "{}/output/iEDA/vectors/place".format(self.directory),
+                "{}/output/iEDA/vectors/route".format(self.directory),
             ]
 
             return top_dirs
@@ -829,6 +830,8 @@ class Workspace:
                 "rpt": "{}/output/iEDA/rpt".format(self.directory),
                 "feature": "{}/output/iEDA/feature".format(self.directory),
                 "vectors": "{}/output/iEDA/vectors".format(self.directory),
+                "pl_vectors": "{}/output/iEDA/vectors/place".format(self.directory),
+                "rt_vectors": "{}/output/iEDA/vectors/route".format(self.directory),
             }
             return output
 
