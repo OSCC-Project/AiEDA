@@ -20,10 +20,6 @@ dependencies = [
     "torch>=1.8.0",
     "tqdm>=4.67.1",
     "markdown2>=2.5.4",
-]
-
-[project.optional-dependencies]
-gui = [
     "PyQt5>=5.15.0",
 ]
 

@@ -19,16 +19,12 @@ dependencies = [
     { name = "nni" },
     { name = "numpy" },
     { name = "pandas" },
+    { name = "pyqt5" },
     { name = "pytorch-tabnet" },
     { name = "scikit-learn" },
     { name = "seaborn" },
     { name = "torch" },
     { name = "tqdm" },
-]
-
-[package.optional-dependencies]
-gui = [
-    { name = "pyqt5" },
 ]
 
 [package.dev-dependencies]
@@ -46,14 +42,13 @@ requires-dist = [
     { name = "nni", specifier = ">=3.0" },
     { name = "numpy", specifier = ">=1.17,<2.0" },
     { name = "pandas", specifier = ">=2.3.2" },
-    { name = "pyqt5", marker = "extra == 'gui'", specifier = ">=5.15.0" },
+    { name = "pyqt5", specifier = ">=5.15.0" },
     { name = "pytorch-tabnet", specifier = ">=3.1.1,<4.0.0" },
     { name = "scikit-learn", specifier = ">=1.7.1" },
     { name = "seaborn", specifier = ">=0.13.2" },
     { name = "torch", specifier = ">=1.8.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
-provides-extras = ["gui"]
 
 [package.metadata.requires-dev]
 dev = [

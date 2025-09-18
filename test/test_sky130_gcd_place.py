@@ -398,7 +398,7 @@ def run_eda_flow(workspace: Workspace):
     )
 
 
-def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int, batch_mode : bool = True, is_placement_mode: bool = False):
+def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int, batch_mode : bool = True, is_placement_mode: bool = False, sta_mode: int = 0):
     # step 1 : init by workspace
     data_gen = DataGeneration(workspace)
 
@@ -421,6 +421,7 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
         patch_col_step=patch_col_step,
         batch_mode=batch_mode,
         is_placement_mode=is_placement_mode,
+        sta_mode=sta_mode,
     )
     
 def analyse(workspace : Workspace):
@@ -750,13 +751,14 @@ if __name__ == "__main__":
     workspace = create_workspace_sky130_gcd(workspace_dir)
 
     # step 2 : set paramters
-    set_parameters(workspace)
+    # set_parameters(workspace)
 
     # # # step 3 : run physical design flow
-    run_eda_flow(workspace)
+    # run_eda_flow(workspace)
 
     # step 4 : generate vectors
-    generate_vectors(workspace, 18, 18, is_placement_mode=True)
+    # sta_mode = 1 : using spef for sta
+    generate_vectors(workspace, 18, 18, is_placement_mode=False, sta_mode=1)
     
     # # step 5 report summary for workspace
     # report_summary(workspace)
