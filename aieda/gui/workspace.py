@@ -180,10 +180,13 @@ class WorkspaceUI(QWidget):
             
             # Create UI components
             self.chip_ui = ChipLayout(self.vec_cells, self.vec_instances, self.vec_nets, self.color_list)   # Top-left
-            self.patches_ui = PatchesLayout(self.vec_patch, self.color_list)   # Top-left
-            self.patch_ui = PatchLayout(self.vec_patch) # Bottom-left
+            self.patch_ui = PatchLayout(self.vec_layers, self.color_list) # Bottom-left
+            self.patches_ui = PatchesLayout(self.vec_patch, self.color_list, self.patch_ui)   # Top-left
             self.layer_ui = LayerLayout(self.vec_layers, self.color_list) # Top-right
             self.net_ui = NetLayout(self.vec_nets)     # Bottom-right
+            
+            # 设置PatchesLayout的patch_layout引用为PatchLayout的实例
+            self.patches_ui.patch_layout = self.patch_ui
             
             # Calculate width ratio: ChipLayout and PatchLayout (left side) should be 0.8 of WorkspaceUI width
             # Right side (LayerLayout and NetLayout) will be 0.2 of WorkspaceUI width

@@ -268,7 +268,7 @@ class ChipLayout(QWidget):
             # 检查feature是否有llx、lly、width、height属性
             if all(hasattr(feature, attr) for attr in ['llx', 'lly', 'width', 'height']):
                 # 创建白色边框的矩形
-                pen = QPen(QColor(200, 0, 0), 10)
+                pen = QPen(QColor(200, 0, 0), 40)
                 pen.setStyle(Qt.DashLine)
                 
                 # 创建矩形项
@@ -289,4 +289,4 @@ class ChipLayout(QWidget):
                 # 让视图自动调整到能看到整个选中的网络矩形
                 self.view.fitInView(self.selected_net_rect, Qt.KeepAspectRatio)
                 # 稍微缩小视图，在选中的矩形周围留出一些空间
-                self.view.scale(0.9, 0.9)
+                self.view.scale(0.7, 0.7)
