@@ -14,6 +14,9 @@ import os
 
 os.environ["iEDA"] = "ON"
 
+import sys
+sys.path.append(os.getcwd())
+
 from aieda.workspace import Workspace, workspace_create
 from aieda.flows import DbFlow, RunIEDA, DataGeneration
 from aieda.data.database import EDAParameters
@@ -122,11 +125,11 @@ def create_workspace_sky130_gcd(workspace_dir):
     workspace.set_verilog_input(sky130_gcd_verilog)
 
     # set tech lef
-    workspace.set_tech_lef("{}/lef/sky130_fd_sc_hs.tlef".format(foundry_dir))
+    workspace.set_tech_lef("{}/lef/sky130_fd_sc_hd.tlef".format(foundry_dir))
 
     # set lefs
     lefs = [
-        "{}/lef/sky130_fd_sc_hs_merged.lef".format(foundry_dir),
+        "{}/lef/sky130_fd_sc_hd_merged.lef".format(foundry_dir),
         "{}/lef/sky130_ef_io__com_bus_slice_10um.lef".format(foundry_dir),
         "{}/lef/sky130_ef_io__com_bus_slice_1um.lef".format(foundry_dir),
         "{}/lef/sky130_ef_io__com_bus_slice_20um.lef".format(foundry_dir),
@@ -161,7 +164,7 @@ def create_workspace_sky130_gcd(workspace_dir):
 
     # set libs
     libs = [
-        "{}/lib/sky130_fd_sc_hs__tt_025C_1v80.lib".format(foundry_dir),
+        "{}/lib/sky130_fd_sc_hd__tt_025C_1v80.lib".format(foundry_dir),
         "{}/lib/sky130_dummy_io.lib".format(foundry_dir),
         "{}/lib/sky130_sram_1rw1r_128x256_8_TT_1p8V_25C.lib".format(foundry_dir),
         "{}/lib/sky130_sram_1rw1r_44x64_8_TT_1p8V_25C.lib".format(foundry_dir),
@@ -171,10 +174,10 @@ def create_workspace_sky130_gcd(workspace_dir):
     workspace.set_libs(libs)
 
     # set sdc
-    workspace.set_sdc("{}/sdc/gcd.sdc".format(foundry_dir))
+    workspace.set_sdc("/data3/taosimin/aieda_fork/example/sky130_test/gcd.sdc")
 
     # set spef
-    workspace.set_spef("{}/spef/gcd.spef".format(foundry_dir))
+    workspace.set_spef("/data3/taosimin/aieda_fork/example/sky130_test/gcd.spef")
 
     # set workspace info
     workspace.set_process_node("sky130")
@@ -398,20 +401,20 @@ def run_eda_flow(workspace: Workspace):
     )
 
 
-def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int, batch_mode : bool = True, is_placement_mode: bool = False, sta_mode: int = 0):
+def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int, input_def, batch_mode : bool = True, is_placement_mode: bool = False, sta_mode: int = 0):
     # step 1 : init by workspace
     data_gen = DataGeneration(workspace)
 
     # step 2 : generate vectors
     if is_placement_mode:
-        input_def = workspace.configs.get_output_def(
-            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.place)
-        )
+        # input_def = workspace.configs.get_output_def(
+        #     DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.place)
+        # )
         vectors_dir = workspace.paths_table.ieda_output["pl_vectors"]
     else:
-        input_def = workspace.configs.get_output_def(
-            DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
-        )
+        # input_def = workspace.configs.get_output_def(
+        #     DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route)
+        # )
         vectors_dir = workspace.paths_table.ieda_output["rt_vectors"]
     
     data_gen.generate_vectors(
@@ -749,6 +752,7 @@ if __name__ == "__main__":
 
     workspace_dir = "{}/example/sky130_test".format(root)
     workspace = create_workspace_sky130_gcd(workspace_dir)
+    input_def = "/data3/taosimin/aieda_fork/example/sky130_test/gcd_route.def"
 
     # step 2 : set paramters
     # set_parameters(workspace)
@@ -758,7 +762,7 @@ if __name__ == "__main__":
 
     # step 4 : generate vectors
     # sta_mode = 1 : using spef for sta
-    generate_vectors(workspace, 18, 18, is_placement_mode=False, sta_mode=1)
+    generate_vectors(workspace, 18, 18, input_def=input_def, batch_mode=False, is_placement_mode=False, sta_mode=1)
     
     # # step 5 report summary for workspace
     # report_summary(workspace)
