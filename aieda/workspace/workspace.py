@@ -26,9 +26,9 @@ def workspace_create(directory: str, design: str, flow_list=None):
 
 
 class Workspace:
-    def __init__(self, directory: str, design: str):
-        self.directory = directory
-        self.design = design
+    def __init__(self, directory: str, design: str=None):
+        self.directory = directory       
+        self.design = self.init_design(design)
         self.paths_table = self.PathsTable(directory, design)
         if os.path.exists(self.directory):
             self.logger = create_logger(name=design, log_file=self.paths_table.log)
@@ -38,6 +38,15 @@ class Workspace:
         else:
             self.logger = None
             self.configs = None
+            
+    def init_design(self, design):
+        if design is None:
+            from aieda.workspace.config.json_workspace import WorkspaceParser
+            path = "{}/config/workspace.json".format(self.directory)
+            parser = WorkspaceParser(path)
+            if parser.read():
+                design = parser.get_db().design
+        return design
 
     def create_workspace(self, flow_list=None):
         """check if workspace exist, if not exist, create workspace"""

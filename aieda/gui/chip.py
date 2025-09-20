@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """
-@File : qt_layout.py
+@File : chip.py
 @Author : yell
 @Desc : Qt-based chip layout display
 """
@@ -17,38 +17,39 @@ from PyQt5.QtCore import Qt, QRectF, QPointF
 
 from ..data import DataVectors
 from ..workspace import Workspace
+from .basic import ZoomableGraphicsView
 
 
 class ChipLayout(QWidget):
     """Qt-based chip layout display widget that shows instances, nets, and IO pins as rectangles"""
     
-    def __init__(self, workspace: Workspace, parent: Optional[QWidget] = None):
+    def __init__(self, vec_cells, vec_instances, vec_nets, color_list, parent: Optional[QWidget] = None):
         super().__init__(parent)
-        self.workspace = workspace
-        self.data_loader = DataVectors(workspace)
-        
-        # Data storage
-        self.instances = []
-        self.nets = []
+        self.vec_cells = vec_cells
+        self.instances = vec_instances
+        self.nets = vec_nets
+
         self.io_pins = []
-        self.cell_id_to_name = {}
         
         # Display options
         self.show_instances = True
         self.show_nets = True
         self.show_io_pins = True
-        self.instance_opacity = 0.8
         self.net_opacity = 0.5
         
         # Colors
-        self.instance_colors = {}
-        self.net_color = QColor(200, 200, 0, 200)  # Blue with transparency
-        self.io_pin_color = QColor(255, 0, 0, 200)  # Red for IO pins
-        self.text_color = QColor(0, 0, 0)
         
+        self.net_color = QColor(0, 250, 0)  # Blue with transparency
+        self.io_pin_color = QColor(255, 0, 0, 200)  # Red for IO pins
+        self.wire_node_color ={ "wire_node" : QColor(0, 200, 0), "pin_node" : QColor(200, 0, 0)} # Red for IO pins
+        self.text_color = QColor(0, 0, 0)
+        self.color_list = color_list
+        
+        # 当前选中的网络矩形
+        self.selected_net_rect = None
+
         # Initialize UI
         self.init_ui()
-        self.load_data()
         self.draw_layout()
     
     def init_ui(self):
@@ -56,160 +57,40 @@ class ChipLayout(QWidget):
         # Main layout
         main_layout = QVBoxLayout(self)
         
-        # Control panel layout
-        control_layout = QHBoxLayout()
-        
-        # Checkboxes for display options
-        self.instance_checkbox = QComboBox()
-        self.instance_checkbox.addItems(["Show Instances", "Hide Instances"])
-        self.instance_checkbox.currentIndexChanged.connect(self.toggle_instances)
-        
-        self.net_checkbox = QComboBox()
-        self.net_checkbox.addItems(["Show Nets", "Hide Nets"])
-        self.net_checkbox.currentIndexChanged.connect(self.toggle_nets)
-        
-        self.io_pin_checkbox = QComboBox()
-        self.io_pin_checkbox.addItems(["Show IO Pins", "Hide IO Pins"])
-        self.io_pin_checkbox.currentIndexChanged.connect(self.toggle_io_pins)
-        
-        # Opacity sliders
-        control_layout.addWidget(QLabel("Instances:"))
-        control_layout.addWidget(self.instance_checkbox)
-        control_layout.addWidget(QLabel("Nets:"))
-        control_layout.addWidget(self.net_checkbox)
-        control_layout.addWidget(QLabel("IO Pins:"))
-        control_layout.addWidget(self.io_pin_checkbox)
-        
-        # Zoom buttons
-        zoom_in_btn = QPushButton("Zoom In")
-        zoom_in_btn.clicked.connect(self.zoom_in)
-        zoom_out_btn = QPushButton("Zoom Out")
-        zoom_out_btn.clicked.connect(self.zoom_out)
-        fit_btn = QPushButton("Fit View")
-        fit_btn.clicked.connect(self.fit_view)
-        
-        control_layout.addWidget(zoom_in_btn)
-        control_layout.addWidget(zoom_out_btn)
-        control_layout.addWidget(fit_btn)
-        
-        # Add control panel to main layout
-        main_layout.addLayout(control_layout)
-        
-        # Create QGraphicsScene and QGraphicsView
+        # Create QGraphicsScene and custom ZoomableGraphicsView
         self.scene = QGraphicsScene()
-        self.view = QGraphicsView(self.scene)
+        self.view = ZoomableGraphicsView(self.scene, self)  # Pass self as parent
         self.view.setRenderHint(QPainter.Antialiasing)
         self.view.setDragMode(QGraphicsView.ScrollHandDrag)
         self.view.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        # 设置视图背景为黑色
+        # self.view.viewport().setStyleSheet("background-color: black;")
         
         # Add view to main layout
         main_layout.addWidget(self.view)
         
+        # Create status bar at the bottom
+        self.status_bar = QWidget()
+        status_layout = QHBoxLayout(self.status_bar)
+        status_layout.setContentsMargins(5, 2, 5, 2)
+        
+        # Left empty space for future status messages
+        status_layout.addStretch(1)
+        
+        # Right side coordinate display
+        self.coord_label = QLabel("X: 0.00, Y: 0.00")
+        self.coord_label.setStyleSheet("background-color: #f0f0f0; padding: 2px 5px;")
+        self.coord_label.setMinimumWidth(150)
+        self.coord_label.setAlignment(Qt.AlignRight)
+        status_layout.addWidget(self.coord_label)
+        
+        # Add status bar to main layout
+        main_layout.addWidget(self.status_bar)
+        
         self.setLayout(main_layout)
         self.setWindowTitle("Chip Layout Display")
         self.resize(1000, 800)
-    
-    def load_data(self):
-        """Load instances, nets, and IO pins data"""
-        # Load instances
-        try:
-            vec_instances = self.data_loader.load_instances()
-            if hasattr(vec_instances, 'instances'):
-                self.instances = vec_instances.instances
-            else:
-                self.instances = []
-                self.workspace.logger.warning("No instances found in data")
-            
-            # Load cells to map cell_id to cell name
-            try:
-                vec_cells = self.data_loader.load_cells()
-                if hasattr(vec_cells, 'cells'):
-                    for cell in vec_cells.cells:
-                        self.cell_id_to_name[cell.id] = getattr(cell, 'name', f'cell_{cell.id}')
-            except Exception as e:
-                self.workspace.logger.warning(f"Failed to load cells: {e}")
-            
-            # Generate colors for different cell types
-            self._generate_cell_colors()
-            
-            # Load nets
-            try:
-                self.nets = self.data_loader.load_nets()
-                if not hasattr(self.nets, 'nets'):
-                    self.workspace.logger.warning("Nets data format not as expected")
-            except Exception as e:
-                self.workspace.logger.warning(f"Failed to load nets: {e}")
-                self.nets = type('obj', (object,), {'nets': []})()  # Create dummy object with empty nets list
-            
-            # For now, we'll consider boundary pins as IO pins
-            # This is a simplification - in a real implementation, you'd need to identify actual IO pins
-            self._identify_io_pins()
-            
-            net_count = len(self.nets) if hasattr(self.nets, 'nets') else 0
-            self.workspace.logger.info(f"Loaded {len(self.instances)} instances, {net_count} nets, {len(self.io_pins)} IO pins")
-        except Exception as e:
-            self.workspace.logger.error(f"Failed to load data: {e}")
-    
-    def _generate_cell_colors(self):
-        """Generate colors for different cell types"""
-        # Count instances per cell type
-        cell_counts = {}
-        for instance in self.instances:
-            if hasattr(instance, 'cell_id'):
-                cell_id = instance.cell_id
-                cell_counts[cell_id] = cell_counts.get(cell_id, 0) + 1
-        
-        # Generate colors
-        unique_cell_ids = list(cell_counts.keys())
-        for i, cell_id in enumerate(unique_cell_ids):
-            # Generate a unique color based on cell_id
-            hue = i / len(unique_cell_ids)
-            color = QColor.fromHsvF(hue, 0.7, 0.9, self.instance_opacity)
-            self.instance_colors[cell_id] = color
-        
-        # Add default color for unknown cell types
-        self.instance_colors[None] = QColor(192, 192, 192, 200)  # Default gray
-    
-    def _identify_io_pins(self):
-        """Identify IO pins from instances"""
-        # This is a placeholder implementation
-        # In a real scenario, you would need to identify IO pins based on cell type or location
-        self.io_pins = []
-        if not self.instances:
-            return
-        
-        try:
-            # Find layout boundaries
-            min_x = min(getattr(inst, 'llx', 0) for inst in self.instances if hasattr(inst, 'llx'))
-            max_x = max(getattr(inst, 'urx', 0) for inst in self.instances if hasattr(inst, 'urx'))
-            min_y = min(getattr(inst, 'lly', 0) for inst in self.instances if hasattr(inst, 'lly'))
-            max_y = max(getattr(inst, 'ury', 0) for inst in self.instances if hasattr(inst, 'ury'))
-            
-            # Define boundary threshold
-            width = max_x - min_x if (max_x - min_x) > 0 else 10000
-            height = max_y - min_y if (max_y - min_y) > 0 else 10000
-            boundary_threshold = max(width, height) * 0.05
-            
-            # Identify IO pins
-            for instance in self.instances:
-                # Check if instance has required attributes
-                if not all(hasattr(instance, attr) for attr in ['llx', 'lly', 'urx', 'ury', 'width', 'height']):
-                    continue
-                
-                # Check if instance is near any boundary
-                is_near_boundary = (
-                    instance.llx < min_x + boundary_threshold or
-                    instance.urx > max_x - boundary_threshold or
-                    instance.lly < min_y + boundary_threshold or
-                    instance.ury > max_y - boundary_threshold
-                )
-                
-                # Simple heuristic: small instances near boundaries are likely IO pins
-                if is_near_boundary and instance.width < 5000 and instance.height < 5000:
-                    self.io_pins.append(instance)
-        except Exception as e:
-            self.workspace.logger.warning(f"Error identifying IO pins: {e}")
-    
+  
     def draw_layout(self):
         """Draw the chip layout"""
         self.scene.clear()
@@ -226,12 +107,12 @@ class ChipLayout(QWidget):
         if self.show_io_pins:
             self._draw_io_pins()
         
-        # Fit the view to the scene
+        # Fit the view to the scene - ensure this is always called
         self.fit_view()
     
     def _draw_instances(self):
         """Draw instances as rectangles"""
-        for instance in self.instances:
+        for instance in self.instances.instances:
             # Check if instance has required attributes
             if not all(hasattr(instance, attr) for attr in ['llx', 'lly', 'width', 'height']):
                 continue
@@ -243,7 +124,7 @@ class ChipLayout(QWidget):
             
             # Set color based on cell type
             cell_id = getattr(instance, 'cell_id', None)
-            color = self.instance_colors.get(cell_id, self.instance_colors[None])
+            color = self.color_list.get(cell_id, self.color_list[None])
             rect_item.setBrush(QBrush(color))
             rect_item.setPen(QPen(QColor(0, 0, 0), 0.5))  # Black border
             
@@ -262,19 +143,55 @@ class ChipLayout(QWidget):
         """Draw nets (simplified representation)"""
         if len(self.nets) <= 0:
             return
-
-        net_pen = QPen(self.net_color, 10)
         
         # Iterate through all nets
-        for net_idx, net in enumerate(self.nets):  # Limit to first 500 nets for performance
+        for net in self.nets:  # Limit to first 500 nets for performance
             # Draw lines between consecutive points
             for wire in net.wires:
+                #draw wire nodes
+                wire_nodes = wire.wire
+                if wire_nodes.node1.pin_id is not None and wire_nodes.node1.pin_id >= 0:
+                    color = self.wire_node_color["pin_node"]
+                else:
+                    color = self.wire_node_color["wire_node"]
+                    
+                rect_item = QGraphicsRectItem(wire_nodes.node1.real_x-25, 
+                                                  wire_nodes.node1.real_y-25, 
+                                                  50, 
+                                                  50)
+                    
+                rect_item.setBrush(QBrush(color))
+                rect_item.setPen(QPen(color, 1.0))  # Black border
+                self.scene.addItem(rect_item)
+                    
+                if wire_nodes.node2.pin_id is not None and wire_nodes.node2.pin_id >= 0:
+                    color = self.wire_node_color["pin_node"]
+                else:
+                    color = self.wire_node_color["wire_node"]
+                rect_item = QGraphicsRectItem(wire_nodes.node2.real_x-25, 
+                                              wire_nodes.node2.real_y-25, 
+                                              50, 
+                                              50)
+                
+                rect_item.setBrush(QBrush(color))
+                rect_item.setPen(QPen(color, 1.0))  # Black border
+                self.scene.addItem(rect_item)
+                
+                # draw path
                 for path in wire.paths:
+                    if path.node1.layer == path.node2.layer or path.node1.layer > path.node2.layer:
+                        color_id = path.node1.layer % len(self.color_list)
+                        color = self.color_list[color_id]
+                    else:
+                        color_id = path.node2.layer % len(self.color_list)
+                        color = self.color_list[color_id]
+                        
+                    wire_pen = QPen(color, 30) 
                     line_item = QGraphicsLineItem(path.node1.real_x, 
                                                   path.node1.real_y, 
                                                   path.node2.real_x, 
                                                   path.node2.real_y)
-                    line_item.setPen(net_pen)
+                    line_item.setPen(wire_pen)
                     self.scene.addItem(line_item)
     
     def _draw_io_pins(self):
@@ -332,3 +249,44 @@ class ChipLayout(QWidget):
             return
         
         self.view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
+        
+    def update_coord_status(self, coord_text):
+        """Update the coordinate status display in the bottom status bar"""
+        self.coord_label.setText(coord_text)
+        
+    def on_net_selected(self, selected_net):
+        """处理选中网络的槽函数，绘制外接矩形"""
+        # 如果已经有选中的矩形，先移除它
+        if self.selected_net_rect is not None:
+            self.scene.removeItem(self.selected_net_rect)
+            self.selected_net_rect = None
+        
+        # 检查选中的网络是否有feature属性
+        if hasattr(selected_net, 'feature') and selected_net.feature:
+            feature = selected_net.feature
+            
+            # 检查feature是否有llx、lly、width、height属性
+            if all(hasattr(feature, attr) for attr in ['llx', 'lly', 'width', 'height']):
+                # 创建白色边框的矩形
+                pen = QPen(QColor(200, 0, 0), 40)
+                pen.setStyle(Qt.DashLine)
+                
+                # 创建矩形项
+                self.selected_net_rect = QGraphicsRectItem(
+                    feature.llx-100, feature.lly-100, feature.width+200, feature.height+200
+                )
+                
+                # 设置矩形的样式
+                self.selected_net_rect.setPen(pen)
+                self.selected_net_rect.setBrush(QBrush(Qt.NoBrush))  # 无边填充
+                
+                # 添加矩形到场景
+                self.scene.addItem(self.selected_net_rect)
+                
+                # 将矩形移到最顶层，确保可见
+                self.selected_net_rect.setZValue(100)  # 设置高的z值
+                
+                # 让视图自动调整到能看到整个选中的网络矩形
+                self.view.fitInView(self.selected_net_rect, Qt.KeepAspectRatio)
+                # 稍微缩小视图，在选中的矩形周围留出一些空间
+                self.view.scale(0.7, 0.7)
