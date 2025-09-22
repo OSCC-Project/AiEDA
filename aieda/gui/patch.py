@@ -20,7 +20,7 @@ class PatchImageWidget(QWidget):
         self.image_dict = None
         self.row_num = 0
         self.col_num = 0
-        self.setMinimumSize(600, 400)
+        self.setMinimumSize(400, 400)
         # 设置白色背景和灰色边框
         self.setStyleSheet("background-color: #FFFFFF; border: 2px solid #CCCCCC;")
         
@@ -96,6 +96,20 @@ class PatchImageWidget(QWidget):
                             max(1, scale)   # 确保至少1像素高
                         )
                         painter.drawRect(rect)
+        
+        if self.col_num > 0 and self.row_num > 0:
+            rect = QRectF(
+                offset_x,
+                offset_y,
+                self.col_num * scale,
+                self.row_num * scale
+            )
+            pen = QPen(QColor(200, 0, 0)) 
+            pen.setWidth(2)
+            painter.setPen(pen)
+            painter.setBrush(QBrush(Qt.NoBrush))
+            painter.drawRect(rect)
+ 
 
 class LayerImageWidget(QWidget):
     """自定义Widget用于显示单个图层的图像数据，支持Ctrl+滚轮缩放"""
@@ -155,7 +169,7 @@ class LayerImageWidget(QWidget):
         painter.fillRect(0, 0, width, height, QBrush(QColor(255, 255, 255)))
         
         # 绘制灰色边框
-        pen = QPen(QColor(204, 204, 204))  # #CCCCCC 灰色
+        pen = QPen(QColor(204, 0, 0))  # #CCCCCC 灰色
         pen.setWidth(2)
         painter.setPen(pen)
         painter.drawRect(1, 1, width - 2, height - 2)  # 留出边框宽度的边距
@@ -166,17 +180,16 @@ class LayerImageWidget(QWidget):
         if self.row_num == 0 or self.col_num == 0:
             return
             
-        # 计算基础像素大小（不考虑缩放）
-        base_pixel_width = width / self.col_num
-        base_pixel_height = height / self.row_num
+        # 计算基础像素大小（保持正方形）
+        # 取相同的值作为宽高，确保图像显示为正方形
+        base_pixel_size = min(width / self.col_num, height / self.row_num)
         
         # 应用缩放比例
-        pixel_width = base_pixel_width * self.zoom_factor
-        pixel_height = base_pixel_height * self.zoom_factor
+        pixel_size = base_pixel_size * self.zoom_factor
         
-        # 计算居中偏移，使缩放后的图像保持在中心位置
-        total_width = self.col_num * pixel_width
-        total_height = self.row_num * pixel_height
+        # 计算居中偏移，使正方形图像保持在中心位置
+        total_width = self.col_num * pixel_size
+        total_height = self.row_num * pixel_size
         offset_x = (width - total_width) / 2
         offset_y = (height - total_height) / 2
         
@@ -204,10 +217,10 @@ class LayerImageWidget(QWidget):
                     
                     # 绘制像素点（作为矩形），考虑缩放和居中
                     rect = QRectF(
-                        offset_x + j * pixel_width,
-                        offset_y + i * pixel_height,
-                        max(1, pixel_width),  # 确保至少1像素宽
-                        max(1, pixel_height)   # 确保至少1像素高
+                        offset_x + j * pixel_size,
+                        offset_y + i * pixel_size,
+                        max(1, pixel_size),  # 确保至少1像素宽
+                        max(1, pixel_size)   # 确保至少1像素高
                     )
                     painter.drawRect(rect)
     
@@ -445,21 +458,45 @@ class PatchLayout(QWidget):
         # 为每个图层创建显示组件
         if image_dict:
             # 计算网格布局的行列（每行显示4个图层，可根据需要调整）
-            max_columns = 5
+            max_columns = 4
             index = 0
             
             for layer_id, layer_array in image_dict.items():
-                # 创建图层标题
-                layer_title = QLabel(self.vec_layers[layer_id].name)
-                layer_title.setAlignment(Qt.AlignCenter)
-                
                 # 创建图层图像widget
                 layer_widget = LayerImageWidget(layer_id)
                 
+                # 设置LayerImageWidget为正方形，大小为row_num和col_num的倍数
+                # 计算合适的正方形尺寸（基于原始项目大小和行列数的倍数）
+                base_size = self.original_item_size
+                # 确保尺寸是row_num和col_num的公倍数
+                # 找到row_num和col_num的最小公倍数
+                def lcm(a, b):
+                    import math
+                    return a * b // math.gcd(a, b)
+                
+                if row_num > 0 and col_num > 0:
+                    min_size = lcm(int(row_num), int(col_num))
+                    # 确保正方形尺寸至少为base_size，并且是min_size的倍数
+                    square_size = max(base_size, ((base_size + min_size - 1) // min_size) * min_size)
+                else:
+                    square_size = base_size
+                
+                # 创建图层标题
+                layer_title = QLabel(self.vec_layers[layer_id].name)
+                layer_title.setAlignment(Qt.AlignCenter)
+                layer_title.setFixedWidth(square_size)  # 设置与layer_widget相同的宽度，确保对齐
+                
+                # 设置固定的正方形尺寸
+                layer_widget.setFixedSize(square_size, square_size)
+                
                 # 创建垂直布局放置标题和图像
                 layer_layout = QVBoxLayout()
-                layer_layout.addWidget(layer_title)
-                layer_layout.addWidget(layer_widget, 1)  # 让图像占据剩余空间
+                # 设置布局的内容边距和间距，确保标题和图像精确对齐
+                layer_layout.setContentsMargins(0, 0, 0, 0)
+                layer_layout.setSpacing(0)  # 设置布局项之间的间距为0
+                # 添加标题和图像到布局，确保水平和垂直居中对齐
+                layer_layout.addWidget(layer_title, alignment=Qt.AlignHCenter | Qt.AlignVCenter)
+                layer_layout.addWidget(layer_widget, 1, alignment=Qt.AlignHCenter | Qt.AlignVCenter)  # 让图像占据剩余空间，并确保垂直居中
                 
                 # 创建容器widget放置布局
                 container = QWidget()

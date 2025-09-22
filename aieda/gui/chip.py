@@ -289,4 +289,4 @@ class ChipLayout(QWidget):
                 # 让视图自动调整到能看到整个选中的网络矩形
                 self.view.fitInView(self.selected_net_rect, Qt.KeepAspectRatio)
                 # 稍微缩小视图，在选中的矩形周围留出一些空间
-                self.view.scale(0.7, 0.7)
+                self.view.scale(0.6, 0.6)

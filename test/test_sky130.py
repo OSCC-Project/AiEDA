@@ -288,20 +288,9 @@ def run_eda_flow(workspace: Workspace, clock_nets):
             ieda_fp.global_net_connect(
                 net_name="VDD", instance_pin_name="VPWR", is_power=True
             )
-            ieda_fp.global_net_connect(
-                net_name="VDD", instance_pin_name="VPB", is_power=True
-            )
-            ieda_fp.global_net_connect(
-                net_name="VDD", instance_pin_name="vdd", is_power=True
-            )
+
             ieda_fp.global_net_connect(
                 net_name="VSS", instance_pin_name="VGND", is_power=False
-            )
-            ieda_fp.global_net_connect(
-                net_name="VSS", instance_pin_name="VNB", is_power=False
-            )
-            ieda_fp.global_net_connect(
-                net_name="VSS", instance_pin_name="VNB", is_power=False
             )
 
             ieda_fp.auto_place_pins(layer="met5", width=2000, height=2000)
