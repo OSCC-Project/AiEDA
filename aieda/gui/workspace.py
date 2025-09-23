@@ -24,38 +24,48 @@ from aieda.workspace import Workspace
 class WorkspaceUI(QWidget):
     """workspace ui"""
     
-    def __init__(self, workspace):
+    def __init__(self, workspace, parent=None):
+        # Call the superclass constructor first
+        super().__init__(parent)
+        
+        # Initialize workspace and data processing variables
         self.workspace = workspace
-        self.left_width_ratio = 0.9
-        self.right_width_ratio = 0.1
-        self.color_list = {}
-        self.widgets_grid = {}
-        
-        super().__init__()
-        
-        # process data
         self.vec_instances = None
         self.vec_cells = None
         self.vec_nets = None
         self.vec_patch = None
         self.vec_layers = None
-
-        self._init_ui()
         
+        # UI components initialization
+        self.chip_ui = None
+        self.patches_ui = None
+        self.patch_ui = None
+        self.layer_ui = None
+        self.net_ui = None
+        self.widgets_grid = {}
+        
+        # Layout configuration
+        self.left_width_ratio = 0.9  # 90% width for left side
+        self.right_width_ratio = 0.1  # 10% width for right side
+        self.main_layout = QGridLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Colors for different cell types in the layout
+        self.color_list = self._generate_colors()
+        
+        # Status tracking for synchronization
+        self._is_syncing = False  # Flag to prevent infinite recursion during synchronization
+        
+        # Initialize the UI and load data
         self.load_data()
         self.load_layout()
     
     def _init_ui(self):
-        # Use QGridLayout as main layout to support both horizontal and vertical arrangement
-        # and allow setting position and size for each widget
-        self.main_layout = QGridLayout(self)
-        
-        # Dictionary to store widgets and their positions for easy management
-        self._generate_colors()
+        pass
         
     def _generate_colors(self):
         """Generate high contrast colors for different cell types"""
-        self.color_list = {}
+        color_list = {}
         
         # Use a combination of predefined high-contrast colors and algorithmically generated colors
         predefined_colors = [
@@ -77,7 +87,7 @@ class WorkspaceUI(QWidget):
         
         # Add predefined high-contrast colors
         for idx, (r, g, b, a) in enumerate(predefined_colors):
-            self.color_list[idx] = QColor(r, g, b, a)
+            color_list[idx] = QColor(r, g, b, a)
         
         # Generate additional high-contrast colors with systematic hue distribution
         num_additional_colors = 200  # Total colors will be predefined + additional
@@ -93,10 +103,12 @@ class WorkspaceUI(QWidget):
             alpha = 0.9  # Keep high opacity for visibility
             
             color = QColor.fromHsvF(hue, saturation, value, alpha)
-            self.color_list[i] = color
+            color_list[i] = color
         
         # Add default color for unknown cell types
-        self.color_list[None] = QColor(192, 192, 192, 200)  # Default gray
+        color_list[None] = QColor(192, 192, 192, 200)  # Default gray
+        
+        return color_list
         
     def add_widget_to_grid(self, widget, row, col, rowspan=1, colspan=1, stretch=None):
         """Add a widget to the grid layout with specified position and size
@@ -182,7 +194,7 @@ class WorkspaceUI(QWidget):
             self.chip_ui = ChipLayout(self.vec_cells, self.vec_instances, self.vec_nets, self.color_list)   # Top-left
             self.patch_ui = PatchLayout(self.vec_layers, self.color_list) # Bottom-left
             self.patches_ui = PatchesLayout(self.vec_patch, self.color_list, self.patch_ui)   # Top-left
-            self.layer_ui = LayerLayout(self.vec_layers, self.color_list) # Top-right
+            self.layer_ui = LayerLayout(self.vec_layers, self.color_list, self.chip_ui, self.patches_ui) # Top-right
             self.net_ui = NetLayout(self.vec_nets)     # Bottom-right
             
             # 设置PatchesLayout的patch_layout引用为PatchLayout的实例
@@ -227,6 +239,10 @@ class WorkspaceUI(QWidget):
             chips_patches_layout.addWidget(self.chip_ui)
             chips_patches_layout.addWidget(self.patches_ui)
             
+            # Make chip_ui and patches_ui each take half of the view
+            chips_patches_layout.setStretch(0, 1)  # chip_ui takes 1 part
+            chips_patches_layout.setStretch(1, 1)  # patches_ui takes 1 part
+            
             # Add button_layout (top) and chips_patches_layout (bottom) to top_left_layout
             top_left_layout.addLayout(button_layout)
             top_left_layout.addLayout(chips_patches_layout)
@@ -268,11 +284,86 @@ class WorkspaceUI(QWidget):
             getattr(self.patches_ui, method_name)()
     
     def _setup_synchronized_zooming(self):
-        """Setup synchronized zooming between chip_ui and patches_ui"""
+        """Setup synchronized zooming, scrolling and dragging between chip_ui and patches_ui"""
         # Install event filters to capture wheel events
         self.chip_ui.view.viewport().installEventFilter(self)
         self.patches_ui.view.viewport().installEventFilter(self)
+        
+        # Connect scroll bars for synchronized scrolling
+        # Vertical scroll bars
+        self.chip_ui.view.verticalScrollBar().valueChanged.connect(
+            lambda value: self._sync_scroll_bar(self.chip_ui.view.verticalScrollBar(), 
+                                              self.patches_ui.view.verticalScrollBar(), value))
+        self.patches_ui.view.verticalScrollBar().valueChanged.connect(
+            lambda value: self._sync_scroll_bar(self.patches_ui.view.verticalScrollBar(), 
+                                              self.chip_ui.view.verticalScrollBar(), value))
+        
+        # Horizontal scroll bars
+        self.chip_ui.view.horizontalScrollBar().valueChanged.connect(
+            lambda value: self._sync_scroll_bar(self.chip_ui.view.horizontalScrollBar(), 
+                                              self.patches_ui.view.horizontalScrollBar(), value))
+        self.patches_ui.view.horizontalScrollBar().valueChanged.connect(
+            lambda value: self._sync_scroll_bar(self.patches_ui.view.horizontalScrollBar(), 
+                                              self.chip_ui.view.horizontalScrollBar(), value))
     
+
+        
+    def _sync_scroll_bar(self, source_bar, target_bar, value):
+        """Synchronize scroll bar values between views to ensure both views display the same area"""
+        # Prevent infinite recursion by checking if we're already in the middle of a sync operation
+        if self._is_syncing:
+            return
+        
+        try:
+            # Set the syncing flag
+            self._is_syncing = True
+            
+            # Calculate the proportionate value based on the maximum scroll range of each bar
+            # This ensures that the visible area stays in sync even if the views have different sizes
+            if source_bar.maximum() > 0 and target_bar.maximum() > 0:
+                # Calculate the ratio of the current position to the maximum range
+                ratio = value / source_bar.maximum()
+                # Set the target bar's position based on this ratio
+                target_value = int(ratio * target_bar.maximum())
+            else:
+                # If one of the bars has no range, just use the raw value
+                target_value = value
+                
+            # Only set value if it's not already approximately the same (prevents unnecessary updates)
+            if abs(target_bar.value() - target_value) > 1:
+                # Block signals temporarily to prevent infinite recursion
+                target_bar.blockSignals(True)
+                target_bar.setValue(target_value)
+                target_bar.blockSignals(False)
+                
+                # Get the view associated with the target scroll bar
+                target_view = None
+                if target_bar == self.chip_ui.view.verticalScrollBar() or target_bar == self.chip_ui.view.horizontalScrollBar():
+                    target_view = self.chip_ui.view
+                elif target_bar == self.patches_ui.view.verticalScrollBar() or target_bar == self.patches_ui.view.horizontalScrollBar():
+                    target_view = self.patches_ui.view
+                
+                # Explicitly update the view to ensure it displays the new scroll position
+                if target_view:
+                    # Get the center point of the source view
+                    if source_bar == self.chip_ui.view.verticalScrollBar() or source_bar == self.chip_ui.view.horizontalScrollBar():
+                        source_view = self.chip_ui.view
+                    else:
+                        source_view = self.patches_ui.view
+                    
+                    # Calculate the source view's center in scene coordinates
+                    source_center = source_view.mapToScene(source_view.viewport().rect().center())
+                    
+                    # Set the target view's center to match the source view's center
+                    # We don't need to block signals here because we have the _is_syncing flag
+                    target_view.centerOn(source_center)
+                    
+                    # Force an update to ensure the view redraws with the new position
+                    target_view.update()
+        finally:
+            # Always clear the syncing flag, even if an exception occurs
+            self._is_syncing = False
+            
     def eventFilter(self, source, event):
         """Filter and handle events for synchronized zooming, scrolling and dragging"""
         chip_viewport = self.chip_ui.view.viewport()

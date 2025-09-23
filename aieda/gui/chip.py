@@ -50,7 +50,7 @@ class ChipLayout(QWidget):
 
         # Initialize UI
         self.init_ui()
-        self.draw_layout()
+        self.draw_layout(True)
     
     def init_ui(self):
         """Initialize the UI components"""
@@ -91,7 +91,7 @@ class ChipLayout(QWidget):
         self.setWindowTitle("Chip Layout Display")
         self.resize(1000, 800)
   
-    def draw_layout(self):
+    def draw_layout(self, fit_view = False):
         """Draw the chip layout"""
         self.scene.clear()
         
@@ -108,7 +108,8 @@ class ChipLayout(QWidget):
             self._draw_io_pins()
         
         # Fit the view to the scene - ensure this is always called
-        self.fit_view()
+        if fit_view:
+            self.fit_view()
     
     def _draw_instances(self):
         """Draw instances as rectangles"""
@@ -178,21 +179,26 @@ class ChipLayout(QWidget):
                 self.scene.addItem(rect_item)
                 
                 # draw path
-                for path in wire.paths:
-                    if path.node1.layer == path.node2.layer or path.node1.layer > path.node2.layer:
+                for path in wire.paths: 
+                    if path.node1.layer == path.node2.layer:
+                        if hasattr(self, 'layer_visibility') and path.node1.layer in self.layer_visibility:
+                            # 如果图层被隐藏，跳过绘制该图层的net
+                            if not self.layer_visibility[path.node1.layer]:
+                                continue
+                        
                         color_id = path.node1.layer % len(self.color_list)
                         color = self.color_list[color_id]
-                    else:
-                        color_id = path.node2.layer % len(self.color_list)
-                        color = self.color_list[color_id]
+                    # else:
+                    #     color_id = path.node2.layer % len(self.color_list)
+                    #     color = self.color_list[color_id]
                         
-                    wire_pen = QPen(color, 30) 
-                    line_item = QGraphicsLineItem(path.node1.real_x, 
-                                                  path.node1.real_y, 
-                                                  path.node2.real_x, 
-                                                  path.node2.real_y)
-                    line_item.setPen(wire_pen)
-                    self.scene.addItem(line_item)
+                        wire_pen = QPen(color, 30) 
+                        line_item = QGraphicsLineItem(path.node1.real_x, 
+                                                      path.node1.real_y, 
+                                                      path.node2.real_x, 
+                                                      path.node2.real_y)
+                        line_item.setPen(wire_pen)
+                        self.scene.addItem(line_item)
     
     def _draw_io_pins(self):
         """Draw IO pins as rectangles"""
@@ -290,3 +296,11 @@ class ChipLayout(QWidget):
                 self.view.fitInView(self.selected_net_rect, Qt.KeepAspectRatio)
                 # 稍微缩小视图，在选中的矩形周围留出一些空间
                 self.view.scale(0.6, 0.6)
+
+    def resizeEvent(self, event):
+        """Handle resize event to maintain view fitting"""
+        # Call the base class resize event
+        super().resizeEvent(event)
+        
+        # Force view to fit scene
+        self.fit_view()

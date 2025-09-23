@@ -59,7 +59,7 @@ class PatchesLayout(QWidget):
         super().__init__()
         
         self._init_ui()
-        self.draw_layout()
+        self.draw_layout(True)
     
     def load_patches(self, vec_patches):
         patches = {patch.id : patch for patch in vec_patches} if vec_patches else {}
@@ -117,7 +117,15 @@ class PatchesLayout(QWidget):
         
         self.view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
         
-    def draw_layout(self):
+    def resizeEvent(self, event):
+        """Handle resize event to maintain view fitting"""
+        # Call the base class resize event
+        super().resizeEvent(event)
+        
+        # Force view to fit scene
+        self.fit_view()
+        
+    def draw_layout(self, fit_view=False):
         self.scene.clear()
         self.rect_items = {}  # 清空矩形项列表
         self.overlapping_rects = {}  # 清空交叠矩形字典
@@ -138,6 +146,16 @@ class PatchesLayout(QWidget):
             self.rect_items[id] = rect_item # 存储矩形项
             
             for layer in patch.patch_layer:
+                # 检查layer_visibility字典是否存在，并且该图层是否可见
+                # 使用layer.id作为键来匹配layer_visibility字典
+                if hasattr(layer, 'id'):
+                    layer_id = layer.id
+                    if hasattr(self, 'layer_visibility') and layer_id in self.layer_visibility:
+                        # 如果图层被隐藏，跳过绘制该图层的net
+                        if not self.layer_visibility[layer_id]:
+                            continue
+                # 如果没有name属性，使用原来的方式尝试获取标识符
+                
                 for net in layer.nets:
                     for wire in net.wires:
                         # color_id = net.id % len(self.color_list)
@@ -159,8 +177,8 @@ class PatchesLayout(QWidget):
                                                           path.node2.y)
                             line_item.setPen(wire_pen)
                             self.scene.addItem(line_item)
-            
-        self.fit_view()
+        if fit_view:    
+            self.fit_view()
         
     def update_coord_status(self, coord_text):
         """Update the coordinate status display in the bottom status bar"""

@@ -257,7 +257,7 @@ class PatchLayout(QWidget):
         self.main_layout = QVBoxLayout(self)
         
         # Title label
-        title_label = QLabel("Patch Visualization")
+        title_label = QLabel("Patch Images")
         title_font = QFont()
         title_font.setBold(True)
         title_font.setPointSize(12)
@@ -271,7 +271,7 @@ class PatchLayout(QWidget):
         content_layout = QHBoxLayout()
         
         # 左侧：组合图像显示组件（PatchImageWidget），占比0.2
-        combined_title = QLabel("Combined View")
+        combined_title = QLabel("Patch Image")
         combined_title.setAlignment(Qt.AlignCenter)
         combined_title.setStyleSheet("font-weight: bold;")
         
@@ -288,7 +288,7 @@ class PatchLayout(QWidget):
         content_layout.addWidget(combined_container, 2)  # 2表示扩展系数
         
         # 右侧：单个图层显示区域（LayerImageWidget），占比0.8
-        layers_title = QLabel("Individual Layers")
+        layers_title = QLabel("Patch Layer Images")
         layers_title.setAlignment(Qt.AlignCenter)
         layers_title.setStyleSheet("font-weight: bold;")
         
@@ -483,7 +483,8 @@ class PatchLayout(QWidget):
                 
                 # 创建图层标题
                 layer_title = QLabel(self.vec_layers[layer_id].name)
-                layer_title.setAlignment(Qt.AlignCenter)
+                layer_title.setStyleSheet("font-weight: bold;")
+                layer_title.setAlignment(Qt.AlignHCenter | Qt.AlignBottom)
                 layer_title.setFixedWidth(square_size)  # 设置与layer_widget相同的宽度，确保对齐
                 
                 # 设置固定的正方形尺寸
@@ -495,8 +496,8 @@ class PatchLayout(QWidget):
                 layer_layout.setContentsMargins(0, 0, 0, 0)
                 layer_layout.setSpacing(0)  # 设置布局项之间的间距为0
                 # 添加标题和图像到布局，确保水平和垂直居中对齐
-                layer_layout.addWidget(layer_title, alignment=Qt.AlignHCenter | Qt.AlignVCenter)
-                layer_layout.addWidget(layer_widget, 1, alignment=Qt.AlignHCenter | Qt.AlignVCenter)  # 让图像占据剩余空间，并确保垂直居中
+                layer_layout.addWidget(layer_title, alignment=Qt.AlignHCenter | Qt.AlignVCenter | Qt.AlignBottom)
+                layer_layout.addWidget(layer_widget, 1, alignment=Qt.AlignHCenter | Qt.AlignVCenter | Qt.AlignTop)  # 让图像占据剩余空间，并确保垂直居中
                 
                 # 创建容器widget放置布局
                 container = QWidget()

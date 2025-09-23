@@ -304,7 +304,7 @@ def run_eda_flow(workspace: Workspace):
                 net_name="VSS", instance_pin_name="VNB", is_power=False
             )
             ieda_fp.global_net_connect(
-                net_name="VSS", instance_pin_name="VNB", is_power=False
+                net_name="VSS", instance_pin_name="gnd", is_power=False
             )
 
             ieda_fp.auto_place_pins(layer="met5", width=2000, height=2000)
@@ -338,7 +338,7 @@ def run_eda_flow(workspace: Workspace):
         factory = DSEFacade(
             workspace=workspace,
             step=DbFlow.FlowStep.place,
-            run_count=5,
+            run_count=100,
         )
         factory.start(optimize=DSEMethod.NNI)
 
