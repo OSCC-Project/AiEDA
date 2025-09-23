@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 """
-Batch extract routing features from multiple designs in dataset_skywater130
+Batch extract routing features from multiple designs in dataset directory
 """
 
 import os
 import sys
+import glob
+import argparse
+from pathlib import Path
 
 os.environ["iEDA"] = "ON"
 sys.path.append(os.getcwd())
@@ -13,16 +16,39 @@ sys.path.append(os.getcwd())
 from aieda.workspace import Workspace, workspace_create
 from aieda.flows import DbFlow, DataGeneration
 
-# 完整设计列表 (有完整的DEF, SPEF, SDC文件)
-COMPLETE_DESIGNS = [
-    "aes", "aes_core", "apb4_archinfo", "apb4_clint", "apb4_i2c", "apb4_ps2",
-    "apb4_rng", "apb4_timer", "apb4_uart", "apb4_wdg", "blabla", "gcd",
-    "picorv32", "PPU", "s1238", "s13207", "s1488", "s15850", "s35932",
-    "s38417", "s38584", "s44", "s5378", "s713", "s9234", "salsa20"
-]
+def find_designs_with_route(dataset_dir):
+    """Find all designs with complete route files."""
+    if not os.path.exists(dataset_dir):
+        print(f"Error: Dataset directory '{dataset_dir}' does not exist")
+        return []
 
-def create_workspace_sky130_design(workspace_dir, design_name, dataset_dir):
-    """为指定设计创建workspace"""
+    designs = []
+    try:
+        for design_dir in Path(dataset_dir).iterdir():
+            if design_dir.is_dir():
+                route_dir = design_dir / "route"
+                if route_dir.exists():
+                    design_name = design_dir.name
+                    # Check for def and sdc files in route directory
+                    def_files = list(route_dir.glob(f"{design_name}.def")) + list(route_dir.glob("*.def"))
+                    sdc_files = list(route_dir.glob(f"{design_name}.sdc")) + list(route_dir.glob("*.sdc"))
+
+                    # Check for spef files in rpt directory
+                    rpt_dir = route_dir / "rpt"
+                    spef_files = []
+                    if rpt_dir.exists():
+                        spef_files = list(rpt_dir.glob(f"{design_name}.spef")) + list(rpt_dir.glob("*.spef"))
+
+                    if def_files and sdc_files and spef_files:
+                        designs.append(design_name)
+    except PermissionError:
+        print(f"Error: Permission denied accessing '{dataset_dir}'")
+        return []
+
+    return sorted(designs)
+
+def create_workspace_sky130_design(workspace_dir, design_name, dataset_dir, aieda_root=None):
+    """Create workspace for specified design."""
     flow_db_list = [
         DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan, state=DbFlow.FlowState.Unstart),
         DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.pdn, state=DbFlow.FlowState.Unstart),
@@ -42,12 +68,21 @@ def create_workspace_sky130_design(workspace_dir, design_name, dataset_dir):
         directory=workspace_dir, design=design_name, flow_list=flow_db_list
     )
 
-    current_dir = os.path.split(os.path.abspath(__file__))[0]
-    root = current_dir.rsplit("/", 1)[0]
+    # Set basic paths
+    if aieda_root is None:
+        current_dir = os.path.split(os.path.abspath(__file__))[0]
+        root = current_dir.rsplit("/", 1)[0]
+    else:
+        root = aieda_root
+
     foundry_dir = "{}/aieda/third_party/iEDA/scripts/foundry/sky130".format(root)
 
-    # 设置verilog输入（从参考文件路径）
+    # Set verilog input (from reference file path)
     sky130_verilog = "{}/aieda/third_party/iEDA/scripts/design/sky130_gcd/result/verilog/gcd.v".format(root)
+
+    if not os.path.exists(sky130_verilog):
+        print(f"Warning: Verilog file not found at {sky130_verilog}")
+
     workspace.set_verilog_input(sky130_verilog)
 
     # 设置tech lef
@@ -100,13 +135,12 @@ def create_workspace_sky130_design(workspace_dir, design_name, dataset_dir):
     # 设置sdc, spef路径 (根据实际设计调整)
     design_dir = os.path.join(dataset_dir, design_name)
 
-    # 自动查找SDC文件
-    import glob
-    sdc_files = glob.glob(os.path.join(design_dir, "syn_netlist", "*.sdc"))
+    # 自动查找SDC文件 - 从route目录
+    sdc_files = glob.glob(os.path.join(design_dir, "route", "*.sdc"))
     if sdc_files:
         workspace.set_sdc(sdc_files[0])
     else:
-        raise FileNotFoundError(f"No SDC file found in {design_dir}/syn_netlist/")
+        raise FileNotFoundError(f"No SDC file found in {design_dir}/route/")
 
     workspace.set_spef(os.path.join(design_dir, "route", "rpt", f"{design_name}.spef"))
 
@@ -143,7 +177,7 @@ def create_workspace_sky130_design(workspace_dir, design_name, dataset_dir):
 def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: int,
                     input_def, batch_mode: bool = True, is_placement_mode: bool = False,
                     sta_mode: int = 0):
-    """生成特征向量"""
+    """Generate feature vectors."""
     data_gen = DataGeneration(workspace)
 
     if is_placement_mode:
@@ -162,12 +196,13 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
     )
 
 
-def batch_extract_features(dataset_dir, output_base_dir, designs=None):
-    """批量提取布线特征"""
+def batch_extract_features(dataset_dir, output_base_dir, designs=None, aieda_root=None,
+                          patch_row_step=18, patch_col_step=18):
+    """Batch extract routing features."""
     if designs is None:
-        designs = COMPLETE_DESIGNS
+        designs = find_designs_with_route(dataset_dir)
 
-    current_dir = os.path.split(os.path.abspath(__file__))[0]
+    success_count = 0
 
     for design_name in designs:
         print(f"\n{'='*60}")
@@ -175,14 +210,13 @@ def batch_extract_features(dataset_dir, output_base_dir, designs=None):
         print(f"{'='*60}")
 
         try:
-            # 检查文件是否存在
+            # Check if files exist
             design_dir = os.path.join(dataset_dir, design_name)
             def_file = os.path.join(design_dir, "route", f"{design_name}.def")
             spef_file = os.path.join(design_dir, "route", "rpt", f"{design_name}.spef")
 
-            # 检查SDC文件(任意名称)
-            import glob
-            sdc_files = glob.glob(os.path.join(design_dir, "syn_netlist", "*.sdc"))
+            # Check SDC files (from route directory)
+            sdc_files = glob.glob(os.path.join(design_dir, "route", "*.sdc"))
 
             if not os.path.exists(def_file):
                 print(f"WARNING: Missing DEF file for {design_name}, skipping...")
@@ -196,16 +230,16 @@ def batch_extract_features(dataset_dir, output_base_dir, designs=None):
 
             print(f"Found files: DEF, SPEF, SDC({os.path.basename(sdc_files[0])})")
 
-            # 创建workspace
+            # Create workspace
             workspace_dir = os.path.join(output_base_dir, f"workspace_{design_name}")
-            workspace = create_workspace_sky130_design(workspace_dir, design_name, dataset_dir)
+            workspace = create_workspace_sky130_design(workspace_dir, design_name, dataset_dir, aieda_root)
 
-            # 生成特征向量
-            # sta_mode = 1: 使用spef进行STA
+            # Generate feature vectors
+            # sta_mode = 1: use spef for STA
             generate_vectors(
                 workspace=workspace,
-                patch_row_step=18,
-                patch_col_step=18,
+                patch_row_step=patch_row_step,
+                patch_col_step=patch_col_step,
                 input_def=def_file,
                 batch_mode=False,
                 is_placement_mode=False,
@@ -213,29 +247,121 @@ def batch_extract_features(dataset_dir, output_base_dir, designs=None):
             )
 
             print(f"✓ Successfully processed {design_name}")
+            success_count += 1
 
         except Exception as e:
             print(f"✗ Error processing {design_name}: {str(e)}")
             continue
 
+    return success_count
 
-if __name__ == "__main__":
-    dataset_dir = "/data2/home/zyx/project_share/dataset_skywater130"
-    current_dir = os.path.split(os.path.abspath(__file__))[0]
-    root = current_dir.rsplit("/", 1)[0]
-    output_base_dir = f"{root}/example/batch_route_features"
+
+def main():
+    """Main function."""
+    parser = argparse.ArgumentParser(
+        description="Batch routing feature extraction script",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python batch_extract_route_features.py /path/to/dataset_skywater130
+  python batch_extract_route_features.py --dataset-dir /path/to/dataset --output-dir /path/to/output
+  python batch_extract_route_features.py --dataset-dir /path/to/dataset --patch-step 24
+        """
+    )
+
+    parser.add_argument(
+        'dataset_dir',
+        nargs='?',
+        help='Path to the dataset directory containing design subdirectories'
+    )
+
+    parser.add_argument(
+        '--dataset-dir',
+        dest='dataset_dir_alt',
+        help='Alternative way to specify dataset directory path'
+    )
+
+    parser.add_argument(
+        '--output-dir',
+        help='Output directory for extracted features (default: ./example/batch_route_features)'
+    )
+
+    parser.add_argument(
+        '--aieda-root',
+        help='Path to aiEDA root directory (default: auto-detect)'
+    )
+
+    parser.add_argument(
+        '--patch-row-step',
+        type=int,
+        default=18,
+        help='Patch row step size for feature extraction (default: 18)'
+    )
+
+    parser.add_argument(
+        '--patch-col-step',
+        type=int,
+        default=18,
+        help='Patch column step size for feature extraction (default: 18)'
+    )
+
+    args = parser.parse_args()
+
+    # Determine dataset directory
+    dataset_dir = args.dataset_dir or args.dataset_dir_alt
+
+    if not dataset_dir:
+        parser.print_help()
+        print("\nError: Dataset directory must be specified")
+        sys.exit(1)
+
+    dataset_dir = os.path.abspath(dataset_dir)
+
+    # Set output directory
+    if args.output_dir:
+        output_base_dir = os.path.abspath(args.output_dir)
+    else:
+        current_dir = os.path.split(os.path.abspath(__file__))[0]
+        root = current_dir.rsplit("/", 1)[0]
+        output_base_dir = f"{root}/example/batch_route_features"
+
+    # Dynamically discover designs with route files
+    designs = find_designs_with_route(dataset_dir)
 
     print(f"Dataset directory: {dataset_dir}")
     print(f"Output directory: {output_base_dir}")
-    print(f"Designs to process: {len(COMPLETE_DESIGNS)} (including apb4 series)")
-    print(f"Design list: {', '.join(COMPLETE_DESIGNS)}")
+    print(f"Patch step size: {args.patch_row_step}x{args.patch_col_step}")
+    print(f"Found {len(designs)} designs with route files:")
+    for design in designs:
+        print(f"  - {design}")
 
-    # 创建输出目录
-    os.makedirs(output_base_dir, exist_ok=True)
+    if not designs:
+        print("No designs with route files found")
+        sys.exit(1)
 
-    # 开始批量处理
-    batch_extract_features(dataset_dir, output_base_dir)
+    # Create output directory
+    try:
+        os.makedirs(output_base_dir, exist_ok=True)
+    except PermissionError:
+        print(f"Error: Permission denied creating output directory '{output_base_dir}'")
+        sys.exit(1)
+
+    # Start batch processing
+    success_count = batch_extract_features(
+        dataset_dir, output_base_dir, designs, args.aieda_root,
+        args.patch_row_step, args.patch_col_step
+    )
 
     print(f"\n{'='*60}")
     print("Batch processing completed!")
+    print(f"Successfully processed: {success_count}/{len(designs)} designs")
     print(f"{'='*60}")
+
+    if success_count > 0:
+        sys.exit(0)
+    else:
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

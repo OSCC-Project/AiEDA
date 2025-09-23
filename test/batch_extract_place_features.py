@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 """
-批量提取布局特征脚本
-自动处理dataset_skywater130目录下已经产生place的设计
+Batch placement feature extraction script
+Automatically processes designs with placement results in dataset directory
 """
 
 import os
@@ -10,9 +10,10 @@ import sys
 import glob
 import shutil
 import tempfile
+import argparse
 from pathlib import Path
 
-# 设置环境和路径
+# Set environment and paths
 os.environ["iEDA"] = "ON"
 sys.path.append(os.getcwd())
 
@@ -22,31 +23,42 @@ from aieda.data.database import EDAParameters
 
 
 def find_designs_with_place(dataset_dir):
-    """找到所有有place目录的设计"""
+    """Find all designs with place directory and required files."""
+    if not os.path.exists(dataset_dir):
+        print(f"Error: Dataset directory '{dataset_dir}' does not exist")
+        return []
+
     designs = []
-    for design_dir in Path(dataset_dir).iterdir():
-        if design_dir.is_dir():
-            place_dir = design_dir / "place"
-            syn_netlist_dir = design_dir / "syn_netlist"
-            if place_dir.exists() and syn_netlist_dir.exists():
-                designs.append(design_dir.name)
+    try:
+        for design_dir in Path(dataset_dir).iterdir():
+            if design_dir.is_dir():
+                place_dir = design_dir / "place"
+                if place_dir.exists():
+                    # Check for def and sdc files in place directory
+                    def_files = list(place_dir.glob("*.def")) + list(place_dir.glob("*.def.gz"))
+                    sdc_files = list(place_dir.glob("*.sdc"))
+                    if def_files and sdc_files:
+                        designs.append(design_dir.name)
+    except PermissionError:
+        print(f"Error: Permission denied accessing '{dataset_dir}'")
+        return []
+
     return sorted(designs)
 
 
 def get_design_files(dataset_dir, design_name):
-    """获取设计的def和sdc文件路径"""
+    """Get paths to def and sdc files for a design."""
     design_dir = Path(dataset_dir) / design_name
 
-    # 查找def文件
+    # Find def file
     place_dir = design_dir / "place"
     def_files = list(place_dir.glob("*.def")) + list(place_dir.glob("*.def.gz"))
     if not def_files:
         return None, None
     def_file = def_files[0]
 
-    # 查找sdc文件
-    syn_netlist_dir = design_dir / "syn_netlist"
-    sdc_files = list(syn_netlist_dir.glob("*.sdc"))
+    # Find sdc file - look in place directory
+    sdc_files = list(place_dir.glob("*.sdc"))
     if not sdc_files:
         return None, None
     sdc_file = sdc_files[0]
@@ -55,11 +67,15 @@ def get_design_files(dataset_dir, design_name):
 
 
 def process_sdc_file(sdc_path):
-    """处理sdc文件，临时删除set_propagated_clock [all_clocks]"""
-    with open(sdc_path, 'r') as f:
-        content = f.read()
+    """Process sdc file by temporarily removing set_propagated_clock [all_clocks]."""
+    try:
+        with open(sdc_path, 'r') as f:
+            content = f.read()
+    except (IOError, PermissionError) as e:
+        print(f"  Error reading SDC file {sdc_path}: {e}")
+        return sdc_path, None, None
 
-    # 检查是否包含set_propagated_clock
+    # Check if it contains set_propagated_clock
     original_content = content
     modified = False
 
@@ -67,30 +83,37 @@ def process_sdc_file(sdc_path):
     filtered_lines = []
     for line in lines:
         if 'set_propagated_clock' in line and '[all_clocks]' in line:
-            print(f"  临时移除: {line.strip()}")
+            print(f"  Temporarily removing: {line.strip()}")
             modified = True
         else:
             filtered_lines.append(line)
 
     if modified:
-        # 创建临时文件
-        temp_fd, temp_path = tempfile.mkstemp(suffix='.sdc')
-        with os.fdopen(temp_fd, 'w') as f:
-            f.write('\n'.join(filtered_lines))
-        return temp_path, original_content, sdc_path
+        # Create temporary file
+        try:
+            temp_fd, temp_path = tempfile.mkstemp(suffix='.sdc')
+            with os.fdopen(temp_fd, 'w') as f:
+                f.write('\n'.join(filtered_lines))
+            return temp_path, original_content, sdc_path
+        except (IOError, PermissionError) as e:
+            print(f"  Error creating temporary SDC file: {e}")
+            return sdc_path, None, None
     else:
         return sdc_path, None, None
 
 
 def restore_sdc_file(original_content, original_path):
-    """恢复sdc文件原始内容"""
+    """Restore original content of sdc file."""
     if original_content is not None:
-        with open(original_path, 'w') as f:
-            f.write(original_content)
+        try:
+            with open(original_path, 'w') as f:
+                f.write(original_content)
+        except (IOError, PermissionError) as e:
+            print(f"  Error restoring SDC file {original_path}: {e}")
 
 
-def create_workspace_for_design(workspace_dir, design_name, def_file, sdc_file):
-    """为特定设计创建workspace"""
+def create_workspace_for_design(workspace_dir, design_name, def_file, sdc_file, aieda_root=None):
+    """Create workspace for specific design."""
     flow_db_list = [
         DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan, state=DbFlow.FlowState.Unstart),
         DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.pdn, state=DbFlow.FlowState.Unstart),
@@ -108,17 +131,28 @@ def create_workspace_for_design(workspace_dir, design_name, def_file, sdc_file):
 
     workspace = workspace_create(directory=workspace_dir, design=design_name, flow_list=flow_db_list)
 
-    # 设置基本路径
-    current_dir = os.path.split(os.path.abspath(__file__))[0]
-    root = current_dir.rsplit("/", 1)[0]
+    # Set basic paths
+    if aieda_root is None:
+        current_dir = os.path.split(os.path.abspath(__file__))[0]
+        root = current_dir.rsplit("/", 1)[0]
+    else:
+        root = aieda_root
+
     foundry_dir = f"{root}/aieda/third_party/iEDA/scripts/foundry/sky130"
 
-    # 设置verilog输入 - 统一使用gcd.v
+    # Set verilog input - use standard gcd.v
     sky130_gcd_verilog = f"{root}/aieda/third_party/iEDA/scripts/design/sky130_gcd/result/verilog/gcd.v"
+
+    if not os.path.exists(sky130_gcd_verilog):
+        print(f"Warning: Verilog file not found at {sky130_gcd_verilog}")
+
     workspace.set_verilog_input(sky130_gcd_verilog)
 
-    # 设置tech lef
-    workspace.set_tech_lef(f"{foundry_dir}/lef/sky130_fd_sc_hd.tlef")
+    # Set tech lef
+    tech_lef_path = f"{foundry_dir}/lef/sky130_fd_sc_hd.tlef"
+    if not os.path.exists(tech_lef_path):
+        print(f"Warning: Tech LEF file not found at {tech_lef_path}")
+    workspace.set_tech_lef(tech_lef_path)
 
     # 设置lefs
     lefs = [
@@ -199,16 +233,16 @@ def create_workspace_for_design(workspace_dir, design_name, def_file, sdc_file):
     return workspace
 
 
-def generate_vectors_for_design(workspace, def_file):
-    """为设计生成特征向量"""
+def generate_vectors_for_design(workspace, def_file, patch_row_step=18, patch_col_step=18):
+    """Generate feature vectors for design."""
     data_gen = DataGeneration(workspace)
     vectors_dir = workspace.paths_table.ieda_output["pl_vectors"]
 
     data_gen.generate_vectors(
         input_def=def_file,
         vectors_dir=vectors_dir,
-        patch_row_step=18,
-        patch_col_step=18,
+        patch_row_step=patch_row_step,
+        patch_col_step=patch_col_step,
         batch_mode=False,
         is_placement_mode=True,
         sta_mode=1
@@ -216,71 +250,146 @@ def generate_vectors_for_design(workspace, def_file):
 
 
 def main():
-    """主函数"""
-    # 设置路径
-    current_dir = os.path.split(os.path.abspath(__file__))[0]
-    root = current_dir.rsplit("/", 1)[0]
-    dataset_dir = f"{root}/example/dataset_skywater130"
-    output_base_dir = f"{root}/example/batch_features"
+    """Main function."""
+    parser = argparse.ArgumentParser(
+        description="Batch placement feature extraction script",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python batch_extract_place_features.py /path/to/dataset_skywater130
+  python batch_extract_place_features.py --dataset-dir /path/to/dataset --output-dir /path/to/output
+  python batch_extract_place_features.py --dataset-dir /path/to/dataset --patch-step 24
+        """
+    )
 
-    # 确保输出目录存在
-    os.makedirs(output_base_dir, exist_ok=True)
+    parser.add_argument(
+        'dataset_dir',
+        nargs='?',
+        help='Path to the dataset directory containing design subdirectories'
+    )
 
-    print("=== 批量布局特征提取 ===")
-    print(f"数据集目录: {dataset_dir}")
-    print(f"输出目录: {output_base_dir}")
+    parser.add_argument(
+        '--dataset-dir',
+        dest='dataset_dir_alt',
+        help='Alternative way to specify dataset directory path'
+    )
 
-    # 查找所有有place的设计
+    parser.add_argument(
+        '--output-dir',
+        help='Output directory for extracted features (default: ./example/batch_place_features)'
+    )
+
+    parser.add_argument(
+        '--aieda-root',
+        help='Path to aiEDA root directory (default: auto-detect)'
+    )
+
+    parser.add_argument(
+        '--patch-row-step',
+        type=int,
+        default=18,
+        help='Patch row step size for feature extraction (default: 18)'
+    )
+
+    parser.add_argument(
+        '--patch-col-step',
+        type=int,
+        default=18,
+        help='Patch column step size for feature extraction (default: 18)'
+    )
+
+    args = parser.parse_args()
+
+    # Determine dataset directory
+    dataset_dir = args.dataset_dir or args.dataset_dir_alt
+
+    if not dataset_dir:
+        parser.print_help()
+        print("\nError: Dataset directory must be specified")
+        sys.exit(1)
+
+    dataset_dir = os.path.abspath(dataset_dir)
+
+    # Set output directory
+    if args.output_dir:
+        output_base_dir = os.path.abspath(args.output_dir)
+    else:
+        current_dir = os.path.split(os.path.abspath(__file__))[0]
+        root = current_dir.rsplit("/", 1)[0]
+        output_base_dir = f"{root}/example/batch_place_features"
+
+    # Ensure output directory exists
+    try:
+        os.makedirs(output_base_dir, exist_ok=True)
+    except PermissionError:
+        print(f"Error: Permission denied creating output directory '{output_base_dir}'")
+        sys.exit(1)
+
+    print("=== Batch Placement Feature Extraction ===")
+    print(f"Dataset directory: {dataset_dir}")
+    print(f"Output directory: {output_base_dir}")
+    print(f"Patch step size: {args.patch_row_step}x{args.patch_col_step}")
+
+    # Find all designs with place directories
     designs = find_designs_with_place(dataset_dir)
-    print(f"\n找到 {len(designs)} 个设计有place目录:")
+    print(f"\nFound {len(designs)} designs with place directories:")
     for design in designs:
         print(f"  - {design}")
 
     if not designs:
-        print("没有找到任何有place目录的设计")
+        print("No designs with place directories found")
         return
 
-    # 处理每个设计
+    # Process each design
     success_count = 0
     for i, design_name in enumerate(designs, 1):
-        print(f"\n[{i}/{len(designs)}] 处理设计: {design_name}")
+        print(f"\n[{i}/{len(designs)}] Processing design: {design_name}")
 
         try:
-            # 获取设计文件
+            # Get design files
             def_file, sdc_file = get_design_files(dataset_dir, design_name)
             if not def_file or not sdc_file:
-                print(f"  跳过: 缺少必要文件")
+                print(f"  Skipping: Missing required files")
                 continue
 
-            print(f"  DEF文件: {def_file}")
-            print(f"  SDC文件: {sdc_file}")
+            print(f"  DEF file: {def_file}")
+            print(f"  SDC file: {sdc_file}")
 
-            # 处理sdc文件
+            # Process sdc file
             processed_sdc, original_content, original_path = process_sdc_file(sdc_file)
 
-            # 创建workspace
+            # Create workspace
             workspace_dir = f"{output_base_dir}/{design_name}"
-            workspace = create_workspace_for_design(workspace_dir, design_name, def_file, processed_sdc)
+            workspace = create_workspace_for_design(
+                workspace_dir, design_name, def_file, processed_sdc, args.aieda_root
+            )
 
-            # 生成特征向量
-            print(f"  开始生成特征向量...")
-            generate_vectors_for_design(workspace, def_file)
+            # Generate feature vectors
+            print(f"  Starting feature vector generation...")
+            generate_vectors_for_design(
+                workspace, def_file, args.patch_row_step, args.patch_col_step
+            )
 
-            # 恢复sdc文件
+            # Restore sdc file
             if original_content:
                 restore_sdc_file(original_content, original_path)
-                os.unlink(processed_sdc)  # 删除临时文件
+                os.unlink(processed_sdc)  # Delete temporary file
 
-            print(f"  完成: {design_name}")
+            print(f"  Completed: {design_name}")
             success_count += 1
 
         except Exception as e:
-            print(f"  错误: {design_name} - {str(e)}")
+            print(f"  Error: {design_name} - {str(e)}")
             continue
 
-    print(f"\n=== 批量处理完成 ===")
-    print(f"成功处理: {success_count}/{len(designs)} 个设计")
-    print(f"结果保存在: {output_base_dir}")
+    print(f"\n=== Batch Processing Complete ===")
+    print(f"Successfully processed: {success_count}/{len(designs)} designs")
+    print(f"Results saved to: {output_base_dir}")
+
+    if success_count > 0:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 
 if __name__ == "__main__":
