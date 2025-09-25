@@ -244,6 +244,7 @@ class PatchLayout(QWidget):
         self.scroll_max_zoom = 2.0     # scroll_content的最大缩放比例
         self.scroll_zoom_step = 0.1    # scroll_content的每次缩放步长
         self.original_item_size = 200  # 原始项目大小
+        self.max_columns = 5
 
         self._init_ui()
         
@@ -457,8 +458,6 @@ class PatchLayout(QWidget):
         
         # 为每个图层创建显示组件
         if image_dict:
-            # 计算网格布局的行列（每行显示4个图层，可根据需要调整）
-            max_columns = 4
             index = 0
             
             for layer_id, layer_array in image_dict.items():
@@ -504,8 +503,8 @@ class PatchLayout(QWidget):
                 container.setLayout(layer_layout)
                 
                 # 计算网格位置
-                row = index // max_columns
-                col = index % max_columns
+                row = index // self.max_columns
+                col = index % self.max_columns
                 
                 # 添加到网格布局
                 self.layers_layout.addWidget(container, row, col)

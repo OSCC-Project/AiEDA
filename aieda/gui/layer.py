@@ -70,6 +70,8 @@ class LayerLayout(QWidget):
         self.layer_table.setHorizontalHeaderLabels(["Color", "Layers"])
         self.layer_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.layer_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        # Hide row numbers (vertical header)
+        self.layer_table.verticalHeader().setVisible(False)
         
         # Sort layers by their ID
         layer_list = sorted(self.vec_layers.values(), key=lambda x: x.id)

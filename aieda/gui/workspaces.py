@@ -229,11 +229,6 @@ class WorkspacesUI(QMainWindow):
             if widget:
                 widget.deleteLater()
         
-        # Add label to display current loaded workspace information
-        workspace_label = QLabel(f"Loaded workspace: {workspace.directory}\nDesign: {workspace.design}")
-        workspace_label.setAlignment(Qt.AlignLeft)
-        self.content_layout.addWidget(workspace_label)
-        
         # Create and add workspace UI to content area
         try:
             self.workspace_ui = WorkspaceUI(workspace)

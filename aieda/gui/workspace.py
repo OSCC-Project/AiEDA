@@ -219,9 +219,24 @@ class WorkspaceUI(QWidget):
             # Create zoom buttons
             from PyQt5.QtWidgets import QHBoxLayout, QPushButton
             button_layout = QHBoxLayout()
-            zoom_in_btn = QPushButton("Zoom In")
-            zoom_out_btn = QPushButton("Zoom Out")
-            fit_btn = QPushButton("Fit View")
+            
+            # Add label to display current loaded workspace information (left aligned)
+            workspace_label = QLabel(f"Design: {self.workspace.design}, Workspace: {self.workspace.directory}")
+            workspace_label.setAlignment(Qt.AlignLeft)
+            button_layout.addWidget(workspace_label)
+            
+            # Add stretch to push buttons to right
+            button_layout.addStretch()
+            
+            # Add zoom buttons (right aligned)
+            import os
+            current_dir = os.path.split(os.path.abspath(__file__))[0]
+            zoom_in_btn = QPushButton(QIcon("{}/icon/zoom_in.png".format(current_dir)), "")
+            zoom_in_btn.setToolTip("Zoom In")
+            zoom_out_btn = QPushButton(QIcon("{}/icon/zoom_out.png".format(current_dir)), "")
+            zoom_out_btn.setToolTip("Zoom Out")
+            fit_btn = QPushButton(QIcon("{}/icon/zoom_fit.png".format(current_dir)), "") 
+            fit_btn.setToolTip("Fit View")  # Add tooltip for better usability
             
             # Connect buttons to both chip_ui and patches_ui methods
             zoom_in_btn.clicked.connect(lambda: self._apply_to_both_views('zoom_in'))
@@ -232,7 +247,7 @@ class WorkspaceUI(QWidget):
             button_layout.addWidget(zoom_in_btn)
             button_layout.addWidget(zoom_out_btn)
             button_layout.addWidget(fit_btn)
-            button_layout.addStretch()  # Add stretch to push buttons to top
+            
             
             # Create horizontal layout for chip_ui and patches_ui
             chips_patches_layout = QHBoxLayout()
