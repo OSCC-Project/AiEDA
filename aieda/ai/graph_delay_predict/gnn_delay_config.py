@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-'''
-@File : gnn_delay_config.py
-@Author : AI Assistant
-@Desc : configuration module for GNN delay prediction
-'''
 import sys
 import os
 import json

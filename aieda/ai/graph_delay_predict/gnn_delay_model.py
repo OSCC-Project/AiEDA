@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# -*- encoding: utf-8 -*-
-'''
-@File : gnn_delay_model.py
-@Author : AI Assistant
-@Desc : GNN delay prediction model implementation
-'''
 import math
 import numpy as np
 import torch
