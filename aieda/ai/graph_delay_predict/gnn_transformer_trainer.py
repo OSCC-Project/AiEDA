@@ -55,7 +55,7 @@ class GNNTransformerTrainingConfig:
     save_predictions: bool = True
     
     # GNN type selection
-    gnn_type: str = 'gcn'  # 'gcn', 'gat', 'sage', 'gin', 'transformer'
+    gnn_type: str = 'gcn'  # 'gcn', 'sage', 'gin'
     
     # Debug and monitoring configuration
     enable_gradient_monitoring: bool = True
@@ -97,7 +97,7 @@ class GNNTransformerTrainingConfig:
                 gnn_type=self.gnn_type,
                 hidden_dim=128,
                 num_layers=3,
-                learning_rate=0.001  # Increased learning rate
+                learning_rate=0.001  # Learning rate
             )
             # Add configurations
             self.model_config.update({
@@ -107,8 +107,8 @@ class GNNTransformerTrainingConfig:
                 'mae_weight': 0.3,
                 'relative_weight': 0.2,
                 'scheduler_type': 'cosine',
-                'patience': 20,  # Increased patience
-                'max_epochs': 200,  # Increased training epochs
+                'patience': 20,  # Patience
+                'max_epochs': 200,  # Training epochs
                 'enable_value_calibrator': False,  # Temporarily disable value range calibrator
                 'enable_output_processor': False,  # Temporarily disable output processor
             })

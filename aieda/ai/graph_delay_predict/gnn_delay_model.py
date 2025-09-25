@@ -98,8 +98,8 @@ class GNNLayer(nn.Module):
         return x
 
 
-class FixedGNNTransformerModel(nn.Module):
-    """Fixed GNN+Transformer model with removed components causing constant predictions"""
+class GNNTransformerModel(nn.Module):
+    """ GNN+Transformer model with removed components causing constant predictions"""
     
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
@@ -189,7 +189,7 @@ class FixedGNNTransformerModel(nn.Module):
         self.output_bias = nn.Parameter(torch.tensor(0.0))
     
     def forward(self, data):
-        """Fixed forward pass"""
+        """Forward pass"""
         x, edge_index, edge_attr = data.x, data.edge_index, data.edge_attr
         
         # Node feature encoding
@@ -230,11 +230,11 @@ class FixedGNNTransformerModel(nn.Module):
 
 
 class NodeDelayPredictor:
-    """Fixed node delay predictor"""
+    """Node delay predictor"""
     
-    def __init__(self, config: Dict[str, Any], model_name: str = "FixedGNNTransformer_NodeDelay"):
+    def __init__(self, config: Dict[str, Any], model_name: str = "GNNTransformer_NodeDelay"):
         """
-        Initialize fixed node delay prediction model
+        Initialize node delay prediction model
         
         Args:
             config: Model configuration dictionary
@@ -249,14 +249,14 @@ class NodeDelayPredictor:
         self._create_model()
     
     def _create_model(self) -> None:
-        """Create fixed GNN+Transformer model"""
-        self.logger.info(f"Creating fixed {self.model_name} model")
+        """Create GNN+Transformer model"""
+        self.logger.info(f"Creating  {self.model_name} model")
         
         # Get device
         device = self.config.get('device', 'cpu')
         
         # Create model
-        self.model = FixedGNNTransformerModel(self.config)
+        self.model = GNNTransformerModel(self.config)
         
         # Move to device
         self.model = self.model.to(device)
@@ -270,7 +270,7 @@ class NodeDelayPredictor:
     
     def fit(self, train_loader, val_loader=None, callbacks=None) -> Dict[str, List[float]]:
         """
-        Train fixed model
+        Train model
         
         Args:
             train_loader: Training data loader
@@ -733,7 +733,7 @@ class NodeDelayPredictor:
 def get_config(gnn_type: str = 'gcn', hidden_dim: int = 128, 
                     num_layers: int = 3, learning_rate: float = 0.001):
     """
-    Get fixed model configuration
+    Get model configuration
     
     Args:
         gnn_type: GNN type ('gcn', 'gat', 'transformer', 'sage', 'gin')
@@ -793,13 +793,13 @@ def get_config(gnn_type: str = 'gcn', hidden_dim: int = 128,
 
 # Usage examples
 if __name__ == "__main__":
-    # Test fixed model
-    gnn_types = ['gcn', 'gat', 'sage', 'gin']
+    # Test  model
+    gnn_types = ['gcn', 'sage', 'gin']
     
     for gnn_type in gnn_types:
-        print(f"\n=== Testing fixed {gnn_type.upper()} model ===")
+        print(f"\n=== Testing  {gnn_type.upper()} model ===")
         config = get_config(gnn_type=gnn_type)
-        model = NodeDelayPredictor(config, f"Fixed_{gnn_type.upper()}_NodeDelay")
+        model = NodeDelayPredictor(config, f"{gnn_type.upper()}_NodeDelay")
         print(f"Model created successfully: {model.model_name}")
         print(f"Total parameters: {sum(p.numel() for p in model.model.parameters()):,}")
         print(f"GNN type: {gnn_type}")
