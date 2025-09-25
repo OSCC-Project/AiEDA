@@ -108,7 +108,7 @@ class GNNTransformerTrainingConfig:
                 'relative_weight': 0.2,
                 'scheduler_type': 'cosine',
                 'patience': 20,  # Increased patience
-                'max_epochs': 3,  # Increased training epochs
+                'max_epochs': 200,  # Increased training epochs
                 'enable_value_calibrator': False,  # Temporarily disable value range calibrator
                 'enable_output_processor': False,  # Temporarily disable output processor
             })
