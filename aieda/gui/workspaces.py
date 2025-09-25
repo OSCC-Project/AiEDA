@@ -289,10 +289,24 @@ class WorkspacesUI(QMainWindow):
             # Clear the list
             self.list_widget.clear()
             
+            # Create font with bold style and larger size
+            font = QFont()
+            font.setBold(True)
+            font.setPointSize(11)  # Slightly larger font size
+            
             # Convert all workspace keys to a list and add to the list widget
             for design_name in list(self.workspaces.keys()):
                 item = QListWidgetItem(design_name)
+                item.setFont(font)  # Set bold and larger font
+                item.setTextAlignment(Qt.AlignCenter)  # Center-align text
                 self.list_widget.addItem(item)
+            
+            # Set appropriate height for the list widget
+            # Adjust the height based on the number of items
+            # item_height = 30  # Slightly larger item height
+            # total_height = min(len(self.workspaces) * item_height + 10, 400)  # Maximum height 400px
+            # self.list_widget.setMinimumHeight(total_height)
+            # self.list_widget.setMaximumHeight(total_height)
             
             # Add double-click event handler to load the corresponding workspace when clicking on a list item
             self.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)

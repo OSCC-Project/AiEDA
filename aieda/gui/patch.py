@@ -243,7 +243,7 @@ class PatchLayout(QWidget):
         self.scroll_min_zoom = 0.5     # scroll_content的最小缩放比例
         self.scroll_max_zoom = 2.0     # scroll_content的最大缩放比例
         self.scroll_zoom_step = 0.1    # scroll_content的每次缩放步长
-        self.original_item_size = 300  # 原始项目大小
+        self.original_item_size = 200  # 原始项目大小
 
         self._init_ui()
         

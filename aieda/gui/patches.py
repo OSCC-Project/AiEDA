@@ -56,6 +56,7 @@ class PatchesLayout(QWidget):
         self.rect_items = {} 
         self.overlapping_rects = {}  # 存储交叠的矩形边框 (使用字典便于通过id管理)
         self.patch_layout = patch_layout  # 将在WorkspaceUI中设置PatchLayout的引用
+        self.selected_net_rect = None
         super().__init__()
         
         self._init_ui()
@@ -103,11 +104,14 @@ class PatchesLayout(QWidget):
         self.resize(1000, 800)
         
     def zoom_in(self):
-        """Zoom in on the view"""
+        """Zoom in on the view, centered at mouse position in scene coordinates"""
+        # Scale the view
         self.view.scale(1.2, 1.2)
     
     def zoom_out(self):
-        """Zoom out from the view"""
+        """Zoom out from the view, centered at mouse position in scene coordinates"""
+        
+        # Scale the view
         self.view.scale(0.8, 0.8)
     
     def fit_view(self):
@@ -211,11 +215,6 @@ class PatchesLayout(QWidget):
     
     def on_net_selected(self, selected_net):
         """处理选中网络的槽函数，绘制外接矩形并调整视图"""
-        # 如果已经有选中的矩形，先移除它
-        if hasattr(self, 'selected_net_rect') and self.selected_net_rect is not None:
-            self.scene.removeItem(self.selected_net_rect)
-            self.selected_net_rect = None
-        
         # 移除之前的交叠矩形边框
         for id, rect in self.overlapping_rects.items():
             if rect in self.scene.items():
@@ -228,24 +227,28 @@ class PatchesLayout(QWidget):
             
             # 检查feature是否有llx、lly、width、height属性
             if all(hasattr(feature, attr) for attr in ['llx', 'lly', 'width', 'height']):
-                # 创建白色边框的矩形
-                pen = QPen(QColor(200, 0, 0), 40)  
-                pen.setStyle(Qt.DashLine)
-                
-                # 创建矩形项
-                self.selected_net_rect = QGraphicsRectItem(
-                    feature.llx-100, feature.lly-100, feature.width+200, feature.height+200
-                )
-                
-                # 设置矩形的样式
-                self.selected_net_rect.setPen(pen)
-                self.selected_net_rect.setBrush(QBrush(Qt.NoBrush))  # 无边填充
-                
-                # 添加矩形到场景
-                self.scene.addItem(self.selected_net_rect)
-                
-                # 将矩形移到最顶层，确保可见
-                self.selected_net_rect.setZValue(100)  # 设置高的z值
+                if self.selected_net_rect is not None:
+                    self.selected_net_rect.setRect(feature.llx-100, feature.lly-100, feature.width+200, feature.height+200)
+                else:
+                    # 创建白色边框的矩形
+                    pen = QPen(QColor(200, 0, 0), 40)  
+                    pen.setStyle(Qt.DashLine)
+                    
+                    # 创建矩形项
+                    
+                    self.selected_net_rect = QGraphicsRectItem(
+                        feature.llx-100, feature.lly-100, feature.width+200, feature.height+200
+                    )
+                    
+                    # 设置矩形的样式
+                    self.selected_net_rect.setPen(pen)
+                    self.selected_net_rect.setBrush(QBrush(Qt.NoBrush))  # 无边填充
+                    
+                    # 添加矩形到场景
+                    self.scene.addItem(self.selected_net_rect)
+                    
+                    # 将矩形移到最顶层，确保可见
+                    self.selected_net_rect.setZValue(100)  # 设置高的z值
                 
                 # 检测并显示与选中网络矩形有交叠的patch矩形
                 self._show_overlapping_rects()

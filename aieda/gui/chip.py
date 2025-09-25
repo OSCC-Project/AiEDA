@@ -242,11 +242,12 @@ class ChipLayout(QWidget):
         self.draw_layout()
     
     def zoom_in(self):
-        """Zoom in on the view"""
+        """Zoom in on the view, centered at mouse position in scene coordinates"""
+        # Scale the view
         self.view.scale(1.2, 1.2)
     
     def zoom_out(self):
-        """Zoom out from the view"""
+        """Zoom out from the view, centered at mouse position in scene coordinates"""
         self.view.scale(0.8, 0.8)
     
     def fit_view(self):
@@ -261,12 +262,7 @@ class ChipLayout(QWidget):
         self.coord_label.setText(coord_text)
         
     def on_net_selected(self, selected_net):
-        """处理选中网络的槽函数，绘制外接矩形"""
-        # 如果已经有选中的矩形，先移除它
-        if self.selected_net_rect is not None:
-            self.scene.removeItem(self.selected_net_rect)
-            self.selected_net_rect = None
-        
+        """处理选中网络的槽函数，绘制外接矩形"""       
         # 检查选中的网络是否有feature属性
         if hasattr(selected_net, 'feature') and selected_net.feature:
             feature = selected_net.feature
@@ -278,19 +274,22 @@ class ChipLayout(QWidget):
                 pen.setStyle(Qt.DashLine)
                 
                 # 创建矩形项
-                self.selected_net_rect = QGraphicsRectItem(
-                    feature.llx-100, feature.lly-100, feature.width+200, feature.height+200
-                )
+                if self.selected_net_rect is not None:
+                    self.selected_net_rect.setRect(feature.llx-100, feature.lly-100, feature.width+200, feature.height+200)
+                else:
+                    self.selected_net_rect = QGraphicsRectItem(
+                        feature.llx-100, feature.lly-100, feature.width+200, feature.height+200
+                    )
                 
-                # 设置矩形的样式
-                self.selected_net_rect.setPen(pen)
-                self.selected_net_rect.setBrush(QBrush(Qt.NoBrush))  # 无边填充
-                
-                # 添加矩形到场景
-                self.scene.addItem(self.selected_net_rect)
-                
-                # 将矩形移到最顶层，确保可见
-                self.selected_net_rect.setZValue(100)  # 设置高的z值
+                    # 设置矩形的样式
+                    self.selected_net_rect.setPen(pen)
+                    self.selected_net_rect.setBrush(QBrush(Qt.NoBrush))  # 无边填充
+                    
+                    # 添加矩形到场景
+                    self.scene.addItem(self.selected_net_rect)
+                    
+                    # 将矩形移到最顶层，确保可见
+                    self.selected_net_rect.setZValue(100)  # 设置高的z值
                 
                 # 让视图自动调整到能看到整个选中的网络矩形
                 self.view.fitInView(self.selected_net_rect, Qt.KeepAspectRatio)

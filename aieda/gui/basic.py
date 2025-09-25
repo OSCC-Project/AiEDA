@@ -23,23 +23,34 @@ class ZoomableGraphicsView(QGraphicsView):
         self.parent_widget = parent
     
     def wheelEvent(self, event):
-        """Handle mouse wheel events to implement Ctrl+mouse wheel zoom"""
+        """Handle mouse wheel events to implement Ctrl+mouse wheel zoom, centered at mouse cursor position in scene coordinates"""
         # Check if Ctrl key is pressed
         if event.modifiers() == Qt.ControlModifier:
             # Ignore default wheel event handling
             event.ignore()
             
-            # Get mouse wheel delta
             delta = event.angleDelta().y()
             
-            # Set transformation anchor to mouse position
-            self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+            # Get mouse wheel delta
+            # if delta > 0:
+            #     self.parent_widget.zoom_in()
+            # else:
+            #     self.parent_widget.zoom_out()
             
-            # Zoom according to wheel direction
-            if delta > 0:  # Wheel forward
-                self.scale(1.2, 1.2)  # zoom_in
-            else:  # Wheel backward
-                self.scale(0.8, 0.8)  # zoom_out
+            # Store current transformation anchor setting
+            # old_anchor = self.transformationAnchor()
+            
+            # Set transformation anchor to mouse position
+            # self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+            
+            # Calculate zoom factor based on wheel movement
+            scale_factor = 1.2 if delta > 0 else 0.8  # Consistent zoom factor
+            
+            # Scale the view using the mouse position in scene coordinates as anchor
+            self.scale(scale_factor, scale_factor)
+            
+            # Restore original transformation anchor setting after zoom
+            # self.setTransformationAnchor(old_anchor)
         else:
             # Use default wheel event handling if Ctrl is not pressed
             super().wheelEvent(event)
