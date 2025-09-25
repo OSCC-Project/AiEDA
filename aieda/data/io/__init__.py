@@ -1,12 +1,7 @@
-from .feature_io import (
-    FeatureParserJson
-)
+from .feature_io import FeatureParserJson
+from .vectors_io import VectorsParserJson
 
-from .vectors_io import (
-    VectorsParserJson
-)
-
-from .pattern_io import (
-    VectorWirePatterns,
-    VectorWireSequences
-)
+__all__ = [
+    'FeatureParserJson',
+    'VectorsParserJson',
+]

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-'''
+"""
 @File : json_parameters.py
-@Author : yell
-@Desc : parameters json parser 
-'''
+@Author : zhanghongda
+@Desc : parameters json parser
+"""
 from ...utility.json_parser import JsonParser
 from ...data.database.parameters import EDAParameters
-       
+
 class ParametersParser(JsonParser):
     """flow json parser"""
     def create_json(self, parameters:EDAParameters=None):

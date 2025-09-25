@@ -1,37 +1,41 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-'''
+"""
 @File : enum.py
 @Author : yell
 @Desc : enum definition
-'''
+"""
 
 from enum import Enum
 
+
 class TrackDirection(Enum):
-    """track direction
-    """
+    """track direction"""
+
     none = ""
     horizontal = "H"
     vertical = "V"
-    
+
+
 class LayerType(Enum):
-    """layer type
-    """
+    """layer type"""
+
     none = ""
     routing = "routing"
     cut = "cut"
-    
+
+
 class CellType(Enum):
-    """cell type
-    """
+    """cell type"""
+
     none = ""
     pad = "pad"
     core = "core"
-    
+
+
 class OrientType(Enum):
-    """cell type
-    """
+    """cell type"""
+
     none = ""
     N_R0 = "N"
     W_R90 = "W"
@@ -41,29 +45,31 @@ class OrientType(Enum):
     FE_MY90 = "FE"
     FS_MX = "FS"
     FW_MX90 = "FW"
-    
+
+
 class PlaceStatus(Enum):
-    """placement status
-    """
+    """placement status"""
+
     none = ""
     fixed = "fixed"
     cover = "cover"
     placed = "placed"
     unplaced = "unplaced"
-    
-    
+
+
 class NetType(Enum):
-    """net type
-    """
+    """net type"""
+
     none = ""
     signal = "signal"
     clock = "clock"
     power = "power"
     ground = "ground"
-    
+
+
 class CongestionType(Enum):
-    """congestion type in evaluation
-    """
+    """congestion type in evaluation"""
+
     none = 0
     instance_density = 1
     pin_density = 2
@@ -74,18 +80,20 @@ class CongestionType(Enum):
     continuous_white_space = 7
     macro_margin = 8
     macro_channel = 9
-    
+
+
 class RudyType(Enum):
-    """RUDY type in evaluation
-    """
+    """RUDY type in evaluation"""
+
     none = 0
     rudy = 1
     pin_rudy = 2
     lut_rudy = 3
-    
+
+
 class WirelengthType(Enum):
-    """wirelength type in evaluation
-    """
+    """wirelength type in evaluation"""
+
     none = 0
     hpwl = 1
     flute = 2
@@ -93,18 +101,20 @@ class WirelengthType(Enum):
     vtree = 4
     grwl = 5
 
+
 class Direction(Enum):
-    """direction type in evaluation
-    """
+    """direction type in evaluation"""
+
     none = 0
     h = 1
     v = 2
-    
+
+
 class FeatureOption(Enum):
-    """feature options
-    """
+    """feature options"""
+
     NoFeature = None
-    summary = "summary" # default
+    summary = "summary"  # default
     tools = "tool"
     eval_map = "eval_map"
     drc = "drc"
@@ -114,9 +124,10 @@ class FeatureOption(Enum):
     baseline_sta = "baseline_sta"
     baseline_power = "baseline_power"
 
+
 class DSEMethod(Enum):
-    """different EDA DSE method.
-    """
+    """different EDA DSE method."""
+
     WANDB = "wandb"
     OPTUNA = "optuna"
     NNI = "nni"

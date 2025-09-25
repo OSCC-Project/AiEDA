@@ -1,13 +1,16 @@
-from .database import *
+from . import database
+from . import io
+from . import feature
+from . import vectors
+from .feature import DataFeature
+from .vectors import DataVectors
 
-from .feature import (
-    DataFeature
-)
+__all__ = [
+    'database',
+    'io',
+    'feature', 
+    'vectors',
+    'DataFeature',
+    'DataVectors',
+]
 
-from .vectors import (
-    DataVectors
-)
-
-from .patterns import (
-    DataPatterns
-)
