@@ -1,38 +1,54 @@
-"""@File : net.py
-@Author : yell
-@Desc : Net Layout UI for AiEDA system
-"""
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 
 import sys
 import os
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
     QGroupBox, QGridLayout, QScrollArea, QSplitter,
-    QListWidget, QListWidgetItem
+    QListWidget, QListWidgetItem, QToolTip
 )
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, QPoint
 from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush
 from PyQt5.QtCore import Qt, QRectF
 from aieda.data import DataVectors
 
 class NetLayout(QWidget):
-    """Net Layout UI component"""
+    """Net Layout UI component for AiEDA system
     
-    # 定义信号，当用户双击网络时发出
-    net_selected = pyqtSignal(object)  # 传递选中的网络对象
+    This widget provides a list-based interface for browsing and selecting
+    nets in a design. It emits a signal when a net is selected, allowing
+    other components to respond to user interactions.
+    
+    Attributes:
+        nets: Dictionary mapping net names to net objects
+        net_list_widget: QListWidget for displaying net names
+        selected_item_index: Index of the currently selected item in the list
+    """
+    
+    # Signal emitted when a user double-clicks a net in the list
+    net_selected = pyqtSignal(object)  # Passes the selected net object
     
     def __init__(self, vec_nets):
+        """Initialize the NetLayout component
+        
+        Args:
+            vec_nets: Vector of net data objects to be displayed
+        """
         self.nets = self.load_nets(vec_nets)
         self.net_list_widget = None
-        self.net_details_text = None 
+        # Track the index of the currently selected net item
+        self.selected_item_index = -1
         super().__init__()
+        # Enable mouse tracking for tooltips
+        self.setMouseTracking(True)
         
         self.init_ui()
-
+        
         self.update_list()
     
     def init_ui(self):
-        """Initialize UI components"""
+        """Initialize UI components and layout"""
         # Main layout
         main_layout = QVBoxLayout(self)
         
@@ -46,35 +62,29 @@ class NetLayout(QWidget):
         self.net_list_widget = QListWidget()
         self.net_list_widget.setAlternatingRowColors(True)
         self.net_list_widget.itemDoubleClicked.connect(self.on_net_double_clicked)
+        # Enable mouse tracking for tooltips
+        self.net_list_widget.setMouseTracking(True)
         
         # Add list widget to layout
         main_layout.addWidget(self.net_list_widget)
-        
-        # Net information group
-        info_group = QGroupBox("Net Details")
-        info_layout = QGridLayout()
-        
-        # Create text edit for displaying net details
-        from PyQt5.QtWidgets import QTextEdit
-        self.net_details_text = QTextEdit()
-        self.net_details_text.setReadOnly(True)
-        self.net_details_text.setPlaceholderText("Double click a net to see details...")
-        
-        info_layout.addWidget(self.net_details_text, 0, 0)
-        
-        info_group.setLayout(info_layout)
-        main_layout.addWidget(info_group)
         
         # Set main layout
         self.setLayout(main_layout)
     
     def load_nets(self, vec_nets):
-        """Load nets data from workspace and convert to dictionary"""
+        """Load nets data and convert to dictionary format
+        
+        Args:
+            vec_nets: Vector of net objects to load
+            
+        Returns:
+            Dictionary mapping net names to net objects
+        """
         nets = {net.name: net for net in vec_nets} if vec_nets else {}
         return nets
     
     def update_list(self):
-        """Update UI with nets data"""
+        """Update the net list UI with current nets data"""
         # Clear existing items
         self.net_list_widget.clear()
         
@@ -83,26 +93,29 @@ class NetLayout(QWidget):
             # Get all net names from dictionary keys
             net_names = list(self.nets.keys())
             
-            # Add each net name to the list widget
+            # Add each net name to the list widget with tooltip
             for name in net_names:
                 item = QListWidgetItem(name)
+                # Enable tooltip for the item
+                item.setData(Qt.ToolTipRole, f"Net: {name}\nDouble click to view details")
                 self.net_list_widget.addItem(item)
-            
-            # Clear details text when updating list
-            self.net_details_text.setPlainText("")
         else:
             # If no nets available
             # Add placeholder item
             placeholder = QListWidgetItem("No nets available")
             placeholder.setFlags(placeholder.flags() & ~Qt.ItemIsEnabled)
             self.net_list_widget.addItem(placeholder)
-            
-            # Show no nets message in details
-            self.net_details_text.setPlainText("No nets available to display details.")
     
     def on_net_double_clicked(self, item):
-        """Handle double click event on net list items using dictionary lookup"""
+        """Handle double click event on net list items
+        
+        Args:
+            item: QListWidgetItem that was double-clicked
+        """
         net_name = item.text()
+        
+        # Record the selected item index
+        self.selected_item_index = self.net_list_widget.row(item)
         
         # Directly get the net from the dictionary using name as key
         selected_net = self.nets.get(net_name)
@@ -112,18 +125,33 @@ class NetLayout(QWidget):
             # Example: Print net data to console
             print(f"Selected net: {selected_net.name}")
             
-            # 获取net的详细数据并输出
+            # Get detailed data about the net and output it
             net_data = self.get_net_details(selected_net)
             print(f"Net details: {net_data}")
             
-            # 这里可以添加显示详细信息的代码，例如弹出对话框或更新UI显示
+            # Display detailed information about the net
             self.show_net_details(selected_net)
             
-            # 发出信号，通知其他组件选中了这个网络
+            # Emit signal to notify other components of the selected net
             self.net_selected.emit(selected_net)
+            
+            # Force display of tooltip
+            # Get item position
+            rect = self.net_list_widget.visualItemRect(item)
+            # Show tooltip below the item
+            pos = self.net_list_widget.mapToGlobal(rect.bottomLeft())
+            # Set and show tooltip
+            QToolTip.showText(pos, item.toolTip(), self.net_list_widget, rect)
     
     def get_net_details(self, net):
-        """Get detailed feature data of the net, exclude None values"""
+        """Get detailed feature data of the net, excluding None values
+        
+        Args:
+            net: Net object to retrieve details for
+            
+        Returns:
+            Dictionary of net attributes with non-None values
+        """
         details = {
             "name": net.name
         }
@@ -162,18 +190,22 @@ class NetLayout(QWidget):
         return details
     
     def show_net_details(self, selected_net):
-        """Display detailed information of the net on UI"""
+        """Display detailed information of the net using tooltips
+        
+        Args:
+            selected_net: Net object to display details for
+        """
         # Get detailed data of the net
         net_details = self.get_net_details(selected_net)
         
-        # Format detailed information into readable text
-        details_text = """
-Network Feature
-===============
-"""
+        # Format detailed information into tooltip text
+        tooltip_text = f"Net: {net_details.get('name', 'Unknown')}\n\n" 
         
         # Add all detailed information
         for key, value in net_details.items():
+            if key == 'name':
+                continue  # Skip name as it's already in the title
+                
             # Format key name to be more readable
             readable_key = key.replace('_', ' ').title()
             
@@ -187,10 +219,19 @@ Network Feature
             else:
                 value_str = str(value)
             
-            details_text += f"{readable_key}: {value_str}\n"
+            tooltip_text += f"{readable_key}: {value_str}\n"
         
-        # Add empty line at the end for better display
-        details_text += "\n"
+        # Find the item in the list and set its tooltip using Qt.ToolTipRole
+        for i in range(self.net_list_widget.count()):
+            item = self.net_list_widget.item(i)
+            if item.text() == selected_net.name:
+                # Use Qt.ToolTipRole to set tooltip
+                item.setData(Qt.ToolTipRole, tooltip_text)
+                # Also use setToolTip method for compatibility
+                item.setToolTip(tooltip_text)
+                break
         
-        # Update UI display
-        self.net_details_text.setPlainText(details_text)
+        # 为了确保tooltip立即显示，我们可以在状态栏临时显示信息
+        # 这是一个备选方案，以防tooltip仍然不显示
+        if hasattr(self, 'parent') and hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Selected: {selected_net.name}", 3000)

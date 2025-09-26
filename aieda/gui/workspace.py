@@ -1,15 +1,12 @@
 # -*- encoding: utf-8 -*-
-"""
-@File : workspace.py
-@Author : yell
-@Desc : Workspace UI for AiEDA system
-"""
 
 import sys
 import os
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QLabel, QPushButton, QFileDialog, 
-                             QMessageBox, QGroupBox, QGridLayout, QCheckBox,QGraphicsView)
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, 
+    QHBoxLayout, QLabel, QPushButton, QFileDialog, 
+    QMessageBox, QGroupBox, QGridLayout, QCheckBox, QGraphicsView
+)
 from PyQt5.QtGui import QIcon, QFont, QColor
 from PyQt5.QtCore import Qt
 
@@ -22,10 +19,39 @@ from aieda.workspace import Workspace
 
 
 class WorkspaceUI(QWidget):
-    """workspace ui"""
+    """Workspace UI for AiEDA system
+    
+    This class provides the main interface for displaying and interacting with chip design workspaces.
+    It manages multiple sub-layouts including chip view, patches view, patch view, layer view, and net view,
+    providing synchronized navigation and zooming across views.
+    
+    Attributes:
+        workspace: The workspace object containing design data
+        vec_instances: Vector of instance data
+        vec_cells: Vector of cell data
+        vec_nets: Vector of net data
+        vec_patch: Vector of patch data
+        vec_layers: Vector of layer data
+        chip_ui: ChipLayout component for chip visualization
+        patches_ui: PatchesLayout component for patches visualization
+        patch_ui: PatchLayout component for individual patch visualization
+        layer_ui: LayerLayout component for layer management
+        net_ui: NetLayout component for net visualization
+        widgets_grid: Dictionary storing widget positions in the grid layout
+        left_width_ratio: Width ratio for the left side of the layout
+        right_width_ratio: Width ratio for the right side of the layout
+        main_layout: Main grid layout for the workspace
+        color_list: Dictionary mapping color indices to QColor objects
+        _is_syncing: Flag to prevent infinite recursion during synchronization
+    """
     
     def __init__(self, workspace, parent=None):
-        # Call the superclass constructor first
+        """Initialize the WorkspaceUI with a given workspace
+        
+        Args:
+            workspace: The workspace object containing design data
+            parent: Parent widget
+        """
         super().__init__(parent)
         
         # Initialize workspace and data processing variables
@@ -61,10 +87,15 @@ class WorkspaceUI(QWidget):
         self.load_layout()
     
     def _init_ui(self):
+        """Placeholder for UI initialization"""
         pass
         
     def _generate_colors(self):
-        """Generate high contrast colors for different cell types"""
+        """Generate high contrast colors for different cell types
+        
+        Returns:
+            dict: Mapping of color indices to QColor objects
+        """
         color_list = {}
         
         # Use a combination of predefined high-contrast colors and algorithmically generated colors
@@ -147,7 +178,15 @@ class WorkspaceUI(QWidget):
                 self.main_layout.setColumnStretch(col + colspan - 1, col_stretch)
                 
     def set_widget_position(self, widget, row, col, rowspan=1, colspan=1):
-        """Set the position and size of an existing widget in the grid"""
+        """Set the position and size of an existing widget in the grid
+        
+        Args:
+            widget: The widget to reposition
+            row: New starting row index
+            col: New starting column index
+            rowspan: Number of rows the widget should occupy
+            colspan: Number of columns the widget should occupy
+        """
         if widget not in self.widgets_grid:
             return
             
@@ -166,6 +205,7 @@ class WorkspaceUI(QWidget):
         self.main_layout.addWidget(widget, row, col, rowspan, colspan)
         
     def load_data(self):
+        """Load design data from the workspace"""
         from ..data import DataVectors
         data_loader = DataVectors(self.workspace)
         self.vec_instances = data_loader.load_instances()
@@ -175,7 +215,7 @@ class WorkspaceUI(QWidget):
         self.vec_layers = data_loader.load_layers()
 
     def load_layout(self):
-        """Load chip layout"""
+        """Load and initialize the chip layout UI components"""
         if not self.workspace:
             QMessageBox.warning(self, "Warning", "Please select a workspace first")
             return
@@ -191,21 +231,18 @@ class WorkspaceUI(QWidget):
             self.widgets_grid.clear()
             
             # Create UI components
-            self.chip_ui = ChipLayout(self.vec_cells, self.vec_instances, self.vec_nets, self.color_list)   # Top-left
-            self.patch_ui = PatchLayout(self.vec_layers, self.color_list) # Bottom-left
-            self.patches_ui = PatchesLayout(self.vec_patch, self.color_list, self.patch_ui)   # Top-left
-            self.layer_ui = LayerLayout(self.vec_layers, self.color_list, self.chip_ui, self.patches_ui) # Top-right
-            self.net_ui = NetLayout(self.vec_nets)     # Bottom-right
+            self.chip_ui = ChipLayout(self.vec_cells, self.vec_instances, self.vec_nets, self.color_list)
+            self.patch_ui = PatchLayout(self.vec_layers, self.color_list)
+            self.patches_ui = PatchesLayout(self.vec_patch, self.color_list, self.patch_ui)
+            self.layer_ui = LayerLayout(self.vec_layers, self.color_list, self.chip_ui, self.patches_ui)
+            self.net_ui = NetLayout(self.vec_nets)
             
-            # 设置PatchesLayout的patch_layout引用为PatchLayout的实例
+            # Set patches_ui's reference to patch_ui
             self.patches_ui.patch_layout = self.patch_ui
             
-            # Calculate width ratio: ChipLayout and PatchLayout (left side) should be 0.8 of WorkspaceUI width
-            # Right side (LayerLayout and NetLayout) will be 0.2 of WorkspaceUI width
-            
             # Set column stretch factors to control width proportions
-            self.main_layout.setColumnStretch(0, int(self.left_width_ratio * 10))  # Left column (80% width)
-            self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10)) # Right column (20% width)
+            self.main_layout.setColumnStretch(0, int(self.left_width_ratio * 10))
+            self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10))
             
             # Set row stretch factors to make top and bottom rows equal height
             self.main_layout.setRowStretch(0, 1)  # Top row
@@ -236,7 +273,7 @@ class WorkspaceUI(QWidget):
             zoom_out_btn = QPushButton(QIcon("{}/icon/zoom_out.png".format(current_dir)), "")
             zoom_out_btn.setToolTip("Zoom Out")
             fit_btn = QPushButton(QIcon("{}/icon/zoom_fit.png".format(current_dir)), "") 
-            fit_btn.setToolTip("Fit View")  # Add tooltip for better usability
+            fit_btn.setToolTip("Fit View")
             
             # Connect buttons to both chip_ui and patches_ui methods
             zoom_in_btn.clicked.connect(lambda: self._apply_to_both_views('zoom_in'))
@@ -265,22 +302,16 @@ class WorkspaceUI(QWidget):
             # Install event filters for synchronized zooming
             self._setup_synchronized_zooming()
             
-            # Add widgets to grid layout according to the specified arrangement:
-            # - top_left_widget (chip_ui and patches_ui horizontally arranged): top-left (row 0, column 0)
-            # - PatchLayout: bottom-left (row 1, column 0)
-            # - LayerLayout: top-right (row 0, column 1)
-            # - NetLayout: bottom-right (row 1, column 1)
+            # Add widgets to grid layout according to the specified arrangement
             self.add_widget_to_grid(top_left_widget, 0, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
             self.add_widget_to_grid(self.patch_ui, 1, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
             self.add_widget_to_grid(self.layer_ui, 0, 1, 1, 1, (1, int(self.right_width_ratio * 10)))
             self.add_widget_to_grid(self.net_ui, 1, 1, 1, 1, (1, int(self.right_width_ratio * 10)))
             
-            # 连接NetLayout的net_selected信号到ChipLayout和PatchesLayout的槽函数
+            # Connect NetLayout's net_selected signal to ChipLayout and PatchesLayout slots
             self.net_ui.net_selected.connect(self.chip_ui.on_net_selected)
             self.net_ui.net_selected.connect(self.patches_ui.on_net_selected)
             
-            # The resizeEvent method is already implemented in the class
-
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load chip layout:\n{str(e)}")
             
@@ -291,7 +322,11 @@ class WorkspaceUI(QWidget):
             self.main_layout.addWidget(error_label)
     
     def _apply_to_both_views(self, method_name):
-        """Apply a method to both chip_ui and patches_ui views"""
+        """Apply a method to both chip_ui and patches_ui views
+        
+        Args:
+            method_name: Name of the method to apply to both views
+        """
         # Get the method from both chip_ui and patches_ui
         if hasattr(self.chip_ui, method_name):
             getattr(self.chip_ui, method_name)()
@@ -321,10 +356,14 @@ class WorkspaceUI(QWidget):
             lambda value: self._sync_scroll_bar(self.patches_ui.view.horizontalScrollBar(), 
                                               self.chip_ui.view.horizontalScrollBar(), value))
     
-
-        
     def _sync_scroll_bar(self, source_bar, target_bar, value):
-        """Synchronize scroll bar values between views to ensure both views display the same area"""
+        """Synchronize scroll bar values between views to ensure both views display the same area
+        
+        Args:
+            source_bar: The source QScrollBar emitting the valueChanged signal
+            target_bar: The target QScrollBar to synchronize with
+            value: The new value from the source scroll bar
+        """
         # Prevent infinite recursion by checking if we're already in the middle of a sync operation
         if self._is_syncing:
             return
@@ -334,7 +373,6 @@ class WorkspaceUI(QWidget):
             self._is_syncing = True
             
             # Calculate the proportionate value based on the maximum scroll range of each bar
-            # This ensures that the visible area stays in sync even if the views have different sizes
             if source_bar.maximum() > 0 and target_bar.maximum() > 0:
                 # Calculate the ratio of the current position to the maximum range
                 ratio = value / source_bar.maximum()
@@ -344,7 +382,7 @@ class WorkspaceUI(QWidget):
                 # If one of the bars has no range, just use the raw value
                 target_value = value
                 
-            # Only set value if it's not already approximately the same (prevents unnecessary updates)
+            # Only set value if it's not already approximately the same
             if abs(target_bar.value() - target_value) > 1:
                 # Block signals temporarily to prevent infinite recursion
                 target_bar.blockSignals(True)
@@ -370,7 +408,6 @@ class WorkspaceUI(QWidget):
                     source_center = source_view.mapToScene(source_view.viewport().rect().center())
                     
                     # Set the target view's center to match the source view's center
-                    # We don't need to block signals here because we have the _is_syncing flag
                     target_view.centerOn(source_center)
                     
                     # Force an update to ensure the view redraws with the new position
@@ -380,7 +417,15 @@ class WorkspaceUI(QWidget):
             self._is_syncing = False
             
     def eventFilter(self, source, event):
-        """Filter and handle events for synchronized zooming, scrolling and dragging"""
+        """Filter and handle events for synchronized zooming, scrolling and dragging
+        
+        Args:
+            source: The object that originated the event
+            event: The event being processed
+            
+        Returns:
+            bool: True if the event was handled, False otherwise
+        """
         chip_viewport = self.chip_ui.view.viewport()
         patches_viewport = self.patches_ui.view.viewport()
         
@@ -398,10 +443,10 @@ class WorkspaceUI(QWidget):
             else:
                 return super().eventFilter(source, event)
             
-            # Check if Ctrl key is pressed for zooming (match the implementation in ZoomableGraphicsView)
-            if (event.modifiers() & Qt.ControlModifier):  # Use bitwise AND to check for Ctrl key
+            # Check if Ctrl key is pressed for zooming
+            if (event.modifiers() & Qt.ControlModifier):
                 # Handle synchronized zooming (Ctrl + wheel)
-                # Calculate zoom factor (match the zoom factors in ZoomableGraphicsView)
+                # Calculate zoom factor
                 zoom_factor = 1.2 if event.angleDelta().y() > 0 else 0.8
                 
                 # Save the current transformation anchor
@@ -445,7 +490,6 @@ class WorkspaceUI(QWidget):
                 return super().eventFilter(source, event)
             
             # For dragging synchronization, directly set the target view's center to match the source view's center
-            # This ensures both views show the same scene area
             source_center = source_view.mapToScene(source_view.viewport().rect().center())
             target_view.centerOn(source_center)
             
@@ -456,10 +500,14 @@ class WorkspaceUI(QWidget):
         return super().eventFilter(source, event)
     
     def resizeEvent(self, event):
-        """Handle resize event to maintain width ratio"""
+        """Handle resize event to maintain width ratio
+        
+        Args:
+            event: The resize event
+        """
         # Call the base class resize event
         super().resizeEvent(event)
-   
+       
         # Update column stretch factors to maintain width ratio
         self.main_layout.setColumnStretch(0, int(self.left_width_ratio * 10))
         self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10))
