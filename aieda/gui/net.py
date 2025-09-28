@@ -135,13 +135,58 @@ class NetLayout(QWidget):
             # Emit signal to notify other components of the selected net
             self.net_selected.emit(selected_net)
             
-            # Force display of tooltip
-            # Get item position
+            # 直接使用QToolTip.showText显示tooltip
+            # 获取鼠标当前位置
+            cursor_pos = self.mapFromGlobal(self.cursor().pos())
+            # 获取列表项的视觉位置
             rect = self.net_list_widget.visualItemRect(item)
-            # Show tooltip below the item
+            # 计算tooltip显示位置
             pos = self.net_list_widget.mapToGlobal(rect.bottomLeft())
-            # Set and show tooltip
-            QToolTip.showText(pos, item.toolTip(), self.net_list_widget, rect)
+            # 直接获取并显示tooltip文本
+            tooltip_text = item.toolTip()
+            QToolTip.showText(pos, tooltip_text, self.net_list_widget, rect)
+
+    def show_net_details(self, selected_net):
+        """Display detailed information of the net using tooltips
+        
+        Args:
+            selected_net: Net object to display details for
+        """
+        # Get detailed data of the net
+        net_details = self.get_net_details(selected_net)
+        
+        # Format detailed information into tooltip text
+        tooltip_text = f"Net: {net_details.get('name', 'Unknown')}\n\n" 
+        
+        # Add all detailed information
+        for key, value in net_details.items():
+            if key == 'name':
+                continue  # Skip name as it's already in the title
+                
+            # Format key name to be more readable
+            readable_key = key.replace('_', ' ').title()
+            
+            # Special handling for some value display formats
+            if isinstance(value, list):
+                # For list type, display as comma-separated string
+                value_str = ', '.join(map(str, value))
+            elif isinstance(value, float):
+                # For float numbers, limit decimal places
+                value_str = f"{value:.6f}"
+            else:
+                value_str = str(value)
+            
+            tooltip_text += f"{readable_key}: {value_str}\n"
+        
+        # Find the item in the list and set its tooltip using Qt.ToolTipRole
+        for i in range(self.net_list_widget.count()):
+            item = self.net_list_widget.item(i)
+            if item.text() == selected_net.name:
+                # 使用setToolTip方法设置tooltip
+                item.setToolTip(tooltip_text)
+                # 也使用Qt.ToolTipRole作为备用
+                item.setData(Qt.ToolTipRole, tooltip_text)
+                break
     
     def get_net_details(self, net):
         """Get detailed feature data of the net, excluding None values
@@ -188,50 +233,3 @@ class NetLayout(QWidget):
                         details[f'place_{attr}'] = value
         
         return details
-    
-    def show_net_details(self, selected_net):
-        """Display detailed information of the net using tooltips
-        
-        Args:
-            selected_net: Net object to display details for
-        """
-        # Get detailed data of the net
-        net_details = self.get_net_details(selected_net)
-        
-        # Format detailed information into tooltip text
-        tooltip_text = f"Net: {net_details.get('name', 'Unknown')}\n\n" 
-        
-        # Add all detailed information
-        for key, value in net_details.items():
-            if key == 'name':
-                continue  # Skip name as it's already in the title
-                
-            # Format key name to be more readable
-            readable_key = key.replace('_', ' ').title()
-            
-            # Special handling for some value display formats
-            if isinstance(value, list):
-                # For list type, display as comma-separated string
-                value_str = ', '.join(map(str, value))
-            elif isinstance(value, float):
-                # For float numbers, limit decimal places
-                value_str = f"{value:.6f}"
-            else:
-                value_str = str(value)
-            
-            tooltip_text += f"{readable_key}: {value_str}\n"
-        
-        # Find the item in the list and set its tooltip using Qt.ToolTipRole
-        for i in range(self.net_list_widget.count()):
-            item = self.net_list_widget.item(i)
-            if item.text() == selected_net.name:
-                # Use Qt.ToolTipRole to set tooltip
-                item.setData(Qt.ToolTipRole, tooltip_text)
-                # Also use setToolTip method for compatibility
-                item.setToolTip(tooltip_text)
-                break
-        
-        # 为了确保tooltip立即显示，我们可以在状态栏临时显示信息
-        # 这是一个备选方案，以防tooltip仍然不显示
-        if hasattr(self, 'parent') and hasattr(self.parent(), 'statusBar'):
-            self.parent().statusBar().showMessage(f"Selected: {selected_net.name}", 3000)

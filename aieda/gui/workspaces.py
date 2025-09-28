@@ -184,8 +184,6 @@ class WorkspacesUI(QMainWindow):
         self.content_widget = QWidget()
         self.content_layout = QVBoxLayout(self.content_widget)
         
-        self.init_lad_notice()
-        
         self.main_layout.addWidget(self.content_widget, 1)
         
     def create_multi_widget_layout(self, widget_list):
@@ -217,12 +215,6 @@ class WorkspacesUI(QMainWindow):
             height: Height of the widget
         """
         widget.setGeometry(x, y, width, height)
-        
-    def init_lad_notice(self):
-        """Initialize the LAD notice label in the content area."""
-        notice_label = QLabel("Notice: This is the LAD notice area.")
-        notice_label.setAlignment(Qt.AlignCenter)
-        self.content_layout.addWidget(notice_label)
         
     def init_menu(self):
         """Initialize the menu bar with File and Analysis menus."""

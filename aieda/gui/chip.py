@@ -161,9 +161,11 @@ class ChipLayout(QWidget):
             
             # Set color based on cell type
             cell_id = getattr(instance, 'cell_id', None)
-            color = self.color_list.get(cell_id, self.color_list[None])
-            rect_item.setBrush(QBrush(color))
-            rect_item.setPen(QPen(QColor(0, 0, 0), 0.5))  # Black border
+            # color = self.color_list.get(cell_id, self.color_list[None])
+            color = self.color_list[None]
+            # 设置为Dense6Pattern填充样式
+            rect_item.setBrush(QBrush(color, Qt.Dense6Pattern))
+            rect_item.setPen(QPen(QColor(0, 0, 0), 10))  # Black border
             
             # Optionally add instance name if available
             if hasattr(instance, 'name'):
@@ -261,7 +263,7 @@ class ChipLayout(QWidget):
             
             # Set color for IO pins
             rect_item.setBrush(QBrush(self.io_pin_color))
-            rect_item.setPen(QPen(QColor(0, 0, 0), 1.0))  # Black border
+            rect_item.setPen(QPen(QColor(0, 0, 0), 10))  # Black border
             
             # Add pin name if available
             if hasattr(pin, 'name'):
