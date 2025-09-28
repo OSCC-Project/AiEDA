@@ -5,7 +5,8 @@ import os
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, 
     QHBoxLayout, QLabel, QPushButton, QFileDialog, 
-    QMessageBox, QGroupBox, QGridLayout, QCheckBox, QGraphicsView
+    QMessageBox, QGroupBox, QGridLayout, QCheckBox, QGraphicsView,
+    QTextEdit, QLineEdit
 )
 from PyQt5.QtGui import QIcon, QFont, QColor
 from PyQt5.QtCore import Qt
@@ -16,7 +17,7 @@ from aieda.gui.patch import PatchLayout
 from aieda.gui.patches import PatchesLayout
 from aieda.gui.layer import LayerLayout
 from aieda.workspace import Workspace
-
+from aieda.gui.info import WorkspaceInformation
 
 class WorkspaceUI(QWidget):
     """Workspace UI for AiEDA system
@@ -71,8 +72,8 @@ class WorkspaceUI(QWidget):
         self.widgets_grid = {}
         
         # Layout configuration
-        self.left_width_ratio = 0.9  # 90% width for left side
-        self.right_width_ratio = 0.1  # 10% width for right side
+        self.left_width_ratio = 0.6  # 60% width for left side
+        self.right_width_ratio = 0.4  # 40% width for right side
         self.main_layout = QGridLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         
@@ -176,33 +177,6 @@ class WorkspaceUI(QWidget):
             # Ensure column stretch factor is set
             while self.main_layout.columnStretch(col + colspan - 1) < col_stretch:
                 self.main_layout.setColumnStretch(col + colspan - 1, col_stretch)
-                
-    def set_widget_position(self, widget, row, col, rowspan=1, colspan=1):
-        """Set the position and size of an existing widget in the grid
-        
-        Args:
-            widget: The widget to reposition
-            row: New starting row index
-            col: New starting column index
-            rowspan: Number of rows the widget should occupy
-            colspan: Number of columns the widget should occupy
-        """
-        if widget not in self.widgets_grid:
-            return
-            
-        # Remove widget from current position
-        self.main_layout.removeWidget(widget)
-        
-        # Update widget information
-        self.widgets_grid[widget] = {
-            'row': row,
-            'col': col,
-            'rowspan': rowspan,
-            'colspan': colspan
-        }
-        
-        # Add widget back to grid at new position
-        self.main_layout.addWidget(widget, row, col, rowspan, colspan)
         
     def load_data(self):
         """Load design data from the workspace"""
@@ -236,13 +210,26 @@ class WorkspaceUI(QWidget):
             self.patches_ui = PatchesLayout(self.vec_patch, self.color_list, self.patch_ui)
             self.layer_ui = LayerLayout(self.vec_layers, self.color_list, self.chip_ui, self.patches_ui)
             self.net_ui = NetLayout(self.vec_nets)
+            self.workspace_info = WorkspaceInformation(self.workspace)
+            
+            # Set workspace information
+            # workspace_details = []
+            # workspace_details.append(f"Workspace: {self.workspace.name}\n" if hasattr(self.workspace, 'name') else "Workspace loaded\n")
+            # workspace_details.append(f"Layers: {self.vec_layers.layer_num}\n")
+            # workspace_details.append(f"Cells: {self.vec_cells.cell_num}\n")
+            # workspace_details.append(f"Instances: {self.vec_instances.instance_num}\n")
+            # workspace_details.append(f"Nets: {len(self.vec_nets) if self.vec_nets else 0}\n")
+            # workspace_details.append(f"Patches: {len(self.vec_patch) if self.vec_patch else 0}\n")
+            
+            # self.workspace_info.text_display.setText('\n'.join(workspace_details))
             
             # Set patches_ui's reference to patch_ui
             self.patches_ui.patch_layout = self.patch_ui
             
             # Set column stretch factors to control width proportions
             self.main_layout.setColumnStretch(0, int(self.left_width_ratio * 10))
-            self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10))
+            self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10 * 0.2)) 
+            self.main_layout.setColumnStretch(2, int(self.right_width_ratio * 10 * 0.8)) 
             
             # Set row stretch factors to make top and bottom rows equal height
             self.main_layout.setRowStretch(0, 1)  # Top row
@@ -256,11 +243,6 @@ class WorkspaceUI(QWidget):
             # Create zoom buttons
             from PyQt5.QtWidgets import QHBoxLayout, QPushButton
             button_layout = QHBoxLayout()
-            
-            # Add label to display current loaded workspace information (left aligned)
-            workspace_label = QLabel(f"Design: {self.workspace.design}, Workspace: {self.workspace.directory}")
-            workspace_label.setAlignment(Qt.AlignLeft)
-            button_layout.addWidget(workspace_label)
             
             # Add stretch to push buttons to right
             button_layout.addStretch()
@@ -304,9 +286,10 @@ class WorkspaceUI(QWidget):
             
             # Add widgets to grid layout according to the specified arrangement
             self.add_widget_to_grid(top_left_widget, 0, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
-            self.add_widget_to_grid(self.patch_ui, 1, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
-            self.add_widget_to_grid(self.layer_ui, 0, 1, 1, 1, (1, int(self.right_width_ratio * 10)))
-            self.add_widget_to_grid(self.net_ui, 1, 1, 1, 1, (1, int(self.right_width_ratio * 10)))
+            self.add_widget_to_grid(self.patch_ui,   1, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
+            self.add_widget_to_grid(self.layer_ui,   0, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.5)))
+            self.add_widget_to_grid(self.net_ui,     1, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.5)))
+            self.add_widget_to_grid(self.workspace_info, 1, 2, 1, 1, (1, int(self.right_width_ratio * 10 * 0.5)))
             
             # Connect NetLayout's net_selected signal to ChipLayout and PatchesLayout slots
             self.net_ui.net_selected.connect(self.chip_ui.on_net_selected)
@@ -510,7 +493,12 @@ class WorkspaceUI(QWidget):
        
         # Update column stretch factors to maintain width ratio
         self.main_layout.setColumnStretch(0, int(self.left_width_ratio * 10))
-        self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10))
+        self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10 * 0.2)) 
+        self.main_layout.setColumnStretch(2, int(self.right_width_ratio * 10 * 0.8)) 
+        
+        # Set row stretch factors to make top and bottom rows equal height
+        self.main_layout.setRowStretch(0, 1)  # Top row
+        self.main_layout.setRowStretch(1, 1)  # Bottom row
         
         # Force layout update
         self.updateGeometry()

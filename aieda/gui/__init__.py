@@ -7,6 +7,7 @@ try:
     from .layer import LayerLayout
     from .patch import PatchLayout
     from .patches import PatchesLayout
+    from .info import WorkspaceInformation
 except ImportError:
     # PyQt5 not available, GUI functionality disabled
     WorkspaceUI = None
@@ -19,5 +20,6 @@ __all__ = [
     'ChipLayout',
     'LayerLayout',
     'PatchLayout',
-    'PatchesLayout'
+    'PatchesLayout',
+    'WorkspaceInformation'
 ]

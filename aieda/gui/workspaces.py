@@ -177,6 +177,10 @@ class WorkspacesUI(QMainWindow):
         
         if hasattr(self, 'workspace_info'):
             self.workspace_info.load_workspace(workspace)
+            
+            # 添加状态栏信息显示
+            status_message = f"Design: {workspace.design}, Workspace: {workspace.directory}"
+            self.statusBar().showMessage(status_message)
 
 
     def init_content_area(self):
@@ -185,36 +189,7 @@ class WorkspacesUI(QMainWindow):
         self.content_layout = QVBoxLayout(self.content_widget)
         
         self.main_layout.addWidget(self.content_widget, 1)
-        
-    def create_multi_widget_layout(self, widget_list):
-        """Create a layout with multiple widgets.
-        
-        Args:
-            widget_list: List of widgets to add to the layout
-        
-        Returns:
-            QVBoxLayout: Layout containing the widgets
-        """
-        if not widget_list:
-            return None
-        
-        layout = QVBoxLayout()
-        for widget in widget_list:
-            layout.addWidget(widget)
-        
-        return layout
     
-    def set_widget_position(self, widget, x, y, width, height):
-        """Set the position and size of a widget.
-        
-        Args:
-            widget: The widget to position
-            x: X-coordinate
-            y: Y-coordinate
-            width: Width of the widget
-            height: Height of the widget
-        """
-        widget.setGeometry(x, y, width, height)
         
     def init_menu(self):
         """Initialize the menu bar with File and Analysis menus."""
