@@ -70,10 +70,10 @@ class LayerLayout(QWidget):
         self.main_layout = QVBoxLayout(self)
         
         # Title label
-        title_label = QLabel("Layer View")
-        title_label.setFont(QFont("Arial", 14, QFont.Bold))
-        title_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(title_label)
+        # title_label = QLabel("Layer View")
+        # title_label.setFont(QFont("Arial", 14, QFont.Bold))
+        # title_label.setAlignment(Qt.AlignCenter)
+        # self.main_layout.addWidget(title_label)
     
     def load_layers(self, vec_layers):
         """Load layers from vector data into a dictionary

@@ -351,15 +351,15 @@ class PatchLayout(QWidget):
         self.main_layout = QVBoxLayout(self)
         
         # Title label
-        title_label = QLabel("Patch Images")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_font.setPointSize(12)
-        title_label.setFont(title_font)
-        title_label.setAlignment(Qt.AlignCenter)
+        # title_label = QLabel("Patch Images")
+        # title_font = QFont()
+        # title_font.setBold(True)
+        # title_font.setPointSize(12)
+        # title_label.setFont(title_font)
+        # title_label.setAlignment(Qt.AlignCenter)
         
         # Add title to main layout
-        self.main_layout.addWidget(title_label)
+        # self.main_layout.addWidget(title_label)
         
         # Create horizontal layout for displaying components side by side
         content_layout = QHBoxLayout()

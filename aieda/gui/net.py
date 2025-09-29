@@ -53,10 +53,10 @@ class NetLayout(QWidget):
         main_layout = QVBoxLayout(self)
         
         # Title label
-        title_label = QLabel("Net View")
-        title_label.setFont(QFont("Arial", 14, QFont.Bold))
-        title_label.setAlignment(Qt.AlignCenter)
-        main_layout.addWidget(title_label)
+        # title_label = QLabel("Net View")
+        # title_label.setFont(QFont("Arial", 14, QFont.Bold))
+        # title_label.setAlignment(Qt.AlignCenter)
+        # main_layout.addWidget(title_label)
         
         # Create net list widget
         self.net_list_widget = QListWidget()
