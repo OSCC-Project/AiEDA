@@ -55,12 +55,11 @@ class WorkspacesUI(QMainWindow):
         self.sidebar = None
         self.toggle_sidebar_btn = None
         self.sidebar_visible = False
-        self.sidebar_width = 800
+        self.sidebar_width = 300
         self.control_bar = None
         self.control_bar_widget = None
         
         self.init_ui()
-        
         self.showMaximized()
         
         self.load_workspace(workspace)
@@ -93,6 +92,23 @@ class WorkspacesUI(QMainWindow):
         self.toggle_sidebar_btn = QPushButton(QIcon("{}/icon/hide.png".format(current_dir)), "")
         self.toggle_sidebar_btn.clicked.connect(self.toggle_sidebar)
         self.control_bar.addWidget(self.toggle_sidebar_btn)
+        
+        # Add a separator
+        self.control_bar.addWidget(QLabel("-"))
+        
+        # Add zoom buttons
+        self.zoom_in_btn = QPushButton(QIcon("{}/icon/zoom_in.png".format(current_dir)), "")
+        self.zoom_in_btn.setToolTip("Zoom In")
+        self.control_bar.addWidget(self.zoom_in_btn)
+        
+        self.zoom_out_btn = QPushButton(QIcon("{}/icon/zoom_out.png".format(current_dir)), "")
+        self.zoom_out_btn.setToolTip("Zoom Out")
+        self.control_bar.addWidget(self.zoom_out_btn)
+        
+        self.fit_btn = QPushButton(QIcon("{}/icon/zoom_fit.png".format(current_dir)), "")
+        self.fit_btn.setToolTip("Fit View")
+        self.control_bar.addWidget(self.fit_btn)
+        
         self.control_bar.addStretch()
         
         self.main_layout.addWidget(self.control_bar_widget)
@@ -149,11 +165,7 @@ class WorkspacesUI(QMainWindow):
         """Initialize the workspace list and information UI with 2:8 vertical ratio layout."""
         self.workspace_list = self.WorkspaceListUI()
         
-        self.workspace_info = self.WorkspaceInfoUI()
-        self.workspace_info.init_ui()
-        
         self.sidebar_layout.addWidget(self.workspace_list)
-        self.sidebar_layout.addWidget(self.workspace_info)
         
     def load_workspace(self, workspace):
         """Load a workspace into the UI.
@@ -172,15 +184,18 @@ class WorkspacesUI(QMainWindow):
         self.workspace_ui = WorkspaceUI(workspace)
         self.content_layout.addWidget(self.workspace_ui)
         
+        # Connect zoom buttons to workspace_ui methods
+        self.zoom_in_btn.clicked.connect(lambda: self.workspace_ui._apply_to_both_views('zoom_in'))
+        self.zoom_out_btn.clicked.connect(lambda: self.workspace_ui._apply_to_both_views('zoom_out'))
+        self.fit_btn.clicked.connect(lambda: self.workspace_ui._apply_to_both_views('fit_view'))
+        
         if self.workspace_list:
             self.workspace_list.add_workspace(workspace)
         
-        if hasattr(self, 'workspace_info'):
-            self.workspace_info.load_workspace(workspace)
             
-            # 添加状态栏信息显示
-            status_message = f"Design: {workspace.design}, Workspace: {workspace.directory}"
-            self.statusBar().showMessage(status_message)
+        # 添加状态栏信息显示
+        status_message = f"Design: {workspace.design}, Workspace: {workspace.directory}"
+        self.statusBar().showMessage(status_message)
 
 
     def init_content_area(self):
@@ -189,7 +204,7 @@ class WorkspacesUI(QMainWindow):
         self.content_layout = QVBoxLayout(self.content_widget)
         
         self.main_layout.addWidget(self.content_widget, 1)
-    
+        
         
     def init_menu(self):
         """Initialize the menu bar with File and Analysis menus."""
@@ -282,14 +297,14 @@ class WorkspacesUI(QMainWindow):
             layout.addWidget(title_label)
             
             self.list_widget = QListWidget()
-            self.list_widget.setMinimumWidth(600)
-            self.setMinimumWidth(610)
+            self.list_widget.setMinimumWidth(280)
+            self.setMinimumWidth(300)
             
             self.list_widget.setViewMode(QListWidget.IconMode)
             self.list_widget.setFlow(QListWidget.LeftToRight)
             self.list_widget.setWrapping(True)
             self.list_widget.setResizeMode(QListWidget.Adjust)
-            self.list_widget.setGridSize(QSize(140, 60))
+            # self.list_widget.setGridSize(QSize(140, 60))
             layout.addWidget(self.list_widget)
             
         def add_workspace(self, workspace):
@@ -335,83 +350,3 @@ class WorkspacesUI(QMainWindow):
                 parent_window = self.window()
                 if hasattr(parent_window, 'load_workspace'):
                     parent_window.load_workspace(workspace)
-                    if hasattr(parent_window, 'workspace_info'):
-                        parent_window.workspace_info.load_workspace(workspace)
-    
-    class WorkspaceInfoUI(QWidget):
-        """UI component for displaying detailed information about a selected workspace."""
-        
-        def __init__(self):
-            """Initialize the WorkspaceInfoUI component."""
-            super().__init__()
-            self.info_text = None
-            
-        def init_ui(self):
-            """Initialize the workspace info UI components."""
-            layout = QVBoxLayout(self)
-            # Set spacing to 0 to make title_label and info_text closer
-            layout.setSpacing(0)
-            
-            title_label = QLabel("Workspace Info")
-            title_label.setAlignment(Qt.AlignCenter)
-            font = QFont()
-            font.setBold(True)
-            title_label.setFont(font)
-            layout.addWidget(title_label)
-            
-            self.info_text = QLabel("Select a workspace to see details")
-            self.info_text.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-            self.info_text.setWordWrap(True)
-            self.info_text.setMinimumHeight(200)
-            # Reduced padding from 10px to 0px to make it closer to title_label
-            self.info_text.setStyleSheet("background-color: white; padding: 0px; border-radius: 4px;")
-            self.info_text.setTextFormat(Qt.RichText)
-            layout.addWidget(self.info_text)
-            
-        def load_workspace(self, workspace):
-            """Load and display workspace information in HTML format.
-            
-            Args:
-                workspace: The workspace object to display information for
-            """
-            if not workspace:
-                self.info_text.setText("No workspace selected")
-                return
-            
-            info_str = []
-            
-            info_str.append(f"<p><b>Design:</b> {workspace.design}</p>")
-            info_str.append(f"<p><b>Directory:</b> {workspace.directory}</p>")
-            
-            info_str.append("<hr>")
-            
-            info_str.append(f"<p><b>Process node:</b> {workspace.configs.workspace.process_node}</p>")
-            info_str.append(f"<p><b>version:</b> {workspace.configs.workspace.version}</p>")
-            
-            info_str.append("<hr>")
-            
-            info_str.append("<p><b>Flows:</b></p>")
-            info_str.append("<table border='1' cellspacing='0' cellpadding='3' style='border-collapse:collapse;'>")
-            info_str.append("<tr style='background-color:#f0f0f0;'>")
-            info_str.append("<th style='width:150px;'>Step</th>")
-            info_str.append("<th style='width:150px;'>EDA Tool</th>")
-            info_str.append("<th style='width:150px;'>State</th>")
-            info_str.append("<th style='width:150px;'>Runtime</th>")
-            info_str.append("</tr>")
-            
-            for flow in workspace.configs.flows:
-                step_str = str(flow.step.value)[:50]
-                tool_str = str(flow.eda_tool)[:50]
-                state_str = str(flow.state.value)[:50]
-                runtime_str = str(flow.runtime)[:50]
-                info_str.append("<tr>")
-                info_str.append(f"<td style='text-align:left;'>{step_str}</td>")
-                info_str.append(f"<td style='text-align:left;'>{tool_str}</td>")
-                info_str.append(f"<td style='text-align:left;'>{state_str}</td>")
-                info_str.append(f"<td style='text-align:left;'>{runtime_str}</td>")
-                info_str.append("</tr>")
-            
-            info_str.append("</table>")
-
-            self.info_text.setText('\n'.join(info_str))
-    

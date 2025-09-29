@@ -86,10 +86,6 @@ class WorkspaceUI(QWidget):
         # Initialize the UI and load data
         self.load_data()
         self.load_layout()
-    
-    def _init_ui(self):
-        """Placeholder for UI initialization"""
-        pass
         
     def _generate_colors(self):
         """Generate high contrast colors for different cell types
@@ -188,6 +184,26 @@ class WorkspaceUI(QWidget):
         self.vec_patch = data_loader.load_patchs()
         self.vec_layers = data_loader.load_layers()
 
+    def _init_ui(self):
+        """Placeholder for UI initialization"""
+        # Clear previous display
+        for i in reversed(range(self.main_layout.count())):
+            widget = self.main_layout.itemAt(i).widget()
+            if widget:
+                widget.setParent(None)
+        
+        # Clear widgets grid dictionary
+        self.widgets_grid.clear()
+        
+        # Set column stretch factors to control width proportions
+        self.main_layout.setColumnStretch(0, int(self.left_width_ratio * 10))
+        self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10 * 0.2)) 
+        self.main_layout.setColumnStretch(2, int(self.right_width_ratio * 10 * 0.8)) 
+        
+        # Set row stretch factors to make top and bottom rows equal height
+        self.main_layout.setRowStretch(0, 1)  # Top row
+        self.main_layout.setRowStretch(1, 1)  # Bottom row
+        
     def load_layout(self):
         """Load and initialize the chip layout UI components"""
         if not self.workspace:
@@ -195,14 +211,7 @@ class WorkspaceUI(QWidget):
             return
         
         try:
-            # Clear previous display
-            for i in reversed(range(self.main_layout.count())):
-                widget = self.main_layout.itemAt(i).widget()
-                if widget:
-                    widget.setParent(None)
-            
-            # Clear widgets grid dictionary
-            self.widgets_grid.clear()
+            self._init_ui()
             
             # Create UI components
             self.chip_ui = ChipLayout(self.vec_cells, self.vec_instances, self.vec_nets, self.color_list)
@@ -223,50 +232,11 @@ class WorkspaceUI(QWidget):
             
             # self.workspace_info.text_display.setText('\n'.join(workspace_details))
             
-            # Set patches_ui's reference to patch_ui
-            self.patches_ui.patch_layout = self.patch_ui
             
-            # Set column stretch factors to control width proportions
-            self.main_layout.setColumnStretch(0, int(self.left_width_ratio * 10))
-            self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10 * 0.2)) 
-            self.main_layout.setColumnStretch(2, int(self.right_width_ratio * 10 * 0.8)) 
-            
-            # Set row stretch factors to make top and bottom rows equal height
-            self.main_layout.setRowStretch(0, 1)  # Top row
-            self.main_layout.setRowStretch(1, 1)  # Bottom row
-            
-            # Create vertical layout for button_layout (top) and chip/patches (bottom)
+            # Create vertical layout for chip/patches
             top_left_layout = QVBoxLayout()
             top_left_widget = QWidget()
             top_left_widget.setLayout(top_left_layout)
-            
-            # Create zoom buttons
-            from PyQt5.QtWidgets import QHBoxLayout, QPushButton
-            button_layout = QHBoxLayout()
-            
-            # Add stretch to push buttons to right
-            button_layout.addStretch()
-            
-            # Add zoom buttons (right aligned)
-            import os
-            current_dir = os.path.split(os.path.abspath(__file__))[0]
-            zoom_in_btn = QPushButton(QIcon("{}/icon/zoom_in.png".format(current_dir)), "")
-            zoom_in_btn.setToolTip("Zoom In")
-            zoom_out_btn = QPushButton(QIcon("{}/icon/zoom_out.png".format(current_dir)), "")
-            zoom_out_btn.setToolTip("Zoom Out")
-            fit_btn = QPushButton(QIcon("{}/icon/zoom_fit.png".format(current_dir)), "") 
-            fit_btn.setToolTip("Fit View")
-            
-            # Connect buttons to both chip_ui and patches_ui methods
-            zoom_in_btn.clicked.connect(lambda: self._apply_to_both_views('zoom_in'))
-            zoom_out_btn.clicked.connect(lambda: self._apply_to_both_views('zoom_out'))
-            fit_btn.clicked.connect(lambda: self._apply_to_both_views('fit_view'))
-            
-            # Add buttons to layout
-            button_layout.addWidget(zoom_in_btn)
-            button_layout.addWidget(zoom_out_btn)
-            button_layout.addWidget(fit_btn)
-            
             
             # Create horizontal layout for chip_ui and patches_ui
             chips_patches_layout = QHBoxLayout()
@@ -277,8 +247,7 @@ class WorkspaceUI(QWidget):
             chips_patches_layout.setStretch(0, 1)  # chip_ui takes 1 part
             chips_patches_layout.setStretch(1, 1)  # patches_ui takes 1 part
             
-            # Add button_layout (top) and chips_patches_layout (bottom) to top_left_layout
-            top_left_layout.addLayout(button_layout)
+            # Add chips_patches_layout to top_left_layout
             top_left_layout.addLayout(chips_patches_layout)
             
             # Install event filters for synchronized zooming
@@ -287,13 +256,16 @@ class WorkspaceUI(QWidget):
             # Add widgets to grid layout according to the specified arrangement
             self.add_widget_to_grid(top_left_widget, 0, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
             self.add_widget_to_grid(self.patch_ui,   1, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
-            self.add_widget_to_grid(self.layer_ui,   0, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.5)))
-            self.add_widget_to_grid(self.net_ui,     1, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.5)))
-            self.add_widget_to_grid(self.workspace_info, 1, 2, 1, 1, (1, int(self.right_width_ratio * 10 * 0.5)))
+            # workspace_info now occupies the entire second column
+            self.add_widget_to_grid(self.workspace_info, 0, 2, 2, 1, (1, int(self.right_width_ratio * 10 * 0.8)))
+            # layer_ui and net_ui are moved to the third column
+            self.add_widget_to_grid(self.layer_ui,   0, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.2)))
+            self.add_widget_to_grid(self.net_ui,     1, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.2)))
             
             # Connect NetLayout's net_selected signal to ChipLayout and PatchesLayout slots
             self.net_ui.net_selected.connect(self.chip_ui.on_net_selected)
             self.net_ui.net_selected.connect(self.patches_ui.on_net_selected)
+            self.net_ui.net_selected.connect(self.workspace_info.on_net_selected)
             
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to load chip layout:\n{str(e)}")
