@@ -746,7 +746,7 @@ if __name__ == "__main__":
     run_eda_flow(workspace)
 
     # step 4 : generate vectors
-    generate_vectors(workspace, 9, 9)
+    generate_vectors(workspace, 18, 18)
     
     # step 5 report summary for workspace
     report_summary(workspace)

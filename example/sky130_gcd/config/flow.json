@@ -1,0 +1,77 @@
+{
+    "task": "run_eda",
+    "flow": [
+        {
+            "eda_tool": "iEDA",
+            "step": "floorplan",
+            "state": "success",
+            "runtime": "0:0:5"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "PDN",
+            "state": "success",
+            "runtime": "0:0:5"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "fixFanout",
+            "state": "success",
+            "runtime": "0:0:14"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "place",
+            "state": "success",
+            "runtime": "0:0:28"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "CTS",
+            "state": "success",
+            "runtime": "0:0:28"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "optDrv",
+            "state": "success",
+            "runtime": "0:0:15"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "optHold",
+            "state": "success",
+            "runtime": "0:0:15"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "legalization",
+            "state": "success",
+            "runtime": "0:0:12"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "route",
+            "state": "success",
+            "runtime": "0:0:36"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "drc",
+            "state": "success",
+            "runtime": "0:0:6"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "vectorization",
+            "state": "success",
+            "runtime": "0:0:23"
+        },
+        {
+            "eda_tool": "iEDA",
+            "step": "filler",
+            "state": "success",
+            "runtime": "0:0:8"
+        }
+    ]
+}

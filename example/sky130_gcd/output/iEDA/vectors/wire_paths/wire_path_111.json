@@ -1,0 +1,375 @@
+[
+    {
+        "node_0": {
+            "Point": "dpath/a_reg/_140_:CLK (sky130_fd_sc_hs__dfxtp_1)",
+            "Capacitance": 0.003,
+            "slew": 0.0,
+            "trans_type": "fall"
+        }
+    },
+    {
+        "inst_arc_0": {
+            "Incr": 0.224443
+        }
+    },
+    {
+        "node_1": {
+            "Point": "dpath/a_reg/_140_:Q (sky130_fd_sc_hs__dfxtp_1)",
+            "Capacitance": 0.014983899569120001,
+            "slew": 0.063483,
+            "trans_type": "fall"
+        }
+    },
+    {
+        "net_arc_1": {
+            "Incr": 1.2e-05,
+            "edge_0": {
+                "wire_from_node": "dpath/a_reg/_140_:Q",
+                "wire_to_node": "dpath/a_lt_b$in0[8]:728584",
+                "wire_R": 0.0,
+                "wire_C": 0.0,
+                "from_slew": 0.110771,
+                "to_slew": 0.110771,
+                "wire_delay": 0.0
+            },
+            "edge_1": {
+                "wire_from_node": "dpath/a_lt_b$in0[8]:728584",
+                "wire_to_node": "dpath/a_lt_b$in0[8]:728589",
+                "wire_R": 1.0714285714285714,
+                "wire_C": 0.009102346746400002,
+                "from_slew": 0.110771,
+                "to_slew": 0.11077100077849952,
+                "wire_delay": 6.30166373862857e-06
+            },
+            "edge_2": {
+                "wire_from_node": "dpath/a_lt_b$in0[8]:728589",
+                "wire_to_node": "dpath/a_lt_b$in0[8]:726989",
+                "wire_R": 2.357142857142857,
+                "wire_C": 0.0032340127143999997,
+                "from_slew": 0.11077100077849952,
+                "to_slew": 0.11077100095429222,
+                "wire_delay": 6.240630255325714e-06
+            },
+            "edge_3": {
+                "wire_from_node": "dpath/a_lt_b$in0[8]:726989",
+                "wire_to_node": "dpath/a_reg/_108_:A",
+                "wire_R": 0.0,
+                "wire_C": 0.00011754010831999985,
+                "from_slew": 0.11077100095429222,
+                "to_slew": 0.11077100095429222,
+                "wire_delay": 0.0
+            }
+        }
+    },
+    {
+        "node_2": {
+            "Point": "dpath/a_reg/_108_:A (sky130_fd_sc_hs__buf_1)",
+            "Capacitance": 0.00253,
+            "slew": 0.063483,
+            "trans_type": "fall"
+        }
+    },
+    {
+        "inst_arc_2": {
+            "Incr": 0.081516
+        }
+    },
+    {
+        "node_3": {
+            "Point": "dpath/a_reg/_108_:X (sky130_fd_sc_hs__buf_1)",
+            "Capacitance": 0.0037194451012800005,
+            "slew": 0.023877,
+            "trans_type": "fall"
+        }
+    },
+    {
+        "net_arc_3": {
+            "Incr": 2.3e-05,
+            "edge_0": {
+                "wire_from_node": "dpath/a_reg/_108_:X",
+                "wire_to_node": "dpath/a_reg/_064_:726456",
+                "wire_R": 0.0,
+                "wire_C": 0.0,
+                "from_slew": 0.03795,
+                "to_slew": 0.03795,
+                "wire_delay": 0.0
+            },
+            "edge_1": {
+                "wire_from_node": "dpath/a_reg/_064_:726456",
+                "wire_to_node": "dpath/a_reg/_064_:726457",
+                "wire_R": 0.21428571428571425,
+                "wire_C": 1.5848537120000117e-05,
+                "from_slew": 0.03795,
+                "to_slew": 0.037950000437805914,
+                "wire_delay": 7.936278351771428e-07
+            },
+            "edge_2": {
+                "wire_from_node": "dpath/a_reg/_064_:726457",
+                "wire_to_node": "dpath/a_reg/_064_:1301049",
+                "wire_R": 0.0,
+                "wire_C": 1.5848537120000117e-05,
+                "from_slew": 0.037950000437805914,
+                "to_slew": 0.037950000437805914,
+                "wire_delay": 0.0
+            },
+            "edge_3": {
+                "wire_from_node": "dpath/a_reg/_064_:1301049",
+                "wire_to_node": "dpath/a_reg/_064_:1293009",
+                "wire_R": 3.214285714285714,
+                "wire_C": 0.00014548811960000008,
+                "from_slew": 0.037950000437805914,
+                "to_slew": 0.03795000517241842,
+                "wire_delay": 1.138583541677143e-05
+            },
+            "edge_4": {
+                "wire_from_node": "dpath/a_reg/_064_:1293009",
+                "wire_to_node": "dpath/a_reg/_064_:718417",
+                "wire_R": 0.0,
+                "wire_C": 0.00014548811960000008,
+                "from_slew": 0.03795000517241842,
+                "to_slew": 0.03795000517241842,
+                "wire_delay": 0.0
+            },
+            "edge_5": {
+                "wire_from_node": "dpath/a_reg/_064_:718417",
+                "wire_to_node": "dpath/a_reg/_064_:718433",
+                "wire_R": 3.428571428571428,
+                "wire_C": 0.00016838589392000015,
+                "from_slew": 0.03795000517241842,
+                "to_slew": 0.037950006786611354,
+                "wire_delay": 1.1068751636297138e-05
+            },
+            "edge_6": {
+                "wire_from_node": "dpath/a_reg/_064_:718433",
+                "wire_to_node": "dpath/a_reg/_075_:A0",
+                "wire_R": 0.0,
+                "wire_C": 0.00016838589392000015,
+                "from_slew": 0.037950006786611354,
+                "to_slew": 0.037950006786611354,
+                "wire_delay": 0.0
+            }
+        }
+    },
+    {
+        "node_4": {
+            "Point": "dpath/a_reg/_075_:A0 (sky130_fd_sc_hs__mux2_1)",
+            "Capacitance": 0.00306,
+            "slew": 0.023877,
+            "trans_type": "fall"
+        }
+    },
+    {
+        "inst_arc_4": {
+            "Incr": 0.119042
+        }
+    },
+    {
+        "node_5": {
+            "Point": "dpath/a_reg/_075_:X (sky130_fd_sc_hs__mux2_1)",
+            "Capacitance": 0.0035708871057600006,
+            "slew": 0.033709,
+            "trans_type": "fall"
+        }
+    },
+    {
+        "net_arc_5": {
+            "Incr": 3.2e-05,
+            "edge_0": {
+                "wire_from_node": "dpath/a_reg/_075_:X",
+                "wire_to_node": "dpath/a_reg/_030_:721120",
+                "wire_R": 0.0,
+                "wire_C": 0.0,
+                "from_slew": 0.038123,
+                "to_slew": 0.038123,
+                "wire_delay": 0.0
+            },
+            "edge_1": {
+                "wire_from_node": "dpath/a_reg/_030_:721120",
+                "wire_to_node": "dpath/a_reg/_030_:721095",
+                "wire_R": 5.357142857142857,
+                "wire_C": 0.00025990830800000017,
+                "from_slew": 0.038123,
+                "to_slew": 0.03812301001839561,
+                "wire_delay": 1.7737386416571433e-05
+            },
+            "edge_2": {
+                "wire_from_node": "dpath/a_reg/_030_:721095",
+                "wire_to_node": "dpath/a_reg/_030_:1295687",
+                "wire_R": 0.0,
+                "wire_C": 0.00025990830800000017,
+                "from_slew": 0.03812301001839561,
+                "to_slew": 0.03812301001839561,
+                "wire_delay": 0.0
+            },
+            "edge_3": {
+                "wire_from_node": "dpath/a_reg/_030_:1295687",
+                "wire_to_node": "dpath/a_reg/_030_:1299975",
+                "wire_R": 1.714285714285714,
+                "wire_C": 8.006058512000005e-05,
+                "from_slew": 0.03812301001839561,
+                "to_slew": 0.03812301156364376,
+                "wire_delay": 5.093159836525713e-06
+            },
+            "edge_4": {
+                "wire_from_node": "dpath/a_reg/_030_:1299975",
+                "wire_to_node": "dpath/a_reg/_030_:725383",
+                "wire_R": 0.0,
+                "wire_C": 8.006058512000005e-05,
+                "from_slew": 0.03812301156364376,
+                "to_slew": 0.03812301156364376,
+                "wire_delay": 0.0
+            },
+            "edge_5": {
+                "wire_from_node": "dpath/a_reg/_030_:725383",
+                "wire_to_node": "dpath/a_reg/_030_:725378",
+                "wire_R": 1.0714285714285714,
+                "wire_C": 5.652516559999984e-05,
+                "from_slew": 0.03812301156364376,
+                "to_slew": 0.03812301219582831,
+                "wire_delay": 3.0368830220571414e-06
+            },
+            "edge_6": {
+                "wire_from_node": "dpath/a_reg/_030_:725378",
+                "wire_to_node": "dpath/a_reg/_030_:1299970",
+                "wire_R": 0.0,
+                "wire_C": 5.652516559999984e-05,
+                "from_slew": 0.03812301219582831,
+                "to_slew": 0.03812301219582831,
+                "wire_delay": 0.0
+            },
+            "edge_7": {
+                "wire_from_node": "dpath/a_reg/_030_:1299970",
+                "wire_to_node": "dpath/a_reg/_030_:1294074",
+                "wire_R": 2.357142857142857,
+                "wire_C": 0.00010810095704000006,
+                "from_slew": 0.03812301219582831,
+                "to_slew": 0.03812301280111272,
+                "wire_delay": 6.293095359445714e-06
+            },
+            "edge_8": {
+                "wire_from_node": "dpath/a_reg/_030_:1294074",
+                "wire_to_node": "dpath/a_reg/_030_:719482",
+                "wire_R": 0.0,
+                "wire_C": 0.00010810095704000006,
+                "from_slew": 0.03812301280111272,
+                "to_slew": 0.03812301280111272,
+                "wire_delay": 0.0
+            },
+            "edge_9": {
+                "wire_from_node": "dpath/a_reg/_030_:719482",
+                "wire_to_node": "dpath/a_reg/_030_:719481",
+                "wire_R": 0.21428571428571425,
+                "wire_C": 1.5848537120000117e-05,
+                "from_slew": 0.03812301280111272,
+                "to_slew": 0.03812301280501604,
+                "wire_delay": 5.455389722400019e-07
+            },
+            "edge_10": {
+                "wire_from_node": "dpath/a_reg/_030_:719481",
+                "wire_to_node": "dpath/a_reg/_110_:A",
+                "wire_R": 0.0,
+                "wire_C": 1.5848537120000117e-05,
+                "from_slew": 0.03812301280501604,
+                "to_slew": 0.03812301280501604,
+                "wire_delay": 0.0
+            }
+        }
+    },
+    {
+        "node_6": {
+            "Point": "dpath/a_reg/_110_:A (sky130_fd_sc_hs__buf_1)",
+            "Capacitance": 0.00253,
+            "slew": 0.033709,
+            "trans_type": "fall"
+        }
+    },
+    {
+        "inst_arc_6": {
+            "Incr": 0.067777
+        }
+    },
+    {
+        "node_7": {
+            "Point": "dpath/a_reg/_110_:X (sky130_fd_sc_hs__buf_1)",
+            "Capacitance": 0.00295659653856,
+            "slew": 0.021077,
+            "trans_type": "fall"
+        }
+    },
+    {
+        "net_arc_7": {
+            "Incr": 2.9e-05,
+            "edge_0": {
+                "wire_from_node": "dpath/a_reg/_110_:X",
+                "wire_to_node": "dpath/a_reg/_014_:721092",
+                "wire_R": 0.0,
+                "wire_C": 0.0,
+                "from_slew": 0.021092,
+                "to_slew": 0.021092,
+                "wire_delay": 0.0
+            },
+            "edge_1": {
+                "wire_from_node": "dpath/a_reg/_014_:721092",
+                "wire_to_node": "dpath/a_reg/_014_:718943",
+                "wire_R": 2.357142857142857,
+                "wire_C": 0.00011754010831999985,
+                "from_slew": 0.021092,
+                "to_slew": 0.021092006831466743,
+                "wire_delay": 6.692061585565715e-06
+            },
+            "edge_2": {
+                "wire_from_node": "dpath/a_reg/_014_:718943",
+                "wire_to_node": "dpath/a_reg/_014_:1293535",
+                "wire_R": 0.0,
+                "wire_C": 0.00011754010831999985,
+                "from_slew": 0.021092006831466743,
+                "to_slew": 0.021092006831466743,
+                "wire_delay": 0.0
+            },
+            "edge_3": {
+                "wire_from_node": "dpath/a_reg/_014_:1293535",
+                "wire_to_node": "dpath/a_reg/_014_:1302111",
+                "wire_R": 3.428571428571428,
+                "wire_C": 0.0001548349102400001,
+                "from_slew": 0.021092006831466743,
+                "to_slew": 0.021092013388170662,
+                "wire_delay": 8.800050554331428e-06
+            },
+            "edge_4": {
+                "wire_from_node": "dpath/a_reg/_014_:1302111",
+                "wire_to_node": "dpath/a_reg/_014_:727519",
+                "wire_R": 0.0,
+                "wire_C": 0.0001548349102400001,
+                "from_slew": 0.021092013388170662,
+                "to_slew": 0.021092013388170662,
+                "wire_delay": 0.0
+            },
+            "edge_5": {
+                "wire_from_node": "dpath/a_reg/_014_:727519",
+                "wire_to_node": "dpath/a_reg/_014_:727488",
+                "wire_R": 6.642857142857142,
+                "wire_C": 0.0003209232507200002,
+                "from_slew": 0.021092013388170662,
+                "to_slew": 0.02109201796155741,
+                "wire_delay": 1.3889704451211427e-05
+            },
+            "edge_6": {
+                "wire_from_node": "dpath/a_reg/_014_:727488",
+                "wire_to_node": "dpath/a_reg/_140_:D",
+                "wire_R": 0.0,
+                "wire_C": 0.00032092325071999997,
+                "from_slew": 0.02109201796155741,
+                "to_slew": 0.02109201796155741,
+                "wire_delay": 0.0
+            }
+        }
+    },
+    {
+        "node_8": {
+            "Point": "dpath/a_reg/_140_:D (sky130_fd_sc_hs__dfxtp_1)",
+            "Capacitance": 0.00177,
+            "slew": 0.021077,
+            "trans_type": "fall"
+        }
+    }
+]

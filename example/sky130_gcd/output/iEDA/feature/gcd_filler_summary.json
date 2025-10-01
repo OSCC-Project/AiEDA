@@ -1,0 +1,430 @@
+{
+    "Design Information": {
+        "design_name": "gcd",
+        "design_version": "5.8",
+        "eda_tool": "iEDA",
+        "eda_version": "V23.03-OS-01",
+        "flow_memory": "0.000000 MB",
+        "flow_runtime": "3.166013 s",
+        "flow_stage": "iPL - Filler"
+    },
+    "Design Layout": {
+        "core_area": 16278.105599999999,
+        "core_bounding_height": 126.54,
+        "core_bounding_width": 128.64,
+        "core_usage": 0.920807421207428,
+        "design_dbu": 1000,
+        "die_area": 16595.365329,
+        "die_bounding_height": 128.823,
+        "die_bounding_width": 128.823,
+        "die_usage": 0.9032039642333984
+    },
+    "Design Statis": {
+        "num_instances": 2940,
+        "num_iopins": 56,
+        "num_layers": 13,
+        "num_layers_cut": 5,
+        "num_layers_routing": 6,
+        "num_nets": 678,
+        "num_pdn": 2
+    },
+    "Instances": {
+        "clock": {
+            "area": 943.056,
+            "area_ratio": 0.05793438997419831,
+            "core_usage": 0.057934014139827184,
+            "die_usage": 0.05682646819181693,
+            "num": 37,
+            "num_ratio": 0.012585034013605442,
+            "pin_num": 108,
+            "pin_ratio": 0.06235565819861432
+        },
+        "iopads": {
+            "area": 0.0,
+            "area_ratio": 0.0,
+            "core_usage": 0.0,
+            "die_usage": 0.0,
+            "num": 0,
+            "num_ratio": 0.0,
+            "pin_num": 0,
+            "pin_ratio": 0.0
+        },
+        "logic": {
+            "area": 6657.336,
+            "area_ratio": 0.40897751566531515,
+            "core_usage": 0.408974862529458,
+            "die_usage": 0.40115633901511444,
+            "num": 642,
+            "num_ratio": 0.21836734693877552,
+            "pin_num": 1732,
+            "pin_ratio": 1.0
+        },
+        "macros": {
+            "area": 0.0,
+            "area_ratio": 0.0,
+            "core_usage": 0.0,
+            "die_usage": 0.0,
+            "num": 0,
+            "num_ratio": 0.0,
+            "pin_num": 0,
+            "pin_ratio": 0.0
+        },
+        "total": {
+            "area": 16278.0,
+            "area_ratio": 1.0,
+            "core_usage": 0.9999935127586346,
+            "die_usage": 0.9808762673970538,
+            "num": 2940,
+            "num_ratio": 1.0,
+            "pin_num": 1732,
+            "pin_ratio": 1.0
+        }
+    },
+    "Layers": {
+        "cut_layers": [
+            {
+                "layer_name": "mcon",
+                "layer_order": 3,
+                "via_num": 1728,
+                "via_ratio": 0.33579479207151186
+            },
+            {
+                "layer_name": "via",
+                "layer_order": 5,
+                "via_num": 2126,
+                "via_ratio": 0.413136416634279
+            },
+            {
+                "layer_name": "via2",
+                "layer_order": 7,
+                "via_num": 606,
+                "via_ratio": 0.11776136805285659
+            },
+            {
+                "layer_name": "via3",
+                "layer_order": 9,
+                "via_num": 470,
+                "via_ratio": 0.09133307423241352
+            },
+            {
+                "layer_name": "via4",
+                "layer_order": 11,
+                "via_num": 216,
+                "via_ratio": 0.04197434900893898
+            }
+        ],
+        "num_layers": 13,
+        "num_layers_cut": 5,
+        "num_layers_routing": 6,
+        "routing_layers": [
+            {
+                "layer_name": "li1",
+                "layer_order": 2,
+                "patch_num": 0,
+                "wire_len": 0.0,
+                "wire_num": 0,
+                "wire_ratio": 0.0
+            },
+            {
+                "layer_name": "met1",
+                "layer_order": 4,
+                "patch_num": 0,
+                "wire_len": 6066.49499999994,
+                "wire_num": 3140,
+                "wire_ratio": 0.40202393855221946
+            },
+            {
+                "layer_name": "met2",
+                "layer_order": 6,
+                "patch_num": 0,
+                "wire_len": 5735.719999999963,
+                "wire_num": 1757,
+                "wire_ratio": 0.38010362570689404
+            },
+            {
+                "layer_name": "met3",
+                "layer_order": 8,
+                "patch_num": 25,
+                "wire_len": 2291.6400000000035,
+                "wire_num": 235,
+                "wire_ratio": 0.15186596849479292
+            },
+            {
+                "layer_name": "met4",
+                "layer_order": 10,
+                "patch_num": 0,
+                "wire_len": 996.0300000000003,
+                "wire_num": 107,
+                "wire_ratio": 0.0660064672461069
+            },
+            {
+                "layer_name": "met5",
+                "layer_order": 12,
+                "patch_num": 3,
+                "wire_len": 0.0,
+                "wire_num": 0,
+                "wire_ratio": 0.0
+            }
+        ]
+    },
+    "Macros": null,
+    "Macros Statis": null,
+    "Nets": {
+        "num_clock": 4,
+        "num_patch": 28,
+        "num_pins": 1786,
+        "num_segment": 9198,
+        "num_signal": 674,
+        "num_total": 678,
+        "num_via": 3931,
+        "num_wire": 5239,
+        "ratio_clock": 0.052988475392622275,
+        "ratio_signal": 0.9470115246073777,
+        "wire_len": 15089.885,
+        "wire_len_clock": 799.59,
+        "wire_len_signal": 14290.295
+    },
+    "Pins": {
+        "max_fanout": 32,
+        "pin_distribution": [
+            {
+                "inst_num": 2298,
+                "inst_ratio": 0.7816326530612245,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 0
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 1
+            },
+            {
+                "inst_num": 365,
+                "inst_ratio": 0.12414965986394558,
+                "net_num": 484,
+                "net_ratio": 0.7138643067846607,
+                "pin_num": 2
+            },
+            {
+                "inst_num": 133,
+                "inst_ratio": 0.04523809523809524,
+                "net_num": 115,
+                "net_ratio": 0.1696165191740413,
+                "pin_num": 3
+            },
+            {
+                "inst_num": 117,
+                "inst_ratio": 0.03979591836734694,
+                "net_num": 21,
+                "net_ratio": 0.030973451327433628,
+                "pin_num": 4
+            },
+            {
+                "inst_num": 27,
+                "inst_ratio": 0.009183673469387756,
+                "net_num": 25,
+                "net_ratio": 0.03687315634218289,
+                "pin_num": 5
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 17,
+                "net_ratio": 0.025073746312684365,
+                "pin_num": 6
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 7
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 7,
+                "net_ratio": 0.01032448377581121,
+                "pin_num": 8
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 1,
+                "net_ratio": 0.0014749262536873156,
+                "pin_num": 9
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 10
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 6,
+                "net_ratio": 0.008849557522123894,
+                "pin_num": 11
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 12
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 1,
+                "net_ratio": 0.0014749262536873156,
+                "pin_num": 13
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 14
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 15
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 16
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 17
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 1,
+                "net_ratio": 0.0014749262536873156,
+                "pin_num": 18
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 19
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 20
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 21
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 22
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 23
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 24
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 25
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 26
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 27
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 28
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 29
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 30
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 31
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": 32
+            },
+            {
+                "inst_num": 0,
+                "inst_ratio": 0.0,
+                "net_num": 0,
+                "net_ratio": 0.0,
+                "pin_num": "> 32"
+            }
+        ]
+    }
+}

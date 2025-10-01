@@ -143,7 +143,7 @@ cython_debug/
 .vscode/
 .VSCodeCounter/
 
-*.json
+# *.json
 *.pkl
 *.onnx
 *.zip

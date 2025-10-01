@@ -1,0 +1,93 @@
+{
+    "Congestion": {
+        "map": {
+            "egr": {
+                "horizontal": "./example/sky130_gcd/output/iEDA/feature/egr_congestion_map/place_egr_horizontal_overflow.csv",
+                "union": "./example/sky130_gcd/output/iEDA/feature/egr_congestion_map/place_egr_union_overflow.csv",
+                "vertical": "./example/sky130_gcd/output/iEDA/feature/egr_congestion_map/place_egr_vertical_overflow.csv"
+            },
+            "lutrudy": {
+                "horizontal": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/place_lut_rudy_horizontal.csv",
+                "union": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/place_lut_rudy_union.csv",
+                "vertical": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/place_lut_rudy_vertical.csv"
+            },
+            "rudy": {
+                "horizontal": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/place_rudy_horizontal.csv",
+                "union": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/place_rudy_union.csv",
+                "vertical": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/place_rudy_vertical.csv"
+            }
+        },
+        "overflow": {
+            "max": {
+                "horizontal": 3,
+                "union": 4,
+                "vertical": 4
+            },
+            "top_average": {
+                "horizontal": 2.8999998569488525,
+                "union": 6.425000190734863,
+                "vertical": 4.699999809265137
+            },
+            "total": {
+                "horizontal": 12,
+                "union": 32,
+                "vertical": 20
+            }
+        },
+        "utilization": {
+            "lutrudy": {
+                "max": {
+                    "horizontal": 0.001462999964132905,
+                    "union": 0.0021059999708086252,
+                    "vertical": 0.0010679999832063913
+                },
+                "top_average": {
+                    "horizontal": 0.0058889249339699745,
+                    "union": 0.00917845033109188,
+                    "vertical": 0.004610700532793999
+                }
+            },
+            "rudy": {
+                "max": {
+                    "horizontal": 0.0014059999957680702,
+                    "union": 0.002015999983996153,
+                    "vertical": 0.0010509999701753259
+                },
+                "top_average": {
+                    "horizontal": 0.005556400865316391,
+                    "union": 0.008606474846601486,
+                    "vertical": 0.004427025094628334
+                }
+            }
+        }
+    },
+    "Density": {
+        "cell": {
+            "allcell_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_allcell_density.csv",
+            "macro_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_macro_density.csv",
+            "stdcell_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_stdcell_density.csv"
+        },
+        "margin": {
+            "horizontal": "./example/sky130_gcd/output/iEDA/feature/margin_map/place_horizontal_margin.csv",
+            "union": "./example/sky130_gcd/output/iEDA/feature/margin_map/place_union_margin.csv",
+            "vertical": "./example/sky130_gcd/output/iEDA/feature/margin_map/place_vertical_margin.csv"
+        },
+        "net": {
+            "allnet_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_allnet_density.csv",
+            "global_net_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_global_net_density.csv",
+            "local_net_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_local_net_density.csv"
+        },
+        "pin": {
+            "allcell_pin_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_allcell_pin_density.csv",
+            "macro_pin_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_macro_pin_density.csv",
+            "stdcell_pin_density": "./example/sky130_gcd/output/iEDA/feature/density_map/place_stdcell_pin_density.csv"
+        }
+    },
+    "Wirelength": {
+        "FLUTE": 12822214,
+        "GRWL": 13051000,
+        "HPWL": 11753089,
+        "HTree": 16560407,
+        "VTree": 14846258
+    }
+}

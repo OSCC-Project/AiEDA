@@ -1,0 +1,11 @@
+{
+    "RT": {
+        "-temp_directory_path": "./example/sky130_gcd/output/iEDA/data/rt",
+        "-bottom_routing_layer": "met1",
+        "-top_routing_layer": "met4",
+        "-thread_number": "50",
+        "-enable_timing": "0",
+        "-output_csv": "0",
+        "-output_inter_result": "0"
+    }
+}
