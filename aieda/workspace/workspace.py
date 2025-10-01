@@ -54,6 +54,11 @@ class Workspace:
         # step 1, ensure workspace dir exist
         #########################################################################
         if os.path.exists(self.directory):
+            # check top dir exist
+            for dir in self.paths_table.workspace_top:
+                if not os.path.exists(dir):
+                    os.makedirs(dir)
+                
             self.logger.info("the workspace is existed: {}".format(self.directory))
             return True
 
