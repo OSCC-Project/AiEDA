@@ -122,7 +122,7 @@ The AiEDA data flow follows this pattern:
 
 
 ```
-Design Files → Workspace → iEDA Tools → Feature Extraction → AI Models → Analyse → Results
+Design Files → Workspace → EDA Tools → Feature Extraction → AI Models → Analyse → Results
                                ↑                                       ↓
                                └──── Feedback Loop (Optimization) ─────┘
 ```
