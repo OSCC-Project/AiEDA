@@ -166,13 +166,9 @@ class LayerImageWidget(QWidget):
         self.layer_array = None
         self.row_num = 0
         self.col_num = 0
-<<<<<<< HEAD
         self.setMinimumSize(200, 200)
         # 设置白色背景和灰色边框
-=======
-        self.setMinimumSize(300, 300)
         # Set white background with gray border
->>>>>>> 7de14773002d8e2f4f0db599c8c471abfb86df30
         self.setStyleSheet("background-color: #FFFFFF; border: 2px solid #CCCCCC;")
         
         # Zoom-related variables
@@ -328,14 +324,6 @@ class PatchLayout(QWidget):
         self.patch = None
         super().__init__()
         
-<<<<<<< HEAD
-        # 缩放相关变量
-        self.scroll_zoom_factor = 1.0  # scroll_content的初始缩放比例
-        self.scroll_min_zoom = 0.5     # scroll_content的最小缩放比例
-        self.scroll_max_zoom = 2.0     # scroll_content的最大缩放比例
-        self.scroll_zoom_step = 0.1    # scroll_content的每次缩放步长
-        self.original_item_size = 200  # 原始项目大小
-=======
         # Zoom-related variables
         self.scroll_zoom_factor = 1.0  # Initial zoom ratio for scroll_content
         self.scroll_min_zoom = 0.5     # Minimum zoom ratio for scroll_content
@@ -343,7 +331,6 @@ class PatchLayout(QWidget):
         self.scroll_zoom_step = 0.1    # Step size for each scroll_content zoom
         self.original_item_size = 200  # Original item size
         self.max_columns = 5
->>>>>>> 7de14773002d8e2f4f0db599c8c471abfb86df30
 
         self._init_ui()
         

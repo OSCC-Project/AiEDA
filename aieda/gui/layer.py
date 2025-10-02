@@ -9,7 +9,7 @@ import os
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox,
     QGridLayout, QScrollArea, QTableWidget, QTableWidgetItem,
-    QHeaderView, QPushButton, QComboBox, QCheckBox
+    QHeaderView, QPushButton, QComboBox, QCheckBox, QMenu, QAction
 )
 from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush
 from PyQt5.QtCore import Qt, QRectF
@@ -74,7 +74,7 @@ class LayerLayout(QWidget):
         # title_label.setFont(QFont("Arial", 14, QFont.Bold))
         # title_label.setAlignment(Qt.AlignCenter)
         # self.main_layout.addWidget(title_label)
-    
+        
     def load_layers(self, vec_layers):
         """Load layers from vector data into a dictionary
         
@@ -107,6 +107,10 @@ class LayerLayout(QWidget):
         self.layer_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
         # Hide row numbers (vertical header)
         self.layer_table.verticalHeader().setVisible(False)
+        
+        # Set up right-click context menu
+        self.layer_table.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.layer_table.customContextMenuRequested.connect(self.show_context_menu)
         
         # Sort layers by their ID
         layer_list = sorted(self.vec_layers.values(), key=lambda x: x.id)
@@ -159,6 +163,82 @@ class LayerLayout(QWidget):
         # Add table to layout
         self.main_layout.addWidget(self.layer_table)
         
+    def show_context_menu(self, position):
+        """Show context menu when right-clicking on the table
+        
+        Args:
+            position: Position where the right-click occurred
+        """
+        # Create context menu
+        context_menu = QMenu(self)
+        
+        # Add show all layers action
+        show_all_action = QAction("show all", self)
+        show_all_action.triggered.connect(self.show_all_layers)
+        context_menu.addAction(show_all_action)
+        
+        # Add hide all layers action
+        hide_all_action = QAction("hide all", self)
+        hide_all_action.triggered.connect(self.hide_all_layers)
+        context_menu.addAction(hide_all_action)
+        
+        # Show the menu at the right-click position
+        context_menu.exec_(self.layer_table.mapToGlobal(position))
+    
+    def show_all_layers(self):
+        """Show all layers by checking all visibility checkboxes"""
+        # Update visibility dictionary
+        for layer in self.vec_layers.values():
+            self.layer_visibility[layer.id] = True
+        
+        # Update checkboxes in the table
+        for row in range(self.layer_table.rowCount()):
+            merged_widget = self.layer_table.cellWidget(row, 1)
+            if merged_widget and hasattr(merged_widget, 'layout'):
+                layout = merged_widget.layout()
+                if layout and layout.count() > 0:
+                    for i in range(layout.count()):
+                        item = layout.itemAt(i)
+                        widget = item.widget()
+                        if widget and isinstance(widget, QCheckBox):
+                            widget.setChecked(True)
+        
+        # Update chip and patches layout visibility
+        if hasattr(self.chip_layout, 'update_layer_visibility'):
+            self.chip_layout.update_layer_visibility()
+        
+        if hasattr(self.patches_layout, 'update_layer_visibility'):
+            self.patches_layout.update_layer_visibility()
+        
+        print("All layers are now visible")
+    
+    def hide_all_layers(self):
+        """Hide all layers by unchecking all visibility checkboxes"""
+        # Update visibility dictionary
+        for layer in self.vec_layers.values():
+            self.layer_visibility[layer.id] = False
+        
+        # Update checkboxes in the table
+        for row in range(self.layer_table.rowCount()):
+            merged_widget = self.layer_table.cellWidget(row, 1)
+            if merged_widget and hasattr(merged_widget, 'layout'):
+                layout = merged_widget.layout()
+                if layout and layout.count() > 0:
+                    for i in range(layout.count()):
+                        item = layout.itemAt(i)
+                        widget = item.widget()
+                        if widget and isinstance(widget, QCheckBox):
+                            widget.setChecked(False)
+        
+        # Update chip and patches layout visibility
+        if hasattr(self.chip_layout, 'update_layer_visibility'):
+            self.chip_layout.update_layer_visibility()
+        
+        if hasattr(self.patches_layout, 'update_layer_visibility'):
+            self.patches_layout.update_layer_visibility()
+        
+        print("All layers are now hidden")
+    
     def on_layer_double_clicked(self, row, column):
         """Handle double-click on merged cell to toggle visibility checkbox
         
@@ -192,16 +272,13 @@ class LayerLayout(QWidget):
                             break
     
     def on_visibility_changed(self, layer_id, state):
-        """Handle visibility checkbox state change and propagate updates
-        
-        Updates the layer visibility state and notifies the connected
-        ChipLayout and PatchesLayout instances to redraw with the new visibility settings.
+        """Handle layer visibility checkbox state changes
         
         Args:
             layer_id: ID of the layer whose visibility changed
-            state: New state of the visibility checkbox (Qt.Checked or Qt.Unchecked)
+            state: New state of the checkbox (Qt.Checked or Qt.Unchecked)
         """
-        # Update the visibility status
+        # Update visibility dictionary
         is_visible = (state == Qt.Checked)
         self.layer_visibility[layer_id] = is_visible
         
@@ -212,13 +289,13 @@ class LayerLayout(QWidget):
                 layer_name = layer.name
                 break
         
-        # Update ChipLayout and PatchesLayout to show/hide nets for this layer
-        if self.chip_layout is not None:
-            print(f"Updating ChipLayout to {'show' if is_visible else 'hide'} nets for layer: {layer_name or layer_id}")
-            self.chip_layout.draw_layout()  # Redraw layout to reflect layer visibility changes
+        # Print visibility status for debugging
+        print(f"Layer visibility for {layer_name or layer_id} (ID: {layer_id}): {is_visible}")
         
-        if self.patches_layout is not None:
-            print(f"Updating PatchesLayout to {'show' if is_visible else 'hide'} nets for layer: {layer_name or layer_id}")
-            self.patches_layout.draw_layout()  # Redraw layout to reflect layer visibility changes
+        # Update chip and patches layout visibility
+        # Use more efficient update_layer_visibility instead of redrawing entire layout
+        if hasattr(self.chip_layout, 'update_layer_visibility'):
+            self.chip_layout.update_layer_visibility()
         
-        print(f"Layer '{layer_name or layer_id}' visibility toggled to {'Visible' if is_visible else 'Hidden'}")
+        if hasattr(self.patches_layout, 'update_layer_visibility'):
+            self.patches_layout.update_layer_visibility()

@@ -36,6 +36,7 @@ class ChipLayout(QWidget):
         view: Custom ZoomableGraphicsView
         status_bar: Status bar widget for coordinate display
         coord_label: Label for displaying current coordinates
+        layer_items: Dictionary mapping layer IDs to lists of graphics items for those layers
     """
     
     def __init__(self, vec_cells, vec_instances, vec_nets, color_list, parent: Optional[QWidget] = None):
@@ -70,6 +71,9 @@ class ChipLayout(QWidget):
         
         # Selected net rectangle
         self.selected_net_rect = None
+
+        # Dictionary to store graphics items by layer ID for efficient visibility management
+        self.layer_items = {}
 
         # Initialize UI
         self.init_ui()
@@ -126,6 +130,7 @@ class ChipLayout(QWidget):
             fit_view: Whether to fit the view to the entire scene after drawing
         """
         self.scene.clear()
+        self.layer_items = {}  # Reset layer items dictionary
         
         # Draw instances
         if self.show_instances:
@@ -227,12 +232,18 @@ class ChipLayout(QWidget):
                 # draw path
                 for path in wire.paths:
                     if path.node1.layer == path.node2.layer:
-                        if hasattr(self, 'layer_visibility') and path.node1.layer in self.layer_visibility:
-                            # Skip drawing if layer is hidden
-                            if not self.layer_visibility[path.node1.layer]:
-                                continue
+                        layer_id = path.node1.layer
                         
-                        color_id = path.node1.layer % len(self.color_list)
+                        # Initialize list for this layer if it doesn't exist
+                        if layer_id not in self.layer_items:
+                            self.layer_items[layer_id] = []
+                        
+                        # Only add to scene if layer is visible (or if layer_visibility not available)
+                        should_add_to_scene = True
+                        if hasattr(self, 'layer_visibility') and layer_id in self.layer_visibility:
+                            should_add_to_scene = self.layer_visibility[layer_id]
+                        
+                        color_id = layer_id % len(self.color_list)
                         color = self.color_list[color_id]
                         
                         wire_pen = QPen(color, 30)
@@ -243,7 +254,13 @@ class ChipLayout(QWidget):
                             path.node2.real_y
                         )
                         line_item.setPen(wire_pen)
-                        self.scene.addItem(line_item)
+                        
+                        # Store the item in our layer_items dictionary
+                        self.layer_items[layer_id].append(line_item)
+                        
+                        # Add to scene only if layer is visible
+                        if should_add_to_scene:
+                            self.scene.addItem(line_item)
     
     def _draw_io_pins(self):
         """Draw IO pins as rectangles with red color
@@ -309,6 +326,7 @@ class ChipLayout(QWidget):
     
     def zoom_out(self):
         """Zoom out from the view, centered at mouse position in scene coordinates"""
+        # Scale the view
         self.view.scale(0.8, 0.8)
     
     def fit_view(self):
@@ -371,6 +389,32 @@ class ChipLayout(QWidget):
                 self.view.fitInView(self.selected_net_rect, Qt.KeepAspectRatio)
                 # Slightly zoom out to leave some space around the selected rectangle
                 self.view.scale(0.6, 0.6)
+
+    def update_layer_visibility(self):
+        """Update the visibility of items based on the current layer_visibility settings
+        
+        This method is more efficient than redrawing the entire layout as it only
+        shows or hides existing items rather than recreating them.
+        """
+        if not hasattr(self, 'layer_visibility'):
+            return
+        
+        # Update visibility for all layer items
+        for layer_id, items in self.layer_items.items():
+            # Check if this layer's visibility is controlled
+            if layer_id in self.layer_visibility:
+                is_visible = self.layer_visibility[layer_id]
+                
+                for item in items:
+                    # Check if item is already in the scene
+                    is_in_scene = item.scene() is not None
+                    
+                    if is_visible and not is_in_scene:
+                        # Add to scene if layer is visible and not already in scene
+                        self.scene.addItem(item)
+                    elif not is_visible and is_in_scene:
+                        # Remove from scene if layer is hidden and in scene
+                        self.scene.removeItem(item)
 
     def resizeEvent(self, event):
         """Handle resize event to maintain view fitting

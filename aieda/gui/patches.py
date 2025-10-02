@@ -88,6 +88,7 @@ class PatchesLayout(QWidget):
         view: Custom ZoomableGraphicsView for displaying the scene
         status_bar: Status bar widget at the bottom of the window
         coord_label: Label displaying coordinate information
+        layer_items: Dictionary mapping layer IDs to lists of graphics items for those layers
     """
     
     def __init__(self, vec_patches, color_list, patch_layout=None):
@@ -104,6 +105,10 @@ class PatchesLayout(QWidget):
         self.overlapping_rects = {}  # Store overlapping rectangle borders
         self.patch_layout = patch_layout  # Will be set in WorkspaceUI
         self.selected_net_rect = None
+        
+        # Dictionary to store graphics items by layer ID for efficient visibility management
+        self.layer_items = {}
+        
         super().__init__()
         
         self._init_ui()
@@ -195,6 +200,7 @@ class PatchesLayout(QWidget):
         self.scene.clear()
         self.rect_items = {}  # Clear rectangle items list
         self.overlapping_rects = {}  # Clear overlapping rectangles dictionary
+        self.layer_items = {}  # Reset layer items dictionary
         
         for id, patch in self.patches.items():
             # Add patch rectangle
@@ -204,7 +210,7 @@ class PatchesLayout(QWidget):
                                           patch.lly, 
                                           patch.urx-patch.llx, 
                                           patch.ury-patch.lly)
-                    
+                        
             # Set border to dashed line
             pen = QPen(QColor(0, 0, 0), 5.0)
             pen.setStyle(Qt.DashLine)
@@ -213,15 +219,22 @@ class PatchesLayout(QWidget):
             self.rect_items[id] = rect_item # Store rectangle item
             
             for layer in patch.patch_layer:
-                # Check if layer_visibility dictionary exists and if the layer is visible
-                # Use layer.id as key to match layer_visibility dictionary
+                # Check if layer has an id attribute
                 if hasattr(layer, 'id'):
                     layer_id = layer.id
+                    
+                    # Initialize list for this layer if it doesn't exist
+                    if layer_id not in self.layer_items:
+                        self.layer_items[layer_id] = []
+                    
+                    # Check if layer_visibility dictionary exists and if the layer is visible
+                    should_add_to_scene = True
                     if hasattr(self, 'layer_visibility') and layer_id in self.layer_visibility:
-                        # Skip drawing nets for this layer if it's hidden
-                        if not self.layer_visibility[layer_id]:
-                            continue
-                # If no name attribute, use original way to try to get identifier
+                        should_add_to_scene = self.layer_visibility[layer_id]
+                else:
+                    # Default to visible if layer has no id or visibility not controlled
+                    should_add_to_scene = True
+                    layer_id = None
                 
                 for net in layer.nets:
                     for wire in net.wires:
@@ -234,13 +247,23 @@ class PatchesLayout(QWidget):
                                 color = self.color_list[color_id]
                                 
                             wire_pen = QPen(color, 30) 
-                    
+                        
                             line_item = QGraphicsLineItem(path.node1.x, 
                                                           path.node1.y, 
                                                           path.node2.x, 
                                                           path.node2.y)
                             line_item.setPen(wire_pen)
-                            self.scene.addItem(line_item)
+                            
+                            # Store the item in our layer_items dictionary if layer_id is available
+                            if layer_id is not None:
+                                self.layer_items[layer_id].append(line_item)
+                                
+                                # Add to scene only if layer is visible
+                                if should_add_to_scene:
+                                    self.scene.addItem(line_item)
+                            else:
+                                # If no layer_id, always add to scene
+                                self.scene.addItem(line_item)
         if fit_view:    
             self.fit_view()
         
@@ -366,5 +389,31 @@ class PatchesLayout(QWidget):
                 
                 # Store overlapping rectangle for later removal
                 self.overlapping_rects[id] = overlapping_rect
+    
+    def update_layer_visibility(self):
+        """Update the visibility of items based on the current layer_visibility settings
+        
+        This method is more efficient than redrawing the entire layout as it only
+        shows or hides existing items rather than recreating them.
+        """
+        if not hasattr(self, 'layer_visibility'):
+            return
+        
+        # Update visibility for all layer items
+        for layer_id, items in self.layer_items.items():
+            # Check if this layer's visibility is controlled
+            if layer_id in self.layer_visibility:
+                is_visible = self.layer_visibility[layer_id]
+                
+                for item in items:
+                    # Check if item is already in the scene
+                    is_in_scene = item.scene() is not None
+                    
+                    if is_visible and not is_in_scene:
+                        # Add to scene if layer is visible and not already in scene
+                        self.scene.addItem(item)
+                    elif not is_visible and is_in_scene:
+                        # Remove from scene if layer is hidden and in scene
+                        self.scene.removeItem(item)
         
         
