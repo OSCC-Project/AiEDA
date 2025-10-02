@@ -229,8 +229,8 @@ class LayerImageWidget(QWidget):
         # Draw white background
         painter.fillRect(0, 0, width, height, QBrush(QColor(255, 255, 255)))
         
-        # Draw gray border
-        pen = QPen(QColor(204, 0, 0))  # #CCCCCC gray
+        # Draw red border
+        pen = QPen(QColor(204, 0, 0))  # Red color
         pen.setWidth(2)
         painter.setPen(pen)
         painter.drawRect(1, 1, width - 2, height - 2)  # Leave margin for border width

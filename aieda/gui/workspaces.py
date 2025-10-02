@@ -193,7 +193,7 @@ class WorkspacesUI(QMainWindow):
             self.workspace_list.add_workspace(workspace)
         
             
-        # 添加状态栏信息显示
+        # Add status bar information display
         status_message = f"Design: {workspace.design}, Workspace: {workspace.directory}"
         self.statusBar().showMessage(status_message)
 

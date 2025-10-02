@@ -13,12 +13,12 @@ from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QThreadPool, QRunnable, QObject
 from .basic import ZoomableGraphicsView
 
 class WorkerSignals(QObject):
-    """定义工作线程的信号"""
+    """Define signals for worker threads"""
     patches_data = pyqtSignal(list)
     wires_data = pyqtSignal(dict)
 
 class PatchesWorker(QRunnable):
-    """创建patch数据的工作线程 - 不创建GUI元素"""
+    """Worker thread for creating patch data - does not create GUI elements"""
     def __init__(self, patches):
         super().__init__()
         self.patches = patches
@@ -42,7 +42,7 @@ class PatchesWorker(QRunnable):
         self.signals.patches_data.emit(result_data)
 
 class WiresWorker(QRunnable):
-    """创建导线数据的工作线程 - 不创建GUI元素"""
+    """Worker thread for creating wire data - does not create GUI elements"""
     def __init__(self, patches, color_list, layer_visibility=None):
         super().__init__()
         self.patches = patches
@@ -187,9 +187,9 @@ class PatchesLayout(QWidget):
         # Dictionary to store graphics items by layer ID for efficient visibility management
         self.layer_items = {}
         
-        # 初始化线程池
+        # Initialize thread pool
         self.thread_pool = QThreadPool()
-        self.thread_pool.setMaxThreadCount(4)  # 设置最大线程数
+        self.thread_pool.setMaxThreadCount(4)  # Set maximum thread count
         
         super().__init__()
         
@@ -284,7 +284,7 @@ class PatchesLayout(QWidget):
         self.overlapping_rects = {}  # Clear overlapping rectangles dictionary
         self.layer_items = {}  # Reset layer items dictionary
         
-        # 添加任务计数器和标志来跟踪并行任务完成情况
+        # Add task counter and flag to track parallel task completion
         self._pending_tasks = 0
         self._should_fit_view = fit_view
         
@@ -299,19 +299,19 @@ class PatchesLayout(QWidget):
             self.fit_view()
     
     def _task_completed(self):
-        """标记一个任务完成，并检查是否所有任务都已完成"""
+        """Mark a task as completed and check if all tasks are finished"""
         self._pending_tasks -= 1
         if self._pending_tasks == 0 and self._should_fit_view:
             self.fit_view()
             
     def _draw_patches_parallel(self):
-        """并行处理patch数据"""
+        """Process patch data in parallel"""
         worker = PatchesWorker(self.patches)
         worker.signals.patches_data.connect(self._on_patches_data)
         self.thread_pool.start(worker)
     
     def _on_patches_data(self, patches_data):
-        """处理patch数据完成的回调 - 在主线程中创建GUI元素"""
+        """Callback for completed patch data processing - creates GUI elements in main thread"""
         for patch_info in patches_data:
             # 在主线程中创建矩形项
             rect_item = HighlightableRectItem(str(patch_info['id']), 
@@ -327,19 +327,19 @@ class PatchesLayout(QWidget):
             self.scene.addItem(rect_item)
             self.rect_items[patch_info['id']] = rect_item # Store rectangle item
         
-        # 标记任务完成
+        # Mark task as completed
         self._task_completed()
         
     def _draw_wires_parallel(self):
-        """并行处理导线数据"""
+        """Process wire data in parallel"""
         layer_visibility = getattr(self, 'layer_visibility', None)
         worker = WiresWorker(self.patches, self.color_list, layer_visibility)
         worker.signals.wires_data.connect(self._on_wires_data)
         self.thread_pool.start(worker)
     
     def _on_wires_data(self, wires_data):
-        """处理导线数据完成的回调 - 在主线程中创建GUI元素"""
-        # 存储层项并根据可见性添加到场景
+        """Callback for completed wire data processing - creates GUI elements in main thread"""
+        # Store layer items and add to scene based on visibility
         for layer_id, items_data in wires_data.items():
             if layer_id not in self.layer_items:
                 self.layer_items[layer_id] = []
@@ -363,7 +363,7 @@ class PatchesLayout(QWidget):
                 for item in self.layer_items[layer_id]:
                     self.scene.addItem(item)
         
-        # 标记任务完成
+        # Mark task as completed
         self._task_completed()
         
     def update_coord_status(self, coord_text):
@@ -402,6 +402,80 @@ class PatchesLayout(QWidget):
         if self.patch_layout is not None and selected_patch is not None:
             self.patch_layout.update_patch(selected_patch)
         
+        # Create table with all VectorPatch data except patch_layer and display in self.text_display from info.py
+        if selected_patch is not None and hasattr(self.patch_layout, 'info') and self.patch_layout.info is not None:
+            info_str = []
+            
+            # Add title
+            info_str += self.patch_layout.info.make_title(f"Patch information : ID-{rect_id_key}")
+            info_str += self.patch_layout.info.make_line_space()
+            
+            # Prepare table data
+            headers = ["Feature", "Value"]
+            values = []
+            
+            # Add all VectorPatch attributes except patch_layer
+            # Required attributes
+            if hasattr(selected_patch, 'id'):
+                values.append(("ID", selected_patch.id))
+            if hasattr(selected_patch, 'patch_id_row'):
+                values.append(("Row ID", selected_patch.patch_id_row))
+            if hasattr(selected_patch, 'patch_id_col'):
+                values.append(("Column ID", selected_patch.patch_id_col))
+            if hasattr(selected_patch, 'llx'):
+                values.append(("llx", selected_patch.llx))
+            if hasattr(selected_patch, 'lly'):
+                values.append(("lly", selected_patch.lly))
+            if hasattr(selected_patch, 'urx'):
+                values.append(("urx", selected_patch.urx))
+            if hasattr(selected_patch, 'ury'):
+                values.append(("ury", selected_patch.ury))
+            if hasattr(selected_patch, 'row_min'):
+                values.append(("Row min", selected_patch.row_min))
+            if hasattr(selected_patch, 'row_max'):
+                values.append(("Row max", selected_patch.row_max))
+            if hasattr(selected_patch, 'col_min'):
+                values.append(("Column min", selected_patch.col_min))
+            if hasattr(selected_patch, 'col_max'):
+                values.append(("Column max", selected_patch.col_max))
+            
+            # Calculate width and height
+            if all(hasattr(selected_patch, attr) for attr in ['llx', 'urx']):
+                width = selected_patch.urx - selected_patch.llx
+                values.append(("width", width))
+            if all(hasattr(selected_patch, attr) for attr in ['lly', 'ury']):
+                height = selected_patch.ury - selected_patch.lly
+                values.append(("height", height))
+            
+            # Add patch_layer information
+            if hasattr(selected_patch, 'patch_layer'):
+                values.append(("Layer count", len(selected_patch.patch_layer)))
+            
+            # Add all other VectorPatch attributes
+            vector_patch_attrs = ['cell_density', 'pin_density', 'net_density', 'macro_margin', 
+                                 'RUDY_congestion', 'EGR_congestion', 'timing_map', 'power_map', 'ir_drop_map']
+            for attr_name in vector_patch_attrs:
+                if hasattr(selected_patch, attr_name):
+                    attr_value = getattr(selected_patch, attr_name)
+                    # Format with proper labels
+                    label_map = {
+                        'cell_density': 'Cell density',
+                        'pin_density': 'Pin density',
+                        'net_density': 'Net density',
+                        'macro_margin': 'Macro margin',
+                        'RUDY_congestion': 'RUDY congestion',
+                        'EGR_congestion': 'EGR congestion',
+                        'timing_map': 'Timing map',
+                        'power_map': 'Power map',
+                        'ir_drop_map': 'IR drop map'
+                    }
+                    display_label = label_map.get(attr_name, attr_name)
+                    values.append((display_label, attr_value))
+            
+            # Create table and set HTML
+            info_str += self.patch_layout.info.make_table(headers, values)
+            self.patch_layout.info.make_html(info_str)
+
     
     def on_net_selected(self, selected_net):
         """Handle network selection slot function, draw bounding rectangle and adjust view

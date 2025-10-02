@@ -82,7 +82,7 @@ class WorkspaceInformation(QWidget):
         return info_str
     
     def make_line_space(self):
-        """添加一个可见的空白行到HTML内容中"""
+        """Add a visible blank line to HTML content"""
         info_str= []
         info_str.append("<div style='margin-top: 10px;'></div>")
         

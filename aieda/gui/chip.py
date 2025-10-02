@@ -18,14 +18,14 @@ from .basic import ZoomableGraphicsView
 
 
 class WorkerSignals(QObject):
-    """定义工作线程的信号"""
+    """Define signals for worker threads"""
     instances_data = pyqtSignal(list)
     nets_data = pyqtSignal(dict)
     io_pins_data = pyqtSignal(list)
 
 
 class InstancesWorker(QRunnable):
-    """创建实例数据的工作线程 - 不创建GUI元素"""
+    """Worker thread for creating instance data - Does not create GUI elements"""
     def __init__(self, instances, color_list, text_color):
         super().__init__()
         self.instances = instances.instances
@@ -58,7 +58,7 @@ class InstancesWorker(QRunnable):
 
 
 class NetsWorker(QRunnable):
-    """创建线网数据的工作线程 - 不创建GUI元素"""
+    """Worker thread for creating net data - Does not create GUI elements"""
     def __init__(self, nets, wire_node_color, color_list, layer_visibility=None):
         super().__init__()
         self.nets = nets
@@ -135,7 +135,7 @@ class NetsWorker(QRunnable):
 
 
 class IOPinsWorker(QRunnable):
-    """创建IO引脚数据的工作线程 - 不创建GUI元素"""
+    """Worker thread for creating IO pins data - Does not create GUI elements"""
     def __init__(self, io_pins, io_pin_color, text_color):
         super().__init__()
         self.io_pins = io_pins
@@ -217,60 +217,60 @@ class ChipLayout(QWidget):
         
         # 颜色
         self.net_color = QColor(0, 250, 0)  # 带透明度的蓝色
-        self.io_pin_color = QColor(255, 0, 0, 200)  # IO引脚的红色
+        self.io_pin_color = QColor(255, 0, 0, 200)  # Red for IO pins
         self.wire_node_color = {"wire_node": QColor(0, 200, 0), "pin_node": QColor(200, 0, 0)}
         self.text_color = QColor(0, 0, 0)
         self.color_list = color_list
         
-        # 所选线网矩形
+        # Selected net rectangle
         self.selected_net_rect = None
 
-        # 用于高效可见性管理的按层ID存储图形项的字典
+        # Dictionary to store graphic items by layer ID for efficient visibility management
         self.layer_items = {}
         
-        # 初始化线程池
+        # Initialize thread pool
         self.thread_pool = QThreadPool()
-        self.thread_pool.setMaxThreadCount(8)  # 设置最大线程数
+        self.thread_pool.setMaxThreadCount(8)  # Set maximum thread count
 
-        # 初始化UI
+        # Initialize UI
         self.init_ui()
         self.draw_layout(True)
     
     def init_ui(self):
-        """初始化UI组件，包括场景、视图和状态栏
+        """Initialize UI components including scene, view and status bar
         
-        设置主布局，创建QGraphicsScene和ZoomableGraphicsView，
-        并添加用于显示坐标的状态栏。
+        Set up main layout, create QGraphicsScene and ZoomableGraphicsView,
+        and add a status bar for displaying coordinates.
         """
-        # 主布局
+        # Main layout
         main_layout = QVBoxLayout(self)
         
-        # 创建QGraphicsScene和自定义ZoomableGraphicsView
+        # Create QGraphicsScene and custom ZoomableGraphicsView
         self.scene = QGraphicsScene()
         self.view = ZoomableGraphicsView(self.scene, self)
         self.view.setRenderHint(QPainter.Antialiasing)
         self.view.setDragMode(QGraphicsView.ScrollHandDrag)
         self.view.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
         
-        # 将视图添加到主布局
+        # Add view to main layout
         main_layout.addWidget(self.view)
         
-        # 在底部创建状态栏
+        # Create status bar at the bottom
         self.status_bar = QWidget()
         status_layout = QHBoxLayout(self.status_bar)
         status_layout.setContentsMargins(5, 2, 5, 2)
         
-        # 左侧为未来状态消息保留的空白空间
+        # Left side empty space reserved for future status messages
         status_layout.addStretch(1)
         
-        # 右侧坐标显示
+        # Right side coordinate display
         self.coord_label = QLabel("X: 0.00, Y: 0.00")
         self.coord_label.setStyleSheet("background-color: #f0f0f0; padding: 2px 5px;")
         self.coord_label.setMinimumWidth(150)
         self.coord_label.setAlignment(Qt.AlignRight)
         status_layout.addWidget(self.coord_label)
         
-        # 将状态栏添加到主布局
+        # Add status bar to main layout
         main_layout.addWidget(self.status_bar)
         
         self.setLayout(main_layout)
@@ -278,22 +278,22 @@ class ChipLayout(QWidget):
         self.resize(1000, 800)
 
     def draw_layout(self, fit_view=False):
-        """绘制芯片布局元素
+        """Draw chip layout elements
         
-        清除场景并根据当前显示设置绘制实例、线网和IO引脚。
-        可选地使视图适合场景。
+        Clear the scene and draw instances, nets and IO pins according to current display settings.
+        Optionally fit the view to the scene.
         
-        参数:
-            fit_view: 绘制后是否使视图适合整个场景
+        Parameters:
+            fit_view: Whether to fit the view to the entire scene after drawing
         """
         self.scene.clear()
-        self.layer_items = {}  # 重置层项字典
+        self.layer_items = {}  # Reset layer items dictionary
         
-        # 添加任务计数器和标志来跟踪并行任务完成情况
+        # Add task counter and flag to track parallel task completion
         self._pending_tasks = 0
         self._should_fit_view = fit_view
         
-        # 使用线程池并行处理数据
+        # Use thread pool to process data in parallel
         if self.show_instances:
             self._pending_tasks += 1
             self._draw_instances_parallel()
@@ -306,38 +306,38 @@ class ChipLayout(QWidget):
             self._pending_tasks += 1
             self._draw_io_pins_parallel()
         
-        # 如果没有待处理任务但仍需适应视图
+        # If no pending tasks but still need to fit view
         if self._pending_tasks == 0 and self._should_fit_view:
             self.fit_view()
             
     def _task_completed(self):
-        """标记一个任务完成，并检查是否所有任务都已完成"""
+        """Mark a task as completed and check if all tasks are done"""
         self._pending_tasks -= 1
         if self._pending_tasks == 0 and self._should_fit_view:
             self.fit_view()
 
     def _draw_instances_parallel(self):
-        """并行处理实例数据"""
+        """Process instance data in parallel"""
         worker = InstancesWorker(self.instances, self.color_list, self.text_color)
         worker.signals.instances_data.connect(self._on_instances_data)
         self.thread_pool.start(worker)
     
     def _on_instances_data(self, instances_data):
-        """处理实例数据完成的回调 - 在主线程中创建GUI元素"""
+        """Callback for instance data completion - create GUI elements in main thread"""
         for instance_info in instances_data:
-            # 在主线程中创建矩形项
+            # Create rectangle items in main thread
             rect_item = QGraphicsRectItem(
                 instance_info['llx'], instance_info['lly'], 
                 instance_info['width'], instance_info['height']
             )
             
-            # 设置基于单元类型的颜色
-            rect_item.setBrush(QBrush(instance_info['color'], Qt.Dense6Pattern))
-            rect_item.setPen(QPen(QColor(0, 0, 0), 10))  # 黑色边框
+            # Set color based on cell type
+            rect_item.setBrush(QBrush(instance_info['color'], Qt.Dense6Pattern))# Black border
+            rect_item.setPen(QPen(QColor(0, 0, 0), 10))  # Black border
             
-            # 可选地添加实例名称（如果可用）
+            # Optionally add instance name if available
             if instance_info['name']:
-                # 仅为较大的实例添加文本以避免混乱
+                # Only add text for larger instances to avoid clutter
                 if instance_info['width'] > 1000 and instance_info['height'] > 1000:
                     text_item = QGraphicsTextItem(instance_info['name'], rect_item)
                     text_item.setPos(instance_info['llx'] + 5, instance_info['lly'] + 5)
@@ -346,26 +346,26 @@ class ChipLayout(QWidget):
             
             self.scene.addItem(rect_item)
         
-        # 标记任务完成
+        # Mark task as completed
         self._task_completed()
     
     def _draw_nets_parallel(self):
-        """并行处理线网数据"""
+        """Process net data in parallel"""
         layer_visibility = getattr(self, 'layer_visibility', None)
         worker = NetsWorker(self.nets, self.wire_node_color, self.color_list, layer_visibility)
         worker.signals.nets_data.connect(self._on_nets_data)
         self.thread_pool.start(worker)
     
     def _on_nets_data(self, nets_data):
-        """处理线网数据完成的回调 - 在主线程中创建GUI元素"""
-        # 存储层项并根据可见性添加到场景
+        """Callback for net data completion - create GUI elements in main thread"""
+        # Store layer items and add to scene based on visibility
         for layer_id, items_data in nets_data.items():
             self.layer_items[layer_id] = []
             
-            # 根据数据创建GUI元素
+            # Create GUI elements based on data
             for item_data in items_data:
                 if layer_id == "nodes":
-                    # 创建节点矩形
+                    # Create node rectangles
                     rect_item = QGraphicsRectItem(
                         item_data['x']-25, item_data['y']-25, 50, 50
                     )
@@ -373,7 +373,7 @@ class ChipLayout(QWidget):
                     rect_item.setPen(QPen(item_data['color'], 1.0))
                     self.layer_items[layer_id].append(rect_item)
                 else:
-                    # 创建导线
+                    # Create wires
                     wire_pen = QPen(item_data['color'], 30)
                     line_item = QGraphicsLineItem(
                         item_data['x1'], item_data['y1'],
@@ -382,13 +382,13 @@ class ChipLayout(QWidget):
                     line_item.setPen(wire_pen)
                     self.layer_items[layer_id].append(line_item)
             
-            # 添加到场景
-            # 节点层始终显示
+            # Add to scene
+            # Node layer is always visible
             if layer_id == "nodes":
                 for item in self.layer_items[layer_id]:
                     self.scene.addItem(item)
             else:
-                # 其他层根据可见性设置
+                # Other layers based on visibility settings
                 should_add_to_scene = True
                 if hasattr(self, 'layer_visibility') and layer_id in self.layer_visibility:
                     should_add_to_scene = self.layer_visibility[layer_id]
@@ -397,29 +397,29 @@ class ChipLayout(QWidget):
                     for item in self.layer_items[layer_id]:
                         self.scene.addItem(item)
         
-        # 标记任务完成
+        # Mark task as completed
         self._task_completed()
     
     def _draw_io_pins_parallel(self):
-        """并行处理IO引脚数据"""
+        """Process IO pins data in parallel"""
         worker = IOPinsWorker(self.io_pins, self.io_pin_color, self.text_color)
         worker.signals.io_pins_data.connect(self._on_io_pins_data)
         self.thread_pool.start(worker)
     
     def _on_io_pins_data(self, io_pins_data):
-        """处理IO引脚数据完成的回调 - 在主线程中创建GUI元素"""
+        """Callback for IO pins data completion - create GUI elements in main thread"""
         for pin_info in io_pins_data:
-            # 在主线程中创建矩形项
+            # Create rectangle items in main thread
             rect_item = QGraphicsRectItem(
                 pin_info['llx'], pin_info['lly'], 
                 pin_info['width'], pin_info['height']
             )
             
-            # 设置IO引脚的颜色
-            rect_item.setBrush(QBrush(pin_info['color']))
-            rect_item.setPen(QPen(QColor(0, 0, 0), 10))  # 黑色边框
+            # Set color for IO pins
+            rect_item.setBrush(QBrush(pin_info['color']))# Black border
+            rect_item.setPen(QPen(QColor(0, 0, 0), 10))  # Black border
             
-            # 如果可用，添加引脚名称
+            # Add pin name if available
             if pin_info['name']:
                 pin_name = pin_info['name'].split('/')[-1] if '/' in pin_info['name'] else pin_info['name']
                 text_item = QGraphicsTextItem(pin_name, rect_item)
@@ -429,81 +429,81 @@ class ChipLayout(QWidget):
             
             self.scene.addItem(rect_item)
         
-        # 标记任务完成
+        # Mark task as completed
         self._task_completed()
     
     def toggle_instances(self, index):
-        """切换实例的显示
+        """Toggle display of instances
         
-        参数:
-            index: 0表示显示实例，其他值表示隐藏
+        Parameters:
+            index: 0 to show instances, other values to hide
         """
         self.show_instances = (index == 0)
         self.draw_layout()
     
     def toggle_nets(self, index):
-        """切换线网的显示
+        """Toggle display of nets
         
-        参数:
-            index: 0表示显示线网，其他值表示隐藏
+        Parameters:
+            index: 0 to show nets, other values to hide
         """
         self.show_nets = (index == 0)
         self.draw_layout()
     
     def toggle_io_pins(self, index):
-        """切换IO引脚的显示
+        """Toggle display of IO pins
         
-        参数:
-            index: 0表示显示IO引脚，其他值表示隐藏
+        Parameters:
+            index: 0 to show IO pins, other values to hide
         """
         self.show_io_pins = (index == 0)
         self.draw_layout()
     
     def zoom_in(self):
-        """放大视图，以场景坐标中的鼠标位置为中心"""
-        # 缩放视图
+        """Zoom in on the view, centered on the mouse position in scene coordinates"""
+        # Scale the view
         self.view.scale(1.2, 1.2)
     
     def zoom_out(self):
-        """缩小视图，以场景坐标中的鼠标位置为中心"""
-        # 缩放视图
+        """Zoom out from the view, centered on the mouse position in scene coordinates"""
+        # Scale the view
         self.view.scale(0.8, 0.8)
     
     def fit_view(self):
-        """使视图适合整个场景"""
+        """Fit the view to the entire scene"""
         if not self.scene.items():
             return
         
         self.view.fitInView(self.scene.itemsBoundingRect(), Qt.KeepAspectRatio)
         
     def update_coord_status(self, coord_text):
-        """更新底部状态栏中的坐标状态显示
+        """Update the coordinate status display in the bottom status bar
         
-        参数:
-            coord_text: 要在坐标标签中显示的文本
+        Parameters:
+            coord_text: Text to display in the coordinate label
         """
         self.coord_label.setText(coord_text)
         
     def on_net_selected(self, selected_net):
-        """处理所选线网的槽函数，绘制边界矩形
+        """Slot function to handle selected nets, drawing bounding rectangles
         
-        在所选线网周围创建红色虚线矩形，并调整视图
-        以显示带有一些填充的整个所选线网。
+        Create a red dashed rectangle around the selected net and adjust the view
+        to display the entire selected net with some padding.
         
-        参数:
-            selected_net: 所选的线网
+        Parameters:
+            selected_net: The selected net
         """
-        # 检查所选线网是否具有feature属性
+        # Check if the selected net has a feature attribute
         if hasattr(selected_net, 'feature') and selected_net.feature:
             feature = selected_net.feature
             
-            # 检查feature是否具有必要的几何属性
+            # Check if the feature has necessary geometric properties
             if all(hasattr(feature, attr) for attr in ['llx', 'lly', 'width', 'height']):
-                # 创建白色边框矩形
+                # Create white border rectangle
                 pen = QPen(QColor(200, 0, 0), 40)
                 pen.setStyle(Qt.DashLine)
                 
-                # 创建矩形项
+                # Create rectangle item
                 if self.selected_net_rect is not None:
                     self.selected_net_rect.setRect(
                         feature.llx-100, feature.lly-100, 
@@ -515,61 +515,61 @@ class ChipLayout(QWidget):
                         feature.width+200, feature.height+200
                     )
                 
-                    # 设置矩形样式
+                    # Set rectangle style
                     self.selected_net_rect.setPen(pen)
-                    self.selected_net_rect.setBrush(QBrush(Qt.NoBrush))  # 无填充
+                    self.selected_net_rect.setBrush(QBrush(Qt.NoBrush))  # No fill
                     
-                    # 将矩形添加到场景
+                    # Add rectangle to scene
                     self.scene.addItem(self.selected_net_rect)
                     
-                    # 将矩形带到顶层以确保可见性
-                    self.selected_net_rect.setZValue(100)  # 设置高z值
+                    # Bring rectangle to top to ensure visibility
+                    self.selected_net_rect.setZValue(100)  # Set high z-value
                 
-                # 自动调整视图以显示整个选定的线网矩形
+                # Automatically adjust view to show entire selected net rectangle
                 self.view.fitInView(self.selected_net_rect, Qt.KeepAspectRatio)
-                # 稍微缩小以在线选矩形周围留出一些空间
+                # Zoom out slightly to leave some space around the selected net rectangle
                 self.view.scale(0.6, 0.6)
 
     def update_layer_visibility(self):
-        """根据当前layer_visibility设置更新项目的可见性
+        """Update item visibility according to current layer_visibility settings
         
-        此方法比重新绘制整个布局更高效，因为它只
-        显示或隐藏现有项目，而不是重新创建它们。
+        This method is more efficient than redrawing the entire layout because it only
+        shows or hides existing items, rather than recreating them.
         """
         if not hasattr(self, 'layer_visibility'):
             return
         
-        # 更新所有层项目的可见性
+        # Update visibility of all layer items
         for layer_id, items in self.layer_items.items():
-            # 节点层始终显示
+            # Node layer is always visible
             if layer_id == "nodes":
                 continue
                 
-            # 检查是否控制此层的可见性
+            # Check if visibility of this layer is controlled
             if layer_id in self.layer_visibility:
                 is_visible = self.layer_visibility[layer_id]
                 
                 for item in items:
-                    # 检查项目是否已经在场景中
+                    # Check if item is already in the scene
                     is_in_scene = item.scene() is not None
                     
                     if is_visible and not is_in_scene:
-                        # 如果层可见且不在场景中，则添加到场景
+                        # If layer is visible and not in scene, add to scene
                         self.scene.addItem(item)
                     elif not is_visible and is_in_scene:
-                        # 如果层隐藏且在场景中，则从场景中移除
+                        # If layer is hidden and in scene, remove from scene
                         self.scene.removeItem(item)
 
     def resizeEvent(self, event):
-        """处理调整大小事件以保持视图拟合
+        """Handle resize events to maintain view fitting
         
-        确保当窗口小部件调整大小时，视图保持正确拟合到场景。
+        Ensure that the view remains properly fitted to the scene when the widget is resized.
         
-        参数:
-            event: 调整大小事件对象
+        Parameters:
+            event: Resize event object
         """
-        # 调用基类调整大小事件
+        # Call base class resize event
         super().resizeEvent(event)
         
-        # 强制视图适合场景
+        # Force view to fit scene
         self.fit_view()
