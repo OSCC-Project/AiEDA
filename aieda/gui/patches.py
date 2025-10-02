@@ -8,9 +8,86 @@ from PyQt5.QtWidgets import (
     QGraphicsRectItem, QGraphicsLineItem, QLabel, QGraphicsItem
 )
 from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush
-from PyQt5.QtCore import Qt, QRectF, pyqtSignal
+from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QThreadPool, QRunnable, QObject
 
 from .basic import ZoomableGraphicsView
+
+class WorkerSignals(QObject):
+    """定义工作线程的信号"""
+    patches_data = pyqtSignal(list)
+    wires_data = pyqtSignal(dict)
+
+class PatchesWorker(QRunnable):
+    """创建patch数据的工作线程 - 不创建GUI元素"""
+    def __init__(self, patches):
+        super().__init__()
+        self.patches = patches
+        self.signals = WorkerSignals()
+        
+    def run(self):
+        result_data = []
+        for id, patch in self.patches.items():
+            # 收集patch数据
+            patch_data = {
+                'id': id,
+                'llx': patch.llx,
+                'lly': patch.lly,
+                'width': patch.urx - patch.llx,
+                'height': patch.ury - patch.lly
+            }
+            
+            result_data.append(patch_data)
+        
+        # 发送完成信号，传递收集的数据列表
+        self.signals.patches_data.emit(result_data)
+
+class WiresWorker(QRunnable):
+    """创建导线数据的工作线程 - 不创建GUI元素"""
+    def __init__(self, patches, color_list, layer_visibility=None):
+        super().__init__()
+        self.patches = patches
+        self.color_list = color_list
+        self.layer_visibility = layer_visibility
+        self.signals = WorkerSignals()
+        
+    def run(self):
+        result_data = {}
+        
+        for _, patch in self.patches.items():
+            for layer in patch.patch_layer:
+                # 检查layer是否有id属性
+                if hasattr(layer, 'id'):
+                    layer_id = layer.id
+                else:
+                    layer_id = None
+                
+                for net in layer.nets:
+                    for wire in net.wires:
+                        for path in wire.paths:
+                            if path.node1.layer == path.node2.layer or path.node1.layer > path.node2.layer:
+                                color_id = path.node1.layer % len(self.color_list)
+                                color = self.color_list[color_id]
+                            else:
+                                color_id = path.node2.layer % len(self.color_list)
+                                color = self.color_list[color_id]
+                                
+                            path_data = {
+                                'x1': path.node1.x,
+                                'y1': path.node1.y,
+                                'x2': path.node2.x,
+                                'y2': path.node2.y,
+                                'color': color,
+                                'layer_id': layer_id
+                            }
+                            
+                            # 初始化该层的列表（如果不存在）
+                            if layer_id not in result_data:
+                                result_data[layer_id] = []
+                            
+                            result_data[layer_id].append(path_data)
+        
+        # 发送完成信号，传递创建的数据字典
+        self.signals.wires_data.emit(result_data)
 
 class HighlightableRectItem(QGraphicsRectItem):
     """Highlightable rectangle item that supports mouse hover and double-click events
@@ -89,6 +166,7 @@ class PatchesLayout(QWidget):
         status_bar: Status bar widget at the bottom of the window
         coord_label: Label displaying coordinate information
         layer_items: Dictionary mapping layer IDs to lists of graphics items for those layers
+        thread_pool: Qt线程池，用于并行处理
     """
     
     def __init__(self, vec_patches, color_list, patch_layout=None):
@@ -108,6 +186,10 @@ class PatchesLayout(QWidget):
         
         # Dictionary to store graphics items by layer ID for efficient visibility management
         self.layer_items = {}
+        
+        # 初始化线程池
+        self.thread_pool = QThreadPool()
+        self.thread_pool.setMaxThreadCount(4)  # 设置最大线程数
         
         super().__init__()
         
@@ -202,70 +284,87 @@ class PatchesLayout(QWidget):
         self.overlapping_rects = {}  # Clear overlapping rectangles dictionary
         self.layer_items = {}  # Reset layer items dictionary
         
-        for id, patch in self.patches.items():
-            # Add patch rectangle
-            # Use custom HighlightableRectItem instead of default QGraphicsRectItem
-            rect_item = HighlightableRectItem(str(id), 
-                                          patch.llx, 
-                                          patch.lly, 
-                                          patch.urx-patch.llx, 
-                                          patch.ury-patch.lly)
+        # 添加任务计数器和标志来跟踪并行任务完成情况
+        self._pending_tasks = 0
+        self._should_fit_view = fit_view
+        
+        # 使用线程池并行处理数据
+        if self.patches:
+            self._pending_tasks += 2  # 增加任务计数: patches和wires
+            self._draw_patches_parallel()
+            self._draw_wires_parallel()
+        
+        # 如果没有待处理任务但仍需适应视图
+        if self._pending_tasks == 0 and self._should_fit_view:
+            self.fit_view()
+    
+    def _task_completed(self):
+        """标记一个任务完成，并检查是否所有任务都已完成"""
+        self._pending_tasks -= 1
+        if self._pending_tasks == 0 and self._should_fit_view:
+            self.fit_view()
+            
+    def _draw_patches_parallel(self):
+        """并行处理patch数据"""
+        worker = PatchesWorker(self.patches)
+        worker.signals.patches_data.connect(self._on_patches_data)
+        self.thread_pool.start(worker)
+    
+    def _on_patches_data(self, patches_data):
+        """处理patch数据完成的回调 - 在主线程中创建GUI元素"""
+        for patch_info in patches_data:
+            # 在主线程中创建矩形项
+            rect_item = HighlightableRectItem(str(patch_info['id']), 
+                                          patch_info['llx'], 
+                                          patch_info['lly'], 
+                                          patch_info['width'], 
+                                          patch_info['height'])
                         
             # Set border to dashed line
             pen = QPen(QColor(0, 0, 0), 5.0)
             pen.setStyle(Qt.DashLine)
             rect_item.setPen(pen)
             self.scene.addItem(rect_item)
-            self.rect_items[id] = rect_item # Store rectangle item
-            
-            for layer in patch.patch_layer:
-                # Check if layer has an id attribute
-                if hasattr(layer, 'id'):
-                    layer_id = layer.id
-                    
-                    # Initialize list for this layer if it doesn't exist
-                    if layer_id not in self.layer_items:
-                        self.layer_items[layer_id] = []
-                    
-                    # Check if layer_visibility dictionary exists and if the layer is visible
-                    should_add_to_scene = True
-                    if hasattr(self, 'layer_visibility') and layer_id in self.layer_visibility:
-                        should_add_to_scene = self.layer_visibility[layer_id]
-                else:
-                    # Default to visible if layer has no id or visibility not controlled
-                    should_add_to_scene = True
-                    layer_id = None
+            self.rect_items[patch_info['id']] = rect_item # Store rectangle item
+        
+        # 标记任务完成
+        self._task_completed()
+        
+    def _draw_wires_parallel(self):
+        """并行处理导线数据"""
+        layer_visibility = getattr(self, 'layer_visibility', None)
+        worker = WiresWorker(self.patches, self.color_list, layer_visibility)
+        worker.signals.wires_data.connect(self._on_wires_data)
+        self.thread_pool.start(worker)
+    
+    def _on_wires_data(self, wires_data):
+        """处理导线数据完成的回调 - 在主线程中创建GUI元素"""
+        # 存储层项并根据可见性添加到场景
+        for layer_id, items_data in wires_data.items():
+            if layer_id not in self.layer_items:
+                self.layer_items[layer_id] = []
                 
-                for net in layer.nets:
-                    for wire in net.wires:
-                        for path in wire.paths:
-                            if path.node1.layer == path.node2.layer or path.node1.layer > path.node2.layer:
-                                color_id = path.node1.layer % len(self.color_list)
-                                color = self.color_list[color_id]
-                            else:
-                                color_id = path.node2.layer % len(self.color_list)
-                                color = self.color_list[color_id]
-                                
-                            wire_pen = QPen(color, 30) 
-                        
-                            line_item = QGraphicsLineItem(path.node1.x, 
-                                                          path.node1.y, 
-                                                          path.node2.x, 
-                                                          path.node2.y)
-                            line_item.setPen(wire_pen)
-                            
-                            # Store the item in our layer_items dictionary if layer_id is available
-                            if layer_id is not None:
-                                self.layer_items[layer_id].append(line_item)
-                                
-                                # Add to scene only if layer is visible
-                                if should_add_to_scene:
-                                    self.scene.addItem(line_item)
-                            else:
-                                # If no layer_id, always add to scene
-                                self.scene.addItem(line_item)
-        if fit_view:    
-            self.fit_view()
+            # 根据数据创建GUI元素
+            for item_data in items_data:
+                wire_pen = QPen(item_data['color'], 30)
+                line_item = QGraphicsLineItem(
+                    item_data['x1'], item_data['y1'],
+                    item_data['x2'], item_data['y2']
+                )
+                line_item.setPen(wire_pen)
+                self.layer_items[layer_id].append(line_item)
+            
+            # 添加到场景
+            should_add_to_scene = True
+            if hasattr(self, 'layer_visibility') and layer_id is not None and layer_id in self.layer_visibility:
+                should_add_to_scene = self.layer_visibility[layer_id]
+                
+            if should_add_to_scene:
+                for item in self.layer_items[layer_id]:
+                    self.scene.addItem(item)
+        
+        # 标记任务完成
+        self._task_completed()
         
     def update_coord_status(self, coord_text):
         """Update the coordinate status display in the bottom status bar
