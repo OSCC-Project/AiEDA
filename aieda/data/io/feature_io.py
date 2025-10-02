@@ -340,16 +340,16 @@ class FeatureParserJson(JsonParser):
             dict_dplace = dict_pl["dplace"]
             dplace = PLCommonSummary()
             dplace.place_density = dict_dplace["place_density"]
-            dplace.HPWL = dict_dplace["HPWL"]
-            dplace.STWL = dict_dplace["STWL"]
+            dplace.HPWL = dict_dplace.get("HPWL", None)
+            dplace.STWL = dict_dplace.get("STWL", None)
             pl_summary.dplace = dplace
 
         if "gplace" in dict_pl:
-            dict_gplace = dict_pl["gplace"]
+            dict_gplace = dict_pl.get("gplace", None)
             gplace = PLCommonSummary()
-            gplace.place_density = dict_gplace["place_density"]
-            gplace.HPWL = dict_gplace["HPWL"]
-            gplace.STWL = dict_gplace["STWL"]
+            gplace.place_density = dict_gplace.get("place_density", None)
+            gplace.HPWL = dict_gplace.get("HPWL", None)
+            gplace.STWL = dict_gplace.get("STWL", None)
 
             pl_summary.gplace = gplace
 
@@ -378,12 +378,12 @@ class FeatureParserJson(JsonParser):
         dict_pl = self.json_data[key]
 
         lg_summary = LGSummary()
-        lg_summary.lg_total_movement = dict_pl["total_movement"]
-        lg_summary.lg_max_movement = dict_pl["max_movement"]
+        lg_summary.lg_total_movement = dict_pl.get("total_movement", None)
+        lg_summary.lg_max_movement = dict_pl.get("max_movement", None)
 
         pl_common_summary = PLCommonSummary()
-        pl_common_summary.HPWL = dict_pl["HPWL"]
-        pl_common_summary.STWL = dict_pl["STWL"]
+        pl_common_summary.HPWL = dict_pl.get("HPWL", None)
+        pl_common_summary.STWL = dict_pl.get("STWL", None)
         lg_summary.pl_common_summary = pl_common_summary
 
         return lg_summary

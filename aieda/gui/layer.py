@@ -6,22 +6,46 @@
 
 import sys
 import os
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                            QGroupBox, QGridLayout, QScrollArea, QTableWidget, 
-                            QTableWidgetItem, QHeaderView, QPushButton, QComboBox, QCheckBox)
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox,
+    QGridLayout, QScrollArea, QTableWidget, QTableWidgetItem,
+    QHeaderView, QPushButton, QComboBox, QCheckBox
+)
 from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush
 from PyQt5.QtCore import Qt, QRectF
 
 
 class LayerLayout(QWidget):
-    """Layer Layout UI component"""
+    """Layer Layout UI component for AiEDA system
+    
+    This component provides a user interface for managing and visualizing
+    chip layout layers. It allows users to toggle the visibility of different
+    layers and displays their colors for reference.
+    
+    Attributes:
+        vec_layers: Dictionary of layers with layer names as keys
+        color_list: List of colors for displaying layers
+        chip_layout: Reference to ChipLayout instance for communication
+        patches_layout: Reference to PatchesLayout instance for communication
+        layer_visibility: Dictionary tracking visibility state of each layer
+        main_layout: Main layout container
+        layer_table: Table widget displaying layer information
+    """
     
     def __init__(self, vec_layers, color_list, chip_layout=None, patches_layout=None):
+        """Initialize the LayerLayout component
+        
+        Args:
+            vec_layers: Vector of layer data
+            color_list: List of colors for layer display
+            chip_layout: Optional reference to ChipLayout instance
+            patches_layout: Optional reference to PatchesLayout instance
+        """
         self.vec_layers = self.load_layers(vec_layers)
         self.color_list = color_list
-        self.chip_layout = chip_layout  # 引用ChipLayout实例
-        self.patches_layout = patches_layout  # 引用PatchesLayout实例
-        self.layer_visibility = {}  # 存储每个图层的显示状态
+        self.chip_layout = chip_layout  # Reference to ChipLayout instance
+        self.patches_layout = patches_layout  # Reference to PatchesLayout instance
+        self.layer_visibility = {}  # Store visibility state of each layer
         
         # Store a reference to self in chip_layout and patches_layout for reverse communication
         if self.chip_layout is not None:
@@ -33,31 +57,42 @@ class LayerLayout(QWidget):
         
         super().__init__()
         
-        # 初始化所有图层的显示状态为True，使用layer.id作为key
+        # Initialize all layers as visible, using layer.id as key
         for layer in self.vec_layers.values():
             self.layer_visibility[layer.id] = True
         
         self._init_ui()
-        
         self.update_list()
         
     def _init_ui(self):
-        """Initialize UI components"""
+        """Initialize UI components including main layout and title"""
         # Main layout
         self.main_layout = QVBoxLayout(self)
         
         # Title label
-        title_label = QLabel("Layer View")
-        title_label.setFont(QFont("Arial", 14, QFont.Bold))
-        title_label.setAlignment(Qt.AlignCenter)
-        self.main_layout.addWidget(title_label)
+        # title_label = QLabel("Layer View")
+        # title_label.setFont(QFont("Arial", 14, QFont.Bold))
+        # title_label.setAlignment(Qt.AlignCenter)
+        # self.main_layout.addWidget(title_label)
     
     def load_layers(self, vec_layers):
+        """Load layers from vector data into a dictionary
+        
+        Args:
+            vec_layers: Vector containing layer data
+        
+        Returns:
+            Dictionary with layer names as keys and layer objects as values
+        """
         layers = {layer.name: layer for layer in vec_layers.layers} if vec_layers else {}
         return layers
     
     def update_list(self):
-        """Update UI with layers data"""
+        """Update UI with layers data, creating a table of layers with colors and visibility controls
+        
+        Clears existing widgets and creates a new table with color indicators,
+        layer names, and visibility checkboxes for each layer.
+        """
         # Clear existing widgets
         while self.main_layout.count() > 1:  # Keep the title label
             item = self.main_layout.takeAt(1)
@@ -70,6 +105,8 @@ class LayerLayout(QWidget):
         self.layer_table.setHorizontalHeaderLabels(["Color", "Layers"])
         self.layer_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
         self.layer_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+        # Hide row numbers (vertical header)
+        self.layer_table.verticalHeader().setVisible(False)
         
         # Sort layers by their ID
         layer_list = sorted(self.vec_layers.values(), key=lambda x: x.id)
@@ -98,7 +135,7 @@ class LayerLayout(QWidget):
             merged_layout = QHBoxLayout(merged_widget)
             merged_layout.setContentsMargins(5, 5, 5, 5)
             
-            # Layer name label (不可编辑)
+            # Layer name label (non-editable)
             name_label = QLabel(layer.name)
             name_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
             name_label.setStyleSheet("background: transparent;")
@@ -123,7 +160,12 @@ class LayerLayout(QWidget):
         self.main_layout.addWidget(self.layer_table)
         
     def on_layer_double_clicked(self, row, column):
-        """Handle double-click on merged cell to toggle visibility checkbox"""
+        """Handle double-click on merged cell to toggle visibility checkbox
+        
+        Args:
+            row: Row index of the double-clicked cell
+            column: Column index of the double-clicked cell
+        """
         if column == 1:  # Only handle double-clicks on merged Layer Name & Visibility column
             # Get the merged widget from the cell
             merged_widget = self.layer_table.cellWidget(row, 1)
@@ -150,7 +192,15 @@ class LayerLayout(QWidget):
                             break
     
     def on_visibility_changed(self, layer_id, state):
-        """Handle visibility checkbox state change"""
+        """Handle visibility checkbox state change and propagate updates
+        
+        Updates the layer visibility state and notifies the connected
+        ChipLayout and PatchesLayout instances to redraw with the new visibility settings.
+        
+        Args:
+            layer_id: ID of the layer whose visibility changed
+            state: New state of the visibility checkbox (Qt.Checked or Qt.Unchecked)
+        """
         # Update the visibility status
         is_visible = (state == Qt.Checked)
         self.layer_visibility[layer_id] = is_visible
@@ -165,10 +215,10 @@ class LayerLayout(QWidget):
         # Update ChipLayout and PatchesLayout to show/hide nets for this layer
         if self.chip_layout is not None:
             print(f"Updating ChipLayout to {'show' if is_visible else 'hide'} nets for layer: {layer_name or layer_id}")
-            self.chip_layout.draw_layout()  # 重新绘制布局以反映图层可见性变化
+            self.chip_layout.draw_layout()  # Redraw layout to reflect layer visibility changes
         
         if self.patches_layout is not None:
             print(f"Updating PatchesLayout to {'show' if is_visible else 'hide'} nets for layer: {layer_name or layer_id}")
-            self.patches_layout.draw_layout()  # 重新绘制布局以反映图层可见性变化
+            self.patches_layout.draw_layout()  # Redraw layout to reflect layer visibility changes
         
         print(f"Layer '{layer_name or layer_id}' visibility toggled to {'Visible' if is_visible else 'Hidden'}")

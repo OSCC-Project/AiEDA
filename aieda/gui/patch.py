@@ -1,56 +1,82 @@
-"""
-@File : patch.py
-@Author : yell
-@Desc : Patch Layout UI for AiEDA system
-"""
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
 
 import sys
 import os
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                            QGroupBox, QGridLayout, QScrollArea, QTableWidget, 
-                            QTableWidgetItem, QHeaderView)
+import numpy
+import math
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+    QGroupBox, QGridLayout, QScrollArea, QTableWidget, 
+    QTableWidgetItem, QHeaderView
+)
 from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush
 from PyQt5.QtCore import Qt, QRectF
 
 class PatchImageWidget(QWidget):
-    """自定义Widget用于显示所有图层叠加的组合图像"""
+    """Custom widget for displaying combined image of all layers
+    
+    This widget renders an image composed of multiple superimposed layers,
+    each represented by colored pixels. It automatically scales and centers
+    the image within the available space while preserving aspect ratio.
+    
+    Attributes:
+        image_dict: Dictionary mapping layer IDs to 2D arrays of color values
+        row_num: Number of rows in the image grid
+        col_num: Number of columns in the image grid
+    """
     
     def __init__(self, parent=None):
+        """Initialize the PatchImageWidget
+        
+        Args:
+            parent: Parent widget for this component
+        """
         super().__init__(parent)
         self.image_dict = None
         self.row_num = 0
         self.col_num = 0
         self.setMinimumSize(400, 400)
-        # 设置白色背景和灰色边框
+        # Set white background with gray border
         self.setStyleSheet("background-color: #FFFFFF; border: 2px solid #CCCCCC;")
         
     def set_image_data(self, image_dict, row_num, col_num):
-        """设置要显示的图像数据"""
+        """Set the image data to be displayed
+        
+        Args:
+            image_dict: Dictionary mapping layer IDs to 2D arrays of color values
+            row_num: Number of rows in the image grid
+            col_num: Number of columns in the image grid
+        """
         self.image_dict = image_dict
         self.row_num = row_num
         self.col_num = col_num
-        self.update()  # 触发重绘
+        self.update()  # Trigger repaint
         
     def paintEvent(self, event):
-        """重绘事件，绘制所有图层叠加的图像"""
+        """Paint event handler to draw the superimposed layers image
+        
+        Args:
+            event: QPaintEvent object containing painting information
+        """
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        # 获取widget尺寸
+        # Get widget dimensions
         width = self.width()
         height = self.height()
         
-        # 绘制白色背景
+        # Draw white background
         painter.fillRect(0, 0, width, height, QBrush(QColor(255, 255, 255)))
         
-        # 绘制灰色边框
-        pen = QPen(QColor(204, 204, 204))  # #CCCCCC 灰色
+        # Draw gray border
+        pen = QPen(QColor(204, 204, 204))  # #CCCCCC gray
         pen.setWidth(2)
         painter.setPen(pen)
-        painter.drawRect(1, 1, width - 2, height - 2)  # 留出边框宽度的边距
+        painter.drawRect(1, 1, width - 2, height - 2)  # Leave margin for border width
         
         if self.image_dict is None or len(self.image_dict) == 0:
-            # 显示空提示
+            # Display empty prompt
             painter.drawText(self.rect(), Qt.AlignCenter, "No image data available")
             return
         
@@ -59,28 +85,28 @@ class PatchImageWidget(QWidget):
             
         scale_x = width / self.col_num
         scale_y = height / self.row_num
-        scale = min(scale_x, scale_y)  # 使用等比例缩放
+        scale = min(scale_x, scale_y)  # Use proportional scaling
         
-        # 计算居中偏移
+        # Calculate centered offset
         offset_x = (width - self.col_num * scale) / 2
         offset_y = (height - self.row_num * scale) / 2
         
-        # 绘制所有图层的数据（叠加显示）
+        # Draw all layers data (superimposed display)
         for layer_id, layer_array in self.image_dict.items():
             for i in range(self.row_num):
                 for j in range(self.col_num):
                     color_value = layer_array[i, j]
-                    if color_value > 0:  # 只绘制有颜色的点
-                        # 创建QColor对象
+                    if color_value > 0:  # Only draw colored points
+                        # Create QColor object
                         if isinstance(color_value, int):
                             color_id = color_value
                         else:
                             color_id = int(color_value) if color_value.is_integer() else color_value
                         
-                        # 确保颜色ID有效
-                        color_id = int(color_id) % 16777216  # 24位颜色值范围
+                        # Ensure color ID is valid
+                        color_id = int(color_id) % 16777216  # 24-bit color value range
                         
-                        # 将颜色ID转换为RGB值
+                        # Convert color ID to RGB values
                         r = (color_id >> 16) & 0xFF
                         g = (color_id >> 8) & 0xFF
                         b = color_id & 0xFF
@@ -88,12 +114,12 @@ class PatchImageWidget(QWidget):
                         painter.setBrush(QBrush(QColor(r, g, b)))
                         painter.setPen(Qt.NoPen)
                         
-                        # 绘制像素点（作为矩形）
+                        # Draw pixel (as rectangle)
                         rect = QRectF(
                             offset_x + j * scale,
                             offset_y + i * scale,
-                            max(1, scale),  # 确保至少1像素宽
-                            max(1, scale)   # 确保至少1像素高
+                            max(1, scale),  # Ensure at least 1 pixel width
+                            max(1, scale)   # Ensure at least 1 pixel height
                         )
                         painter.drawRect(rect)
         
@@ -109,70 +135,109 @@ class PatchImageWidget(QWidget):
             painter.setPen(pen)
             painter.setBrush(QBrush(Qt.NoBrush))
             painter.drawRect(rect)
- 
+
 
 class LayerImageWidget(QWidget):
-    """自定义Widget用于显示单个图层的图像数据，支持Ctrl+滚轮缩放"""
+    """Custom widget for displaying single layer image data with Ctrl+wheel zoom support
+    
+    This widget renders a single layer's image data with support for interactive
+    zooming using Ctrl+mouse wheel, allowing users to examine details of individual layers.
+    
+    Attributes:
+        layer_id: Identifier for the layer being displayed
+        layer_array: 2D array of color values representing the layer
+        row_num: Number of rows in the layer grid
+        col_num: Number of columns in the layer grid
+        zoom_factor: Current zoom level for the view
+        min_zoom: Minimum allowed zoom level
+        max_zoom: Maximum allowed zoom level
+        zoom_step: Amount to change zoom level per wheel event
+    """
     
     def __init__(self, layer_id, parent=None):
+        """Initialize the LayerImageWidget
+        
+        Args:
+            layer_id: Identifier for the layer to be displayed
+            parent: Parent widget for this component
+        """
         super().__init__(parent)
         self.layer_id = layer_id
         self.layer_array = None
         self.row_num = 0
         self.col_num = 0
+<<<<<<< HEAD
         self.setMinimumSize(200, 200)
         # 设置白色背景和灰色边框
+=======
+        self.setMinimumSize(300, 300)
+        # Set white background with gray border
+>>>>>>> 7de14773002d8e2f4f0db599c8c471abfb86df30
         self.setStyleSheet("background-color: #FFFFFF; border: 2px solid #CCCCCC;")
         
-        # 缩放相关变量
-        self.zoom_factor = 1.0  # 初始缩放比例
-        self.min_zoom = 0.1     # 最小缩放比例
-        self.max_zoom = 10.0    # 最大缩放比例
-        self.zoom_step = 0.1    # 每次滚轮缩放的步长
+        # Zoom-related variables
+        self.zoom_factor = 1.0  # Initial zoom ratio
+        self.min_zoom = 0.1     # Minimum zoom ratio
+        self.max_zoom = 10.0    # Maximum zoom ratio
+        self.zoom_step = 0.1    # Step size for each wheel zoom
         
     def set_layer_data(self, layer_array, row_num, col_num):
-        """设置要显示的图层数据"""
+        """Set the layer data to be displayed
+        
+        Args:
+            layer_array: 2D array of color values representing the layer
+            row_num: Number of rows in the layer grid
+            col_num: Number of columns in the layer grid
+        """
         self.layer_array = layer_array
         self.row_num = row_num
         self.col_num = col_num
-        self.update()  # 触发重绘
+        self.update()  # Trigger repaint
         
     def wheelEvent(self, event):
-        """处理鼠标滚轮事件，实现Ctrl+滚轮缩放功能"""
-        # 检查是否按下了Ctrl键
+        """Handle mouse wheel events to implement Ctrl+wheel zoom functionality
+        
+        Args:
+            event: QWheelEvent object containing wheel movement information
+        """
+        # Check if Ctrl key is pressed
         if event.modifiers() == Qt.ControlModifier:
-            # 获取滚轮方向
+            # Get wheel direction
             delta = event.angleDelta().y()
             
-            # 根据滚轮方向调整缩放比例
-            if delta > 0:  # 滚轮向上，放大
+            # Adjust zoom ratio based on wheel direction
+            if delta > 0:  # Wheel up, zoom in
                 self.zoom_factor = min(self.zoom_factor + self.zoom_step, self.max_zoom)
-            else:  # 滚轮向下，缩小
+            else:  # Wheel down, zoom out
                 self.zoom_factor = max(self.zoom_factor - self.zoom_step, self.min_zoom)
             
-            # 触发重绘以显示缩放后的图像
+            # Trigger repaint to show zoomed image
             self.update()
         else:
-            # 如果没有按下Ctrl键，调用父类的事件处理
+            # If Ctrl key not pressed, call parent's event handler
             super().wheelEvent(event)
             
     def paintEvent(self, event):
-        """重绘事件，绘制图层数据，支持缩放"""
+        """Paint event handler to draw layer data with support for zooming
+        
+        Args:
+            event: QPaintEvent object containing painting information
+        """
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
         
-        # 获取widget尺寸
+        # Get widget dimensions
         width = self.width()
         height = self.height()
         
-        # 绘制白色背景
+        # Draw white background
         painter.fillRect(0, 0, width, height, QBrush(QColor(255, 255, 255)))
         
-        # 绘制灰色边框
-        pen = QPen(QColor(204, 0, 0))  # #CCCCCC 灰色
+        # Draw gray border
+        pen = QPen(QColor(204, 0, 0))  # #CCCCCC gray
         pen.setWidth(2)
         painter.setPen(pen)
-        painter.drawRect(1, 1, width - 2, height - 2)  # 留出边框宽度的边距
+        painter.drawRect(1, 1, width - 2, height - 2)  # Leave margin for border width
         
         if self.layer_array is None:
             return
@@ -180,34 +245,34 @@ class LayerImageWidget(QWidget):
         if self.row_num == 0 or self.col_num == 0:
             return
             
-        # 计算基础像素大小（保持正方形）
-        # 取相同的值作为宽高，确保图像显示为正方形
+        # Calculate base pixel size (maintaining square aspect ratio)
+        # Use the same value for width and height to ensure square image
         base_pixel_size = min(width / self.col_num, height / self.row_num)
         
-        # 应用缩放比例
+        # Apply zoom ratio
         pixel_size = base_pixel_size * self.zoom_factor
         
-        # 计算居中偏移，使正方形图像保持在中心位置
+        # Calculate centered offset to keep square image in center
         total_width = self.col_num * pixel_size
         total_height = self.row_num * pixel_size
         offset_x = (width - total_width) / 2
         offset_y = (height - total_height) / 2
         
-        # 绘制图层数据
+        # Draw layer data
         for i in range(self.row_num):
             for j in range(self.col_num):
                 color_value = self.layer_array[i, j]
-                if color_value > 0:  # 只绘制有颜色的点
-                    # 创建QColor对象
+                if color_value > 0:  # Only draw colored points
+                    # Create QColor object
                     if isinstance(color_value, int):
                         color_id = color_value
                     else:
                         color_id = int(color_value) if color_value.is_integer() else color_value
                     
-                    # 确保颜色ID有效
-                    color_id = int(color_id) % 16777216  # 24位颜色值范围
+                    # Ensure color ID is valid
+                    color_id = int(color_id) % 16777216  # 24-bit color value range
                     
-                    # 将颜色ID转换为RGB值
+                    # Convert color ID to RGB values
                     r = (color_id >> 16) & 0xFF
                     g = (color_id >> 8) & 0xFF
                     b = color_id & 0xFF
@@ -215,62 +280,105 @@ class LayerImageWidget(QWidget):
                     painter.setBrush(QBrush(QColor(r, g, b)))
                     painter.setPen(Qt.NoPen)
                     
-                    # 绘制像素点（作为矩形），考虑缩放和居中
+                    # Draw pixel (as rectangle) with scaling and centering
                     rect = QRectF(
                         offset_x + j * pixel_size,
                         offset_y + i * pixel_size,
-                        max(1, pixel_size),  # 确保至少1像素宽
-                        max(1, pixel_size)   # 确保至少1像素高
+                        max(1, pixel_size),  # Ensure at least 1 pixel width
+                        max(1, pixel_size)   # Ensure at least 1 pixel height
                     )
                     painter.drawRect(rect)
     
     def reset_zoom(self):
-        """重置缩放比例为默认值"""
+        """Reset zoom ratio to default value"""
         self.zoom_factor = 1.0
         self.update()
 
 class PatchLayout(QWidget):
-    """Patch Layout UI component，支持scroll_content的Ctrl+滚轮缩放"""
+    """Patch Layout UI component with support for Ctrl+wheel zoom on scroll_content
+    
+    This widget provides a comprehensive interface for visualizing integrated circuit patches,
+    displaying both combined and individual layer views with interactive capabilities.
+    
+    Attributes:
+        vec_layers: Dictionary mapping layer IDs to layer objects
+        color_list: List of colors used for rendering different layers
+        patch: Current patch object being displayed
+        scroll_zoom_factor: Zoom level for the scroll content area
+        scroll_min_zoom: Minimum zoom level for scroll content
+        scroll_max_zoom: Maximum zoom level for scroll content
+        scroll_zoom_step: Step size for scroll content zoom
+        original_item_size: Original size of layer items
+        max_columns: Maximum number of columns in the layer grid
+        combined_widget: Widget displaying the combined layer view
+        layer_widgets: Dictionary mapping layer IDs to their display widgets
+        image_dict: Dictionary of image data for each layer
+        layer_containers: List of container widgets for layer displays
+    """
     
     def __init__(self, vec_layers, color_list):
+        """Initialize the PatchLayout component
+        
+        Args:
+            vec_layers: Vector of layer objects
+            color_list: List of colors for rendering layers
+        """
         self.vec_layers = self.load_layers(vec_layers)
         self.color_list = color_list
         self.patch = None
         super().__init__()
         
+<<<<<<< HEAD
         # 缩放相关变量
         self.scroll_zoom_factor = 1.0  # scroll_content的初始缩放比例
         self.scroll_min_zoom = 0.5     # scroll_content的最小缩放比例
         self.scroll_max_zoom = 2.0     # scroll_content的最大缩放比例
         self.scroll_zoom_step = 0.1    # scroll_content的每次缩放步长
         self.original_item_size = 200  # 原始项目大小
+=======
+        # Zoom-related variables
+        self.scroll_zoom_factor = 1.0  # Initial zoom ratio for scroll_content
+        self.scroll_min_zoom = 0.5     # Minimum zoom ratio for scroll_content
+        self.scroll_max_zoom = 2.0     # Maximum zoom ratio for scroll_content
+        self.scroll_zoom_step = 0.1    # Step size for each scroll_content zoom
+        self.original_item_size = 200  # Original item size
+        self.max_columns = 5
+>>>>>>> 7de14773002d8e2f4f0db599c8c471abfb86df30
 
         self._init_ui()
         
     def load_layers(self, vec_layers):
+        """Load layers data and convert to dictionary format
+        
+        Args:
+            vec_layers: Vector of layer objects
+            
+        Returns:
+            Dictionary mapping layer IDs to layer objects
+        """
         layers = {layer.id: layer for layer in vec_layers.layers} if vec_layers else {}
         return layers
         
     def _init_ui(self):
-        """Initialize UI components"""
+        """Initialize UI components and layout"""
         # Main layout
         self.main_layout = QVBoxLayout(self)
         
         # Title label
-        title_label = QLabel("Patch Images")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_font.setPointSize(12)
-        title_label.setFont(title_font)
-        title_label.setAlignment(Qt.AlignCenter)
+        # title_label = QLabel("Patch Images")
+        # title_font = QFont()
+        # title_font.setBold(True)
+        # title_font.setPointSize(12)
+        # title_label.setFont(title_font)
+        # title_label.setAlignment(Qt.AlignCenter)
         
-        # 添加标题到主布局
-        self.main_layout.addWidget(title_label)
+        # Add title to main layout
+        # self.main_layout.addWidget(title_label)
         
-        # 创建水平布局，用于并排显示两个组件
+        # Create horizontal layout for displaying components side by side
         content_layout = QHBoxLayout()
         
-        # 左侧：组合图像显示组件（PatchImageWidget），占比0.2
+        # Left side: Combined image display component (PatchImageWidget), ratio 0.2
         combined_title = QLabel("Patch Image")
         combined_title.setAlignment(Qt.AlignCenter)
         combined_title.setStyleSheet("font-weight: bold;")
@@ -284,28 +392,28 @@ class PatchLayout(QWidget):
         combined_container = QWidget()
         combined_container.setLayout(combined_layout)
         
-        # 添加组合图像到水平布局，占比0.2
-        content_layout.addWidget(combined_container, 2)  # 2表示扩展系数
+        # Add combined image to horizontal layout, ratio 0.2
+        content_layout.addWidget(combined_container, 2)  # 2 represents stretch factor
         
-        # 右侧：单个图层显示区域（LayerImageWidget），占比0.8
+        # Right side: Single layer display area (LayerImageWidget), ratio 0.8
         layers_title = QLabel("Patch Layer Images")
         layers_title.setAlignment(Qt.AlignCenter)
         layers_title.setStyleSheet("font-weight: bold;")
         
-        # 创建滚动区域以支持大量图层
+        # Create scroll area to support many layers
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
         self.scroll_area.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         
-        # 滚动区域内的容器widget
+        # Container widget inside scroll area
         self.scroll_content = QWidget()
-        self.layers_layout = QGridLayout(self.scroll_content)  # 使用网格布局支持多行
-        self.layers_layout.setHorizontalSpacing(10)  # 设置水平间距
-        self.layers_layout.setVerticalSpacing(10)    # 设置垂直间距
+        self.layers_layout = QGridLayout(self.scroll_content)  # Use grid layout for multiple rows
+        self.layers_layout.setHorizontalSpacing(10)  # Set horizontal spacing
+        self.layers_layout.setVerticalSpacing(10)    # Set vertical spacing
         self.scroll_area.setWidget(self.scroll_content)
         
-        # 创建右侧垂直布局
+        # Create right side vertical layout
         right_layout = QVBoxLayout()
         right_layout.addWidget(layers_title)
         right_layout.addWidget(self.scroll_area, 1)
@@ -313,89 +421,95 @@ class PatchLayout(QWidget):
         right_container = QWidget()
         right_container.setLayout(right_layout)
         
-        # 添加右侧布局到水平布局，占比0.8
-        content_layout.addWidget(right_container, 8)  # 8表示扩展系数
+        # Add right layout to horizontal layout, ratio 0.8
+        content_layout.addWidget(right_container, 8)  # 8 represents stretch factor
         
-        # 添加水平布局到主布局
+        # Add horizontal layout to main layout
         self.main_layout.addLayout(content_layout, 1)
         
-        # 存储图层widget的字典
+        # Dictionary to store layer widgets
         self.layer_widgets = {}
         
-        # 连接滚动区域的事件过滤器
+        # Connect event filter for scroll area
         self.scroll_area.viewport().installEventFilter(self)
-        self.image_dict = {}  # 存储当前的图像数据字典
-        self.layer_containers = []  # 存储所有图层容器widget
+        self.image_dict = {}  # Store current image data dictionary
+        self.layer_containers = []  # Store all layer container widgets
         
     def eventFilter(self, obj, event):
-        """事件过滤器，用于捕获scroll_area的滚轮事件"""
-        # 检查是否是滚动区域的视口触发的滚轮事件
+        """Event filter to capture wheel events for scroll_area
+        
+        Args:
+            obj: Object that triggered the event
+            event: Event object containing event information
+            
+        Returns:
+            True if event was handled, False otherwise
+        """
+        # Check if this is a wheel event from the scroll area's viewport
         if obj == self.scroll_area.viewport() and event.type() == event.Wheel:
-            # 检查是否按下了Ctrl键
+            # Check if Ctrl key is pressed
             if event.modifiers() == Qt.ControlModifier:
-                # 获取滚轮方向
+                # Get wheel direction
                 delta = event.angleDelta().y()
                 
-                # 根据滚轮方向调整缩放比例
-                if delta > 0:  # 滚轮向上，放大
+                # Adjust zoom ratio based on wheel direction
+                if delta > 0:  # Wheel up, zoom in
                     self.scroll_zoom_factor = min(self.scroll_zoom_factor + self.scroll_zoom_step, self.scroll_max_zoom)
-                else:  # 滚轮向下，缩小
+                else:  # Wheel down, zoom out
                     self.scroll_zoom_factor = max(self.scroll_zoom_factor - self.scroll_zoom_step, self.scroll_min_zoom)
                 
-                # 应用缩放
+                # Apply zoom
                 self.apply_scroll_zoom()
                 
-                # 阻止事件继续传播
+                # Prevent event from propagating further
                 return True
         
-        # 对于其他事件，调用父类的事件过滤器
+        # For other events, call parent's event filter
         return super().eventFilter(obj, event)
         
     def apply_scroll_zoom(self):
-        """应用缩放比例到scroll_content中的所有图层组件"""
-        # 计算新的项目大小
+        """Apply zoom ratio to all layer components in scroll_content"""
+        # Calculate new item size
         new_item_size = int(self.original_item_size * self.scroll_zoom_factor)
         
-        # 更新每个图层容器的大小
+        # Update each layer container's size
         for container in self.layer_containers:
-            # 获取容器内的布局
+            # Get layout inside container
             layout = container.layout()
             if layout and layout.count() > 1:
-                # 获取图像widget
+                # Get image widget
                 image_widget = layout.itemAt(1).widget()
                 if image_widget:
-                    # 设置新的最小尺寸
+                    # Set new minimum size
                     image_widget.setMinimumSize(new_item_size, new_item_size)
                     
-        # 更新布局
+        # Update layout
         self.scroll_content.updateGeometry()
         self.scroll_area.update()
         
     def reset_scroll_zoom(self):
-        """重置scroll_content的缩放比例为默认值"""
+        """Reset scroll_content zoom ratio to default value"""
         self.scroll_zoom_factor = 1.0
         
-        # 恢复每个图层容器的原始大小
+        # Restore original size for each layer container
         for container in self.layer_containers:
-            # 获取容器内的布局
+            # Get layout inside container
             layout = container.layout()
             if layout and layout.count() > 1:
-                # 获取图像widget
+                # Get image widget
                 image_widget = layout.itemAt(1).widget()
                 if image_widget:
-                    # 恢复原始最小尺寸
+                    # Restore original minimum size
                     image_widget.setMinimumSize(self.original_item_size, self.original_item_size)
         
         self.scroll_content.updateGeometry()
         self.scroll_area.update()
         
     def update_patch(self, patch): 
-        import numpy 
-          
         def align_data(row, col):
             return (row-patch.row_min, col-patch.col_min)
         
-        # 初始化图像字典（修正拼写错误）
+        # Initialize image dictionary
         image_dict = {}
         
         row_num, col_num = patch.row_max-patch.row_min, patch.col_max-patch.col_min
@@ -408,7 +522,7 @@ class PatchLayout(QWidget):
                             layer_id = path.node1.layer
                             
                             color = self.color_list[layer_id % len(self.color_list)]
-                            # 将QColor转换为RGB整数值
+                            # Convert QColor to RGB integer value
                             color_value = (color.red() << 16) | (color.green() << 8) | color.blue()
                             
                             row1, col1 = align_data(path.node1.row, path.node1.col)
@@ -426,7 +540,7 @@ class PatchLayout(QWidget):
                             
                             for layer_id in [path.node1.layer, (path.node1.layer+path.node2.layer)/2, path.node2.layer]:
                                 color = self.color_list[layer_id % len(self.color_list)]
-                                # 将QColor转换为RGB整数值
+                                # Convert QColor to RGB integer value
                                 color_value = (color.red() << 16) | (color.green() << 8) | color.blue()
                                 
                                 layer_array = image_dict.get(layer_id, None)
@@ -436,94 +550,91 @@ class PatchLayout(QWidget):
                                 
                                 layer_array[row, col] = color_value
                                 
-        # 存储当前的patch数据和图像数据
+        # Store current patch data and image data
         self.patch = patch
         self.image_dict = image_dict
         
-        # 为组合图像组件设置数据
+        # Set data for combined image component
         if hasattr(self, 'combined_widget'):
             self.combined_widget.set_image_data(image_dict, row_num, col_num)
         
-        # 清理现有的图层widget
+        # Clear existing layer widgets
         for widget in self.layer_widgets.values():
             widget.setParent(None)
         self.layer_widgets.clear()
         
-        # 移除布局中的所有项
+        # Remove all items from layout
         while self.layers_layout.count() > 0:
             item = self.layers_layout.takeAt(0)
             if item.widget():
                 item.widget().setParent(None)
         
-        # 为每个图层创建显示组件
+        # Create display components for each layer
         if image_dict:
-            # 计算网格布局的行列（每行显示4个图层，可根据需要调整）
-            max_columns = 4
             index = 0
             
             for layer_id, layer_array in image_dict.items():
-                # 创建图层图像widget
+                # Create layer image widget
                 layer_widget = LayerImageWidget(layer_id)
                 
-                # 设置LayerImageWidget为正方形，大小为row_num和col_num的倍数
-                # 计算合适的正方形尺寸（基于原始项目大小和行列数的倍数）
+                # Set LayerImageWidget to square size, multiple of row_num and col_num
+                # Calculate appropriate square size (based on original item size and multiples of row/col count)
                 base_size = self.original_item_size
-                # 确保尺寸是row_num和col_num的公倍数
-                # 找到row_num和col_num的最小公倍数
+                # Ensure size is a common multiple of row_num and col_num
+                # Find least common multiple of row_num and col_num
                 def lcm(a, b):
-                    import math
                     return a * b // math.gcd(a, b)
                 
                 if row_num > 0 and col_num > 0:
                     min_size = lcm(int(row_num), int(col_num))
-                    # 确保正方形尺寸至少为base_size，并且是min_size的倍数
+                    # Ensure square size is at least base_size and a multiple of min_size
                     square_size = max(base_size, ((base_size + min_size - 1) // min_size) * min_size)
                 else:
                     square_size = base_size
                 
-                # 创建图层标题
+                # Create layer title
                 layer_title = QLabel(self.vec_layers[layer_id].name)
                 layer_title.setStyleSheet("font-weight: bold;")
                 layer_title.setAlignment(Qt.AlignHCenter | Qt.AlignBottom)
-                layer_title.setFixedWidth(square_size)  # 设置与layer_widget相同的宽度，确保对齐
+                layer_title.setFixedWidth(square_size)  # Set same width as layer_widget for alignment
                 
-                # 设置固定的正方形尺寸
+                # Set fixed square size
                 layer_widget.setFixedSize(square_size, square_size)
                 
-                # 创建垂直布局放置标题和图像
+                # Create vertical layout for title and image
                 layer_layout = QVBoxLayout()
-                # 设置布局的内容边距和间距，确保标题和图像精确对齐
+                # Set layout margins and spacing to ensure precise alignment of title and image
                 layer_layout.setContentsMargins(0, 0, 0, 0)
-                layer_layout.setSpacing(0)  # 设置布局项之间的间距为0
-                # 添加标题和图像到布局，确保水平和垂直居中对齐
+                layer_layout.setSpacing(0)  # Set spacing between layout items to 0
+                # Add title and image to layout, ensuring horizontal and vertical center alignment
                 layer_layout.addWidget(layer_title, alignment=Qt.AlignHCenter | Qt.AlignVCenter | Qt.AlignBottom)
-                layer_layout.addWidget(layer_widget, 1, alignment=Qt.AlignHCenter | Qt.AlignVCenter | Qt.AlignTop)  # 让图像占据剩余空间，并确保垂直居中
+                layer_layout.addWidget(layer_widget, 1, alignment=Qt.AlignHCenter | Qt.AlignVCenter | Qt.AlignTop)  # Let image occupy remaining space and ensure vertical center
                 
-                # 创建容器widget放置布局
+                # Create container widget for layout
                 container = QWidget()
                 container.setLayout(layer_layout)
                 
-                # 计算网格位置
-                row = index // max_columns
-                col = index % max_columns
+                # Calculate grid position
+                row = index // self.max_columns
+                col = index % self.max_columns
                 
-                # 添加到网格布局
+                # Add to grid layout
                 self.layers_layout.addWidget(container, row, col)
                 
-                # 存储widget引用
+                # Store widget reference
                 self.layer_widgets[layer_id] = layer_widget
                 
-                # 存储容器引用
+                # Store container reference
                 self.layer_containers.append(container)
                 
-                # 设置图层数据
+                # Set layer data
                 layer_widget.set_layer_data(layer_array, row_num, col_num)
                 
                 index += 1
         else:
-            # 如果没有图层数据，显示空消息
+            # If no layer data, display empty message
             empty_label = QLabel("No layer data available")
             empty_label.setAlignment(Qt.AlignCenter)
-            # 添加到网格布局的中心位置
+            # Add to center position of grid layout
             self.layers_layout.addWidget(empty_label, 0, 0)
             self.layers_layout.setAlignment(empty_label, Qt.AlignCenter)
