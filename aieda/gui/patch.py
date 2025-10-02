@@ -120,7 +120,7 @@ class LayerImageWidget(QWidget):
         self.layer_array = None
         self.row_num = 0
         self.col_num = 0
-        self.setMinimumSize(300, 300)
+        self.setMinimumSize(200, 200)
         # 设置白色背景和灰色边框
         self.setStyleSheet("background-color: #FFFFFF; border: 2px solid #CCCCCC;")
         
@@ -243,7 +243,7 @@ class PatchLayout(QWidget):
         self.scroll_min_zoom = 0.5     # scroll_content的最小缩放比例
         self.scroll_max_zoom = 2.0     # scroll_content的最大缩放比例
         self.scroll_zoom_step = 0.1    # scroll_content的每次缩放步长
-        self.original_item_size = 300  # 原始项目大小
+        self.original_item_size = 200  # 原始项目大小
 
         self._init_ui()
         
