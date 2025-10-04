@@ -20,7 +20,7 @@
 
 ## Overview
 
-AiEDA is an open-source AI-native Electronic Design Automation (EDA) library that revolutionizes chip design workflows by introducing a unified design-to-vector methodology. Built on the iEDA infrastructure, it transforms diverse chip design data into standardized multi-level vector representations through modular engine integration, comprehensive data extraction frameworks, and hierarchical data management. AiEDA bridges traditional EDA tools with modern AI/ML techniques by providing complete physical design flows, programmatic data extraction capabilities, and standardized Python interfaces, establishing an AI-aided design (AAD) paradigm that enables seamless integration between EDA datasets and AI frameworks. 
+AiEDA is an open-source AI-native Electronic Design Automation (EDA) library that revolutionizes chip design workflows by introducing a unified design-to-vector methodology. Built on the open-source EDA infrastructures, it transforms diverse chip design data into standardized multi-level vector representations through modular engine integration, comprehensive data extraction frameworks, and hierarchical data management. AiEDA bridges traditional EDA tools with modern AI/ML techniques by providing complete physical design flows, programmatic data extraction capabilities, and standardized Python interfaces, establishing an AI-aided design (AAD) paradigm that enables seamless integration between EDA datasets and AI frameworks. 
 
 
 <div align="center">
@@ -31,85 +31,181 @@ AiEDA is an open-source AI-native Electronic Design Automation (EDA) library tha
 
 ## Software Architecture
 
-AiEDA follows a modular architecture built on top of the iEDA infrastructure:
+AiEDA adopts a layered modular architecture that seamlessly integrates traditional EDA tools with modern AI/ML technologies, providing a complete workflow from design input to result analysis. The overall architecture consists of seven core layers, each responsible for specific functional domains, collectively building a complete Design-to-Vector methodology.
 
 ```
 AiEDA Architecture
-├── AI Layer (aieda.ai)
-│   ├── Net Wirelength Prediction (TabNet)
-│   ├── Design Space Exploration (DSE)
-│   └── ML Model Training & Inference
-├── Analysis Layer (aieda.analysis)
-│   ├── Design-level Analysis
-│   ├── Net Analysis
-│   ├── Path Analysis
-│   └── Patch Analysis
-├── EDA Integration Layer (aieda.eda)
-│   ├── iEDA Tool Wrappers
-│   ├── Flow Management
-│   └── Data Extraction
-├── Data Management Layer (aieda.data)
-│   ├── Database Structures
-│   ├── Vector Generation
-│   └── Feature Engineering
-├── Workspace Management (aieda.workspace)
-├── Utilities (aieda.utility)
-└── GUI Interface (aieda.gui)
+├── AI Layer (aieda.ai)              # AI model training and inference core layer
+│   ├── Net Wirelength Prediction    # TabNet-based wirelength prediction model
+│   ├── Graph Delay Prediction       # Graph delay prediction model
+│   ├── Design Space Exploration     # Automated design space exploration framework
+│   ├── Patch Congestion Prediction  # Placement congestion prediction model
+│   └── Model Training Infrastructure# ML model training and inference infrastructure
+├── Analysis Layer (aieda.analysis)  # Multi-dimensional analysis tools layer
+│   ├── Design-level Analysis        # Design-level statistics and analysis
+│   ├── Net Analysis                 # Net-level performance and distribution analysis
+│   ├── Path Analysis                # Timing path analysis and optimization
+│   └── Patch Analysis               # Grid feature and density analysis
+├── EDA Integration Layer (aieda.eda)# EDA tools integration layer
+│   ├── iEDA Tool Wrappers           # 11+ open-source EDA tool wrappers
+│   ├── Flow Management              # Automated EDA flow management
+│   └── Data Extraction              # Design data extraction and transformation
+├── Data Management Layer (aieda.data)# Data management and feature engineering layer
+│   ├── Database Structures          # EDA design data models
+│   ├── Vector Generation            # Design feature vectorization engine
+│   ├── Feature Engineering          # Feature extraction and engineering
+│   └── Data I/O Utilities           # Data reading/writing and conversion tools
+├── Flow Management (aieda.flows)    # Workflow management layer
+│   ├── EDA Flow Orchestration       # EDA toolchain orchestration
+│   ├── Data Generation Workflows    # Automated dataset generation workflows
+│   └── Flow Configuration           # Flow configuration and execution engine
+├── Workspace Management (aieda.workspace)# Workspace management
+│   ├── Project Organization         # Project structure and file management
+│   ├── Configuration Management     # Design and tool configuration management
+│   └── Path Management              # File path and resource management
+├── Utilities (aieda.utility)        # Common utility library
+│   ├── Logging System               # Structured logging system
+│   ├── JSON Parsing                 # Configuration file parser
+│   └── Permission Management        # File permission management
+├── GUI Interface (aieda.gui)        # Graphical user interface
+│   ├── Layout Visualization         # Chip layout visualization
+│   ├── Data Visualization           # Analysis result visualization
+│   └── Workspace Management UI      # Workspace management interface
+└── Report Generation (aieda.report) # Report generation system
+    ├── Data-driven Reports          # Data-driven report generation
+    └── Visual Summary               # Visual report summary
 ```
 
 ## Core Modules
 
 ### 1. AI Module (`aieda.ai`)
-- **Net Wirelength Prediction**: TabNet-based models for predicting wire lengths
-- **Design Space Exploration (DSE)**: Automated parameter optimization
-- **Model Training**: Support for various ML frameworks and algorithms
+**Key Components:**
+- **Net Wirelength Prediction**: TabNet-based models that accurately predict wire lengths between cells, enabling early-stage optimization of placement results.
+- **Graph Delay Prediction**: Graph neural network models for predicting signal propagation delays across complex net structures and paths.
+- **Patch Congestion Prediction**: Deep learning models that forecast potential congestion hotspots in the chip layout, allowing proactive design adjustments.
+- **Design Space Exploration (DSE)**: Automated frameworks for exploring vast design parameter spaces to identify optimal configurations efficiently.
+- **Model Training Infrastructure**: Comprehensive support for training, validating, and deploying various ML models, with built-in utilities for data preprocessing, model evaluation, and hyperparameter tuning.
+
+**Key Submodules:**
+- `graph_delay_predict`: Graph neural network implementations for delay prediction
+- `net_wirelength_predict`: TabNet models for wirelength prediction
+- `patch_congestion_predict`: CNN-based models for congestion prediction
+- `design_parameter_optimization`: Algorithms for automated parameter tuning
 
 ### 2. Analysis Module (`aieda.analysis`)
-- **Design Analysis**: Cell type, core usage, pin distribution analysis
-- **Net Analysis**: Wire distribution and metrics correlation
-- **Path Analysis**: Delay and stage analysis
-- **Patch Analysis**: Map analysis, wire density, and feature correlation
+**Key Components:**
+- **Design Analysis**: Statistical evaluation of overall design characteristics, including cell type distribution, core area usage, pin distribution patterns, and design rule compliance metrics.
+- **Net Analysis**: Detailed examination of net structures, wire distributions, net length statistics, and their correlation with performance metrics.
+- **Path Analysis**: Critical path identification, delay analysis, stage composition analysis, and timing constraint verification.
+- **Patch Analysis**: Grid-based analysis of local design features, including wire density, cell density, congestion patterns, and feature correlation heatmaps.
+
+**Key Classes:**
+- `DesignAnalyzer`: Comprehensive design-level analysis engine
+- `NetAnalyzer`: Specialized for net structure and distribution analysis
+- `PathAnalyzer`: Focused on timing path evaluation and optimization
+- `PatchAnalyzer`: Grid-based local feature and density analysis
 
 ### 3. EDA Integration (`aieda.eda`)
-- **iEDA Tool Integration**: Wrappers for 11+ EDA tools
-  - Placement (iPL)
-  - Routing (iRT)
-  - Clock Tree Synthesis (iCTS)
-  - Static Timing Analysis (iSTA)
-  - Floorplanning (iFP)
-  - Power Analysis (iPA)
-  - Design Rule Checking (iDRC)
-  - And more...
+**Supported EDA Tools:**
+   - **iEDA Tool Integration: Wrappers for 11+ EDA tools**
+      - **Placement (iPL)**: standard cell placement 
+      - **Clock Tree Synthesis (iCTS)**: Clock distribution network design and optimization
+      - **Routing (iRT)**: Global and detailed routing
+      - **Static Timing Analysis (iSTA)**: Comprehensive timing verification and analysis
+      - **Design Rule Checking (iDRC)**: Verification of manufacturing design rules
+      - **Power Network Synthesis (iPDN)**: Power grid design and optimization
+      - **And more ...** 
+   - **More EDA tool wrappers will continue to be open source**
+
+**Key Features:**
+- Standardized Python interfaces for all EDA tools
+- Automatic configuration management
+- Seamless toolchain integration
+- Real-time progress monitoring
+- Result extraction and formatting
 
 ### 4. Data Management (`aieda.data`)
-- **Database Structures**: Comprehensive data models for EDA features
-- **Vector Generation**: Automated feature extraction and vectorization
-- **Parameters**: EDA tool parameter management
+**Key Components:**
+- **Database Structures**: Comprehensive data models that represent EDA design features, analysis results, and optimization parameters in a structured format.
+- **Vector Generation**: Advanced engines for extracting and transforming design features into numerical vectors suitable for machine learning algorithms.
+- **Feature Engineering**: Tools for creating, selecting, and transforming features to improve model performance and interpretability.
+- **Data I/O Utilities**: Robust handlers for reading and writing various EDA file formats, configuration files, and analysis results.
+- **Parameters Management**: Systems for defining, validating, and managing EDA tool parameters across different design stages.
+
+**Key Submodules:**
+- `database`: Data models and storage mechanisms
+- `io`: File format handlers and converters
+- `vectors`: Feature extraction and vectorization engines
 
 ### 5. Flows (`aieda.flows`)
-- **iEDA Flow Management**: Automated execution of EDA tool chains
-- **Data Generation**: Automated dataset creation for ML training
-- **Flow Configuration**: Flexible flow definition and execution
+**Key Components:**
+- **iEDA Flow Management**: Frameworks for defining, configuring, and executing complete EDA toolchains, from design input to final verification.
+- **Data Generation Workflows**: Automated pipelines for generating large datasets from design variations, supporting ML model training and validation.
+- **Flow Configuration**: Flexible systems for defining custom flow sequences, dependencies, and parameter passing between stages.
+- **Flow Execution Engine**: Robust infrastructure for executing flows with error handling, progress tracking, and result collection.
 
-### 6. Workspace (`aieda.workspace`)
-- **Project Management**: Workspace creation and management
-- **File Organization**: Structured project directory management
+**Key Classes:**
+- `DbFlow`: Base class for all database-backed flows
+- `RunIEDA`: Flow for executing iEDA toolchains
+- `DataGeneration`: Flow for automated dataset creation
+
+### 6. Workspace Management (`aieda.workspace`)
+**Key Components:**
+- **Project Organization**: Frameworks for creating and managing standardized project structures, ensuring consistency across different designs and users.
+- **Configuration Management**: Systems for defining, storing, and accessing project-specific and tool-specific configuration settings.
+- **Path Management**: Utilities for managing file paths, resource locations, and output directories in a consistent manner.
+- **Workspace Initialization**: Tools for setting up new workspaces with predefined structures and default configurations.
+
+**Key Classes:**
+- `Workspace`: Core class for workspace creation and management
+- `Configs`: Configuration management system
+- `PathsTable`: Path and resource management utilities
 
 ### 7. Utilities (`aieda.utility`)
-- **Logging**: Comprehensive logging system
-- **JSON Parsing**: Configuration file management
-- **Permission Management**: File and folder permission handling
+**Key Components:**
+- **Logging System**: Comprehensive logging infrastructure with configurable verbosity levels, log rotation, and formatted output.
+- **JSON Parsing**: Robust parsers for configuration files and data exchange formats, with validation and error handling.
+- **Permission Management**: Utilities for managing file and folder permissions, ensuring secure access to project resources.
+- **File System Operations**: Helper functions for common file and directory operations, such as creation, deletion, and copying.
 
-### 8. GUI (`aieda.gui`)
-- **Layout Visualization**: Graphical interface for design visualization
+**Key Classes:**
+- `Logger`: Custom logger with formatted output and verbosity control
+- `JsonParser`: Enhanced JSON handling with validation capabilities
+- `FolderPermission`: Utilities for managing file system permissions
+
+### 8. GUI Interface (`aieda.gui`)
+**Key Components:**
+- **Layout Visualization**: Interactive displays of chip layouts, including cells, nets, paths, and other design elements with zoom and pan capabilities.
+- **Data Visualization**: Charts, graphs, and heatmaps for visualizing analysis results, performance metrics, and optimization trends.
+- **Workspace Management UI**: Interfaces for creating, configuring, and managing design workspaces and projects.
+- **Chip Visualization**: Detailed views of chip components, layers, and physical characteristics.
+- **Patch Visualization**: Grid-based visualization of local design features and density maps.
+
+**Key Classes:**
+- `LayoutViewer`: Interactive layout visualization component
+- `ChipViewer`: Detailed chip structure visualization
+- `WorkspaceManagerUI`: Workspace management interface
+- `PatchesViewer`: Grid-based patch visualization
+
+### 9. Report Generation (`aieda.report`)
+**Key Components:**
+- **Data-driven Reports**: Automated generation of comprehensive reports with embedded visualizations, statistics, and insights.
+- **Visual Summary**: Creation of concise visual summaries that highlight key findings and recommendations.
+- **Customizable Templates**: Support for user-defined report templates to meet specific documentation requirements.
+- **Export Formats**: Generation of reports in various formats for easy sharing and integration with other tools.
+
+**Key Classes:**
+- `ReportGenerator`: Core engine for creating data-driven reports
+- `ReportModule`: Base class for specialized report components
+- `VisualSummary`: Utilities for creating visual report elements
 
 ## Data Flow
 
 The AiEDA data flow follows this pattern:
 
 1. **Design Input** → Workspace creation with design files
-2. **EDA Processing** → iEDA tools process the design through various stages
-3. **Feature Extraction** → Data extraction and vectorization from EDA results
+2. **EDA Processing** → EDA tools process the design through various stages
+3. **Data Extraction** → Feature extraction and vectorization from EDA results
 4. **AI Analysis** → ML models analyze extracted features
 5. **Optimization** → AI-guided parameter optimization and design improvements
 6. **Validation** → Results validation and iteration
@@ -217,7 +313,19 @@ Docker provides a containerized environment with all dependencies pre-configured
 
 ## Getting Started
 
-### Basic Usage Example
+### Running Tests
+```bash
+# Test the fullflow (Recommended)
+python test/test_sky130_gcd.py
+
+# Test physical design flow using iEDA
+python test/test_ieda_flows.py
+
+# Test vector generation 
+python test/test_ieda_vectors.py
+```
+
+### Basic Usage Examples
 
 ```python
 import aieda
@@ -231,7 +339,7 @@ workspace = workspace_create(directory="./my_design", design="gcd")
 
 # Run EDA flow
 run_ieda = RunIEDA(workspace)
-run_ieda.run_flows()
+run_ieda.run_flow()
 
 # Generate training data
 data_gen = DataGeneration(workspace)
@@ -246,18 +354,6 @@ trainer = TabNetTrainer()
 trainer.train()
 ```
 
-### Running Tests
-
-```bash
-# Test iEDA backend
-python test/test_ieda_flows.py
-
-# Test design-level analysis
-python test/test_analysis_design.py
-
-# Test AI model training
-python test/test_ai_task_placement.py
-```
 
 ## Key Features
 
@@ -267,6 +363,22 @@ python test/test_ai_task_placement.py
 - **Extensible Architecture**: Modular design for easy extension and customization
 - **Production Ready**: Proven with 4+ successful tape-outs
 - **Open Source**: Fully open-source with active community support
+
+
+## iDATA Dataset
+
+As a key outcome of the AiEDA library, we are proud to introduce **iDATA**, a large-scale, open-source dataset specifically designed to facilitate AI-aided design (AAD) research. The iDATA dataset is generated using AiEDA's design-to-vector methodology and data management capabilities, providing structured, vectorized data for a variety of AI-EDA tasks.
+
+- **Data Source**: The iDATA dataset is derived from 50 real-world chip designs, covering a diverse range of applications including digital signal/image processors (DSP/ISP), peripheral/interface circuits, functional modules, memories, CPUs, GPUs, and SoCs. These designs are sourced from open repositories such as OSCPU, OSCC, OpenLane, ISCAS89, and CHIPS Alliance, as well as internal projects. All designs are synthesized using 28nm technology and processed through complete physical design flows using Innovus, with data extraction performed via iEDA tools.
+- **Data Scale and Statistics**: The complete iDATA dataset amounts to 600 GB of structured data (excluding original raw design files). It includes vectorized representations at multiple levels: design-level, net-level, graph-level, path-level, and patch-level. The dataset captures a wide spectrum of design complexities, with cell counts ranging from 135 to 4,816,399, net counts from 125 to 4,728,816, and wire counts from 1,426 to 79,050,737. Detailed statistics are summarized in the table below.
+- **Purpose and Availability**: iDATA serves as a ready-to-use resource for researchers to train and validate AI models for tasks such as prediction, generation, and optimization in EDA workflows. **The full dataset will be open-sourced as soon as possible**, providing a foundation for future AI-EDA research.
+- **Accessible Data Samples**: To provide a concrete understanding of our data structure, we have included vectorized data samples in our GitHub repository. This data, located at https://github.com/OSCC-Project/AiEDA/tree/master/example/sky130_gcd/output/iEDA/, was generated by running the open-source iEDA toolchain on the gcd netlist. Regarding the full iDATA dataset, its release is a more complex process due to its large size and the need for data anonymization.
+
+<div align="center">
+<img src="./docs/resources/iDATA.png" width="100%" alt="iDATA Statistics" />
+<h3> Statistical Characteristics of the iDATA Dataset </h3>
+</div>
+
 
 ## Research and Publications
 
