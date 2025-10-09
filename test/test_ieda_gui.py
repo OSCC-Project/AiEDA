@@ -2,7 +2,7 @@
 # -*- encoding: utf-8 -*-
 """
 @File : test_ieda_gui.py
-@Author : RuiWang
+@Author : yell
 @Desc : Test GUI for data vectors
 """
 ######################################################################################

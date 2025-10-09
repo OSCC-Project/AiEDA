@@ -1023,6 +1023,7 @@ class Workspace:
         def analysis_images(self):
             """Analysis visualization image paths"""
             image_paths = {
+                "flow_summary": "{}/flow_summary.png".format(self.analysis_dir),
                 # Design analysis images
                 "design_cell_type_bottom_10": "{}/design_cell_type_bottom_10.png".format(self.analysis_dir),
                 "design_cell_type_top_10": "{}/design_cell_type_top_10.png".format(self.analysis_dir),

@@ -29,8 +29,12 @@ class ReportFlow(ReportBase):
         table = self.TableMatrix(headers=["step", "eda tool", "state", "runtime"])
         
         # flow states
+        instance_nums = []
+        net_nums = []
         for flow in self.workspace.configs.flows:
-            if flow.step is DbFlow.FlowStep.optSetup:
+            if flow.step is DbFlow.FlowStep.floorplan or flow.step is DbFlow.FlowStep.pdn \
+                or flow.step is DbFlow.FlowStep.optSetup or flow.step is DbFlow.FlowStep.drc \
+                    or flow.step is DbFlow.FlowStep.vectorization:
                 continue
             
             table.add_row([flow.step.value, 
@@ -38,7 +42,63 @@ class ReportFlow(ReportBase):
                            flow.state.value,
                            flow.runtime])
             
-        return table.make_table() 
+            feature = DataFeature(workspace=self.workspace)
+            feature_db = feature.load_feature_summary(flow)
+            instance_nums.append(feature_db.statis.num_instances)
+            net_nums.append(feature_db.statis.num_nets)
+            
+        return table.make_table() + self.flow_summary_image(instance_nums, net_nums)
+            
+    def flow_summary_image(self, instance_nums, net_nums):
+        """
+        Create a summary image showing instance and net counts across different steps.
+        
+        Args:
+            instance_nums: List of instance counts for each step
+            net_nums: List of net counts for each step
+        
+        Returns:
+            None
+        """
+        # Create figure and axis
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        # Generate x-axis values (steps)
+        steps = list(range(len(instance_nums)))
+        
+        # Find minimum value for y-axis start
+        min_value = min(min(instance_nums), min(net_nums))
+        
+        # Plot instance counts
+        ax.plot(steps, instance_nums, marker='o', linestyle='-', color='blue', label='Instances')
+        
+        # Plot net counts
+        ax.plot(steps, net_nums, marker='s', linestyle='--', color='red', label='Nets')
+        
+        # Set y-axis to start from minimum value
+        ax.set_ylim(bottom=min_value - (min_value * 0.1))  # Add 10% padding below minimum
+        
+        # Customize plot
+        ax.set_xlabel('Step')
+        ax.set_ylabel('Count')
+        ax.set_title('Flow Summary: Instances and Nets')
+        ax.set_xticks(steps)
+        ax.legend()
+        ax.grid(True, linestyle='--', alpha=0.7)
+        
+        # Ensure directory exists
+        image_path = self.workspace.paths_table.analysis_images["flow_summary"]
+        os.makedirs(os.path.dirname(image_path), exist_ok=True)
+        
+        # Save the figure
+        plt.tight_layout()
+        plt.savefig(image_path, dpi=300)
+        plt.close(fig) 
+
+        image_gen = self.Images([image_path])
+        iamge_content = image_gen.images_content(per_row=1)
+
+        return iamge_content
     
     def content_flow(self, flow : DbFlow):
         if flow.step is DbFlow.FlowStep.drc:
@@ -162,6 +222,6 @@ class ReportFlow(ReportBase):
                 
             table.add_row(lines)        
             
-        return table.make_table() 
+        return table.make_table()
             
         

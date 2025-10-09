@@ -184,7 +184,7 @@ class GuiLayout:
             # Random select edges for display
             selected_edges = random.sample(valid_edges, max_edges)
             self.workspace.logger.info(
-                f"edge number too many({len(valid_edges)}), random select {max_edges} edges for display"
+                f"Too many edges({len(valid_edges)}), randomly selected {max_edges} edges for display"
             )
         else:
             selected_edges = valid_edges

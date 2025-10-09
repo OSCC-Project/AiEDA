@@ -221,6 +221,9 @@ class WorkspaceUI(QWidget):
             self.net_ui = NetLayout(self.vec_nets)
             self.workspace_info = WorkspaceInformation(self.workspace)
             
+            # Set the info attribute of patch_ui to workspace_info for displaying patch details
+            self.patch_ui.info = self.workspace_info
+            
             # Set workspace information
             # workspace_details = []
             # workspace_details.append(f"Workspace: {self.workspace.name}\n" if hasattr(self.workspace, 'name') else "Workspace loaded\n")

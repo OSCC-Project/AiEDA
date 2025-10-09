@@ -166,7 +166,8 @@ class LayerImageWidget(QWidget):
         self.layer_array = None
         self.row_num = 0
         self.col_num = 0
-        self.setMinimumSize(300, 300)
+        self.setMinimumSize(200, 200)
+        # 设置白色背景和灰色边框
         # Set white background with gray border
         self.setStyleSheet("background-color: #FFFFFF; border: 2px solid #CCCCCC;")
         
@@ -228,8 +229,8 @@ class LayerImageWidget(QWidget):
         # Draw white background
         painter.fillRect(0, 0, width, height, QBrush(QColor(255, 255, 255)))
         
-        # Draw gray border
-        pen = QPen(QColor(204, 0, 0))  # #CCCCCC gray
+        # Draw red border
+        pen = QPen(QColor(204, 0, 0))  # Red color
         pen.setWidth(2)
         painter.setPen(pen)
         painter.drawRect(1, 1, width - 2, height - 2)  # Leave margin for border width
