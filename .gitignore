@@ -151,3 +151,6 @@ cython_debug/
 /example/sky130_test/
 /example/sky130_test_des/
 *.gitmodules
+
+# in-house tools
+aieda/third_party/tools/
