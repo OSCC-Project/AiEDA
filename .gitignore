@@ -139,11 +139,11 @@ cython_debug/
 
 # *.png
 # *.jpg
-*.csv
+# *.csv
 .vscode/
 .VSCodeCounter/
 
-*.json
+# *.json
 *.pkl
 *.onnx
 *.zip

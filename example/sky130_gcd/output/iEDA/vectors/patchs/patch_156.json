@@ -1,0 +1,419 @@
+{
+    "id": 156,
+    "patch_id_row": 5,
+    "patch_id_col": 6,
+    "llx": 25920,
+    "lly": 21600,
+    "urx": 30240,
+    "ury": 25920,
+    "row_min": 90,
+    "row_max": 108,
+    "col_min": 108,
+    "col_max": 126,
+    "cell_density": 0.2199074074074074,
+    "pin_density": 7,
+    "net_density": 0.10622427983539096,
+    "macro_margin": 255180,
+    "RUDY_congestion": 0.0002546992427734209,
+    "EGR_congestion": -12.0,
+    "timing": 0.0,
+    "power": 0.0,
+    "IR_drop": 0.0,
+    "sub_nets": [
+        {
+            "id": 241,
+            "llx": 25920,
+            "lly": 21600,
+            "urx": 30240,
+            "ury": 25920
+        },
+        {
+            "id": 44,
+            "llx": 25920,
+            "lly": 21600,
+            "urx": 30240,
+            "ury": 24925
+        },
+        {
+            "id": 43,
+            "llx": 25920,
+            "lly": 21600,
+            "urx": 30240,
+            "ury": 21695
+        },
+        {
+            "id": 58,
+            "llx": 28837,
+            "lly": 21600,
+            "urx": 30240,
+            "ury": 24925
+        }
+    ],
+    "patch_layer": [
+        {
+            "id": 0,
+            "feature": {
+                "wire_width": 170,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 1,
+            "nets": [
+                {
+                    "id": 58,
+                    "wire_num": 1,
+                    "wires": [
+                        {
+                            "id": 917,
+                            "feature": {
+                                "wire_len": 0
+                            },
+                            "path_num": 1,
+                            "paths": [
+                                {
+                                    "id1": 48361,
+                                    "x1": 29040,
+                                    "y1": 21600,
+                                    "real_x1": 29040,
+                                    "real_y1": 21775,
+                                    "r1": 90,
+                                    "c1": 121,
+                                    "l1": 0,
+                                    "p1": 217,
+                                    "id2": 48361,
+                                    "x2": 29040,
+                                    "y2": 21600,
+                                    "real_x2": 29040,
+                                    "real_y2": 21775,
+                                    "r2": 90,
+                                    "c2": 121,
+                                    "l2": 0,
+                                    "p2": 217
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 1,
+            "feature": {
+                "wire_width": 0,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 1,
+            "nets": [
+                {
+                    "id": 58,
+                    "wire_num": 1,
+                    "wires": [
+                        {
+                            "id": 917,
+                            "feature": {
+                                "wire_len": 0
+                            },
+                            "path_num": 1,
+                            "paths": [
+                                {
+                                    "id1": 48361,
+                                    "x1": 29040,
+                                    "y1": 21600,
+                                    "real_x1": 29040,
+                                    "real_y1": 21775,
+                                    "r1": 90,
+                                    "c1": 121,
+                                    "l1": 0,
+                                    "p1": 217,
+                                    "id2": 622953,
+                                    "x2": 29040,
+                                    "y2": 21600,
+                                    "real_x2": 29040,
+                                    "real_y2": 21775,
+                                    "r2": 90,
+                                    "c2": 121,
+                                    "l2": 2,
+                                    "p2": -1,
+                                    "via": 0
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "feature": {
+                "wire_width": 140,
+                "wire_len": 9840,
+                "wire_density": 0.07381687242798354,
+                "congestion": -2.0
+            },
+            "net_num": 3,
+            "nets": [
+                {
+                    "id": 43,
+                    "wire_num": 1,
+                    "wires": [
+                        {
+                            "id": 538,
+                            "feature": {
+                                "wire_len": 4320
+                            },
+                            "path_num": 1,
+                            "paths": [
+                                {
+                                    "id1": 624548,
+                                    "x1": 25920,
+                                    "y1": 22320,
+                                    "real_x1": -1,
+                                    "real_y1": -1,
+                                    "r1": 93,
+                                    "c1": 108,
+                                    "l1": 2,
+                                    "p1": -1,
+                                    "id2": 624566,
+                                    "x2": 30240,
+                                    "y2": 22320,
+                                    "real_x2": -1,
+                                    "real_y2": -1,
+                                    "r2": 93,
+                                    "c2": 126,
+                                    "l2": 2,
+                                    "p2": -1
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 44,
+                    "wire_num": 1,
+                    "wires": [
+                        {
+                            "id": 566,
+                            "feature": {
+                                "wire_len": 4320
+                            },
+                            "path_num": 1,
+                            "paths": [
+                                {
+                                    "id1": 628836,
+                                    "x1": 25920,
+                                    "y1": 24240,
+                                    "real_x1": -1,
+                                    "real_y1": -1,
+                                    "r1": 101,
+                                    "c1": 108,
+                                    "l1": 2,
+                                    "p1": -1,
+                                    "id2": 628854,
+                                    "x2": 30240,
+                                    "y2": 24240,
+                                    "real_x2": -1,
+                                    "real_y2": -1,
+                                    "r2": 101,
+                                    "c2": 126,
+                                    "l2": 2,
+                                    "p2": -1
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 58,
+                    "wire_num": 2,
+                    "wires": [
+                        {
+                            "id": 905,
+                            "feature": {
+                                "wire_len": 1200
+                            },
+                            "path_num": 1,
+                            "paths": [
+                                {
+                                    "id1": 622953,
+                                    "x1": 29040,
+                                    "y1": 21600,
+                                    "real_x1": 29040,
+                                    "real_y1": 21775,
+                                    "r1": 90,
+                                    "c1": 121,
+                                    "l1": 2,
+                                    "p1": -1,
+                                    "id2": 622958,
+                                    "x2": 30240,
+                                    "y2": 21600,
+                                    "real_x2": -1,
+                                    "real_y2": -1,
+                                    "r2": 90,
+                                    "c2": 126,
+                                    "l2": 2,
+                                    "p2": -1
+                                }
+                            ]
+                        },
+                        {
+                            "id": 917,
+                            "feature": {
+                                "wire_len": 0
+                            },
+                            "path_num": 1,
+                            "paths": [
+                                {
+                                    "id1": 622953,
+                                    "x1": 29040,
+                                    "y1": 21600,
+                                    "real_x1": 29040,
+                                    "real_y1": 21775,
+                                    "r1": 90,
+                                    "c1": 121,
+                                    "l1": 2,
+                                    "p1": -1,
+                                    "id2": 622953,
+                                    "x2": 29040,
+                                    "y2": 21600,
+                                    "real_x2": 29040,
+                                    "real_y2": 21775,
+                                    "r2": 90,
+                                    "c2": 121,
+                                    "l2": 2,
+                                    "p2": -1
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 3,
+            "feature": {
+                "wire_width": 0,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 0,
+            "nets": []
+        },
+        {
+            "id": 4,
+            "feature": {
+                "wire_width": 140,
+                "wire_len": 4320,
+                "wire_density": 0.032407407407407406,
+                "congestion": -10.0
+            },
+            "net_num": 1,
+            "nets": [
+                {
+                    "id": 241,
+                    "wire_num": 1,
+                    "wires": [
+                        {
+                            "id": 2625,
+                            "feature": {
+                                "wire_len": 4320
+                            },
+                            "path_num": 1,
+                            "paths": [
+                                {
+                                    "id1": 1197535,
+                                    "x1": 26640,
+                                    "y1": 21600,
+                                    "real_x1": -1,
+                                    "real_y1": -1,
+                                    "r1": 90,
+                                    "c1": 111,
+                                    "l1": 4,
+                                    "p1": -1,
+                                    "id2": 1207183,
+                                    "x2": 26640,
+                                    "y2": 25920,
+                                    "real_x2": -1,
+                                    "real_y2": -1,
+                                    "r2": 108,
+                                    "c2": 111,
+                                    "l2": 4,
+                                    "p2": -1
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 5,
+            "feature": {
+                "wire_width": 0,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 0,
+            "nets": []
+        },
+        {
+            "id": 6,
+            "feature": {
+                "wire_width": 300,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 0,
+            "nets": []
+        },
+        {
+            "id": 7,
+            "feature": {
+                "wire_width": 0,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 0,
+            "nets": []
+        },
+        {
+            "id": 8,
+            "feature": {
+                "wire_width": 300,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 0,
+            "nets": []
+        },
+        {
+            "id": 9,
+            "feature": {
+                "wire_width": 0,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 0,
+            "nets": []
+        },
+        {
+            "id": 10,
+            "feature": {
+                "wire_width": 1600,
+                "wire_len": 0,
+                "wire_density": 0.0,
+                "congestion": 0.0
+            },
+            "net_num": 0,
+            "nets": []
+        }
+    ]
+}

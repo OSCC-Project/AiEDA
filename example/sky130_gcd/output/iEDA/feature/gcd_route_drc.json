@@ -1,0 +1,1210 @@
+{
+    "file_path": "./example/sky130_gcd/output/iEDA/feature/gcd_route_drc.json",
+    "drc": {
+        "number": 96,
+        "distribution": {
+            "cut_short": {
+                "number": 2,
+                "layers": {
+                    "met4": {
+                        "number": 2,
+                        "list": [
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_rdy"
+                                ],
+                                "inst": [],
+                                "llx": 42560,
+                                "lly": 1600,
+                                "urx": 43200,
+                                "ury": 1600,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[5]"
+                                ],
+                                "inst": [],
+                                "llx": 111200,
+                                "lly": 1600,
+                                "urx": 111200,
+                                "ury": 1600,
+                                "required_size": 0
+                            }
+                        ]
+                    }
+                }
+            },
+            "metal_short": {
+                "number": 26,
+                "layers": {
+                    "met1": {
+                        "number": 1,
+                        "list": [
+                            {
+                                "net": [
+                                    "dpath/b_reg/_037_",
+                                    "dpath/b_reg/_054_"
+                                ],
+                                "inst": [],
+                                "llx": 120080,
+                                "lly": 91305,
+                                "urx": 120400,
+                                "ury": 91445,
+                                "required_size": 0
+                            }
+                        ]
+                    },
+                    "met4": {
+                        "number": 20,
+                        "list": [
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[0]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 7810,
+                                "urx": 1790,
+                                "ury": 8990,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[1]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 16450,
+                                "urx": 1390,
+                                "ury": 17630,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[2]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 24515,
+                                "urx": 1790,
+                                "ury": 25695,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[3]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 33250,
+                                "urx": 1390,
+                                "ury": 34430,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[4]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 41385,
+                                "urx": 1790,
+                                "ury": 42565,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[5]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 50220,
+                                "urx": 1790,
+                                "ury": 51400,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[6]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 58655,
+                                "urx": 1790,
+                                "ury": 59835,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[7]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 66850,
+                                "urx": 1790,
+                                "ury": 68030,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[8]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 75125,
+                                "urx": 1790,
+                                "ury": 76305,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[9]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 83560,
+                                "urx": 1390,
+                                "ury": 84740,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[10]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 92290,
+                                "urx": 1390,
+                                "ury": 93470,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[11]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 100430,
+                                "urx": 1790,
+                                "ury": 101610,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[12]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 108865,
+                                "urx": 1390,
+                                "ury": 110045,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[6]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 126850,
+                                "urx": 1310,
+                                "ury": 128030,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1410,
+                                "lly": 1,
+                                "urx": 2590,
+                                "ury": 1090,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[11]"
+                                ],
+                                "inst": [],
+                                "llx": 42285,
+                                "lly": 127330,
+                                "urx": 43465,
+                                "ury": 128510,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_rdy"
+                                ],
+                                "inst": [],
+                                "llx": 42370,
+                                "lly": 610,
+                                "urx": 43550,
+                                "ury": 1790,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[12]"
+                                ],
+                                "inst": [],
+                                "llx": 50660,
+                                "lly": 127330,
+                                "urx": 51840,
+                                "ury": 128510,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_val"
+                                ],
+                                "inst": [],
+                                "llx": 51010,
+                                "lly": 610,
+                                "urx": 52000,
+                                "ury": 1790,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[5]"
+                                ],
+                                "inst": [],
+                                "llx": 111010,
+                                "lly": 610,
+                                "urx": 111600,
+                                "ury": 1790,
+                                "required_size": 0
+                            }
+                        ]
+                    },
+                    "met5": {
+                        "number": 5,
+                        "list": [
+                            {
+                                "net": [
+                                    "clk",
+                                    "req_msg[27]"
+                                ],
+                                "inst": [],
+                                "llx": 1,
+                                "lly": 1,
+                                "urx": 1210,
+                                "ury": 1000,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[27]"
+                                ],
+                                "inst": [],
+                                "llx": 1,
+                                "lly": 1200,
+                                "urx": 1210,
+                                "ury": 2000,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1290,
+                                "lly": 592,
+                                "urx": 2710,
+                                "ury": 1210,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1290,
+                                "lly": 1200,
+                                "urx": 2890,
+                                "ury": 1200,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[13]"
+                                ],
+                                "inst": [],
+                                "llx": 127210,
+                                "lly": 1200,
+                                "urx": 128630,
+                                "ury": 1210,
+                                "required_size": 0
+                            }
+                        ]
+                    }
+                }
+            },
+            "minimum_width": {
+                "number": 5,
+                "layers": {
+                    "met5": {
+                        "number": 5,
+                        "list": [
+                            {
+                                "net": [
+                                    "resp_msg[6]"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 125845,
+                                "urx": 1430,
+                                "ury": 126820,
+                                "required_size": 1600
+                            },
+                            {
+                                "net": [
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1290,
+                                "lly": 1200,
+                                "urx": 2710,
+                                "ury": 1210,
+                                "required_size": 1600
+                            },
+                            {
+                                "net": [
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 2000,
+                                "lly": -210,
+                                "urx": 2710,
+                                "ury": 1210,
+                                "required_size": 1600
+                            },
+                            {
+                                "net": [
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 2000,
+                                "lly": 0,
+                                "urx": 2890,
+                                "ury": 1200,
+                                "required_size": 1600
+                            },
+                            {
+                                "net": [
+                                    "req_msg[13]"
+                                ],
+                                "inst": [],
+                                "llx": 127210,
+                                "lly": 1000,
+                                "urx": 128630,
+                                "ury": 1210,
+                                "required_size": 1600
+                            }
+                        ]
+                    }
+                }
+            },
+            "nonsufficient_metal_overlap": {
+                "number": 1,
+                "layers": {
+                    "met5": {
+                        "number": 1,
+                        "list": [
+                            {
+                                "net": [
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 1,
+                                "urx": 2090,
+                                "ury": 1000,
+                                "required_size": 0
+                            }
+                        ]
+                    }
+                }
+            },
+            "out_of_die": {
+                "number": 6,
+                "layers": {
+                    "met4": {
+                        "number": 3,
+                        "list": [
+                            {
+                                "net": [
+                                    "req_msg[27]"
+                                ],
+                                "inst": [],
+                                "llx": -90,
+                                "lly": 610,
+                                "urx": 0,
+                                "ury": 1790,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1410,
+                                "lly": -90,
+                                "urx": 2590,
+                                "ury": 0,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "req_msg[13]"
+                                ],
+                                "inst": [],
+                                "llx": 127330,
+                                "lly": -90,
+                                "urx": 128510,
+                                "ury": 0,
+                                "required_size": 0
+                            }
+                        ]
+                    },
+                    "met5": {
+                        "number": 3,
+                        "list": [
+                            {
+                                "net": [
+                                    "req_msg[27]"
+                                ],
+                                "inst": [],
+                                "llx": -210,
+                                "lly": 490,
+                                "urx": 0,
+                                "ury": 1910,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1290,
+                                "lly": -210,
+                                "urx": 2710,
+                                "ury": 0,
+                                "required_size": 0
+                            },
+                            {
+                                "net": [
+                                    "req_msg[13]"
+                                ],
+                                "inst": [],
+                                "llx": 127210,
+                                "lly": -210,
+                                "urx": 128630,
+                                "ury": 0,
+                                "required_size": 0
+                            }
+                        ]
+                    }
+                }
+            },
+            "parallel_run_length_spacing": {
+                "number": 49,
+                "layers": {
+                    "met1": {
+                        "number": 19,
+                        "list": [
+                            {
+                                "net": [
+                                    "ctrl/_16_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_lt_b$in1[1]"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_lt_b$in1[2]"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/b_mux$out[4]"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_lt_b/_013_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_049_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_reg/_016_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_reg/_037_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_reg/_049_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/b_mux/_002_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/b_reg/_056_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_013_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_024_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_040_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_053_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_064_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_067_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_075_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_106_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            }
+                        ]
+                    },
+                    "met2": {
+                        "number": 5,
+                        "list": [
+                            {
+                                "net": [
+                                    "dpath/a_lt_b$in1[12]"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_reg/_049_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_084_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_088_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            },
+                            {
+                                "net": [
+                                    "clk_1"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 140
+                            }
+                        ]
+                    },
+                    "met3": {
+                        "number": 12,
+                        "list": [
+                            {
+                                "net": [
+                                    "dpath/a_lt_b$in1[7]"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_030_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_063_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_064_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_067_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_068_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_080_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/b_mux/_049_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_046_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_100_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "resp_msg[7]"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "req_msg[5]"
+                                ],
+                                "inst": [],
+                                "llx": 1390,
+                                "lly": 50720,
+                                "urx": 1515,
+                                "ury": 51040,
+                                "required_size": 300
+                            }
+                        ]
+                    },
+                    "met4": {
+                        "number": 12,
+                        "list": [
+                            {
+                                "net": [
+                                    "dpath/a_mux/_054_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_063_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/a_mux/_068_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_014_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_073_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "dpath/sub/_094_"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "resp_msg[5]"
+                                ],
+                                "inst": [],
+                                "llx": 0,
+                                "lly": 0,
+                                "urx": 0,
+                                "ury": 0,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[27]"
+                                ],
+                                "inst": [],
+                                "llx": 1090,
+                                "lly": 610,
+                                "urx": 1200,
+                                "ury": 1790,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[0]"
+                                ],
+                                "inst": [],
+                                "llx": 68990,
+                                "lly": 610,
+                                "urx": 69200,
+                                "ury": 1790,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[14]"
+                                ],
+                                "inst": [],
+                                "llx": 68990,
+                                "lly": 127230,
+                                "urx": 69200,
+                                "ury": 128410,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[1]"
+                                ],
+                                "inst": [],
+                                "llx": 77565,
+                                "lly": 610,
+                                "urx": 77600,
+                                "ury": 1790,
+                                "required_size": 300
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "resp_msg[15]"
+                                ],
+                                "inst": [],
+                                "llx": 77565,
+                                "lly": 127330,
+                                "urx": 77600,
+                                "ury": 128510,
+                                "required_size": 300
+                            }
+                        ]
+                    },
+                    "met5": {
+                        "number": 1,
+                        "list": [
+                            {
+                                "net": [
+                                    "-1",
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1210,
+                                "lly": 1000,
+                                "urx": 1290,
+                                "ury": 1200,
+                                "required_size": 1600
+                            }
+                        ]
+                    }
+                }
+            },
+            "same_layer_cut_spacing": {
+                "number": 7,
+                "layers": {
+                    "met4": {
+                        "number": 7,
+                        "list": [
+                            {
+                                "net": [
+                                    "clk",
+                                    "req_msg[27]"
+                                ],
+                                "inst": [],
+                                "llx": 900,
+                                "lly": 800,
+                                "urx": 1600,
+                                "ury": 900,
+                                "required_size": 800
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[27]"
+                                ],
+                                "inst": [],
+                                "llx": 900,
+                                "lly": 1600,
+                                "urx": 1600,
+                                "ury": 1600,
+                                "required_size": 800
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[1]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 16000,
+                                "urx": 1600,
+                                "ury": 16640,
+                                "required_size": 800
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[9]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 83750,
+                                "urx": 1600,
+                                "ury": 84000,
+                                "required_size": 800
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[12]"
+                                ],
+                                "inst": [],
+                                "llx": 1200,
+                                "lly": 109855,
+                                "urx": 1600,
+                                "ury": 110400,
+                                "required_size": 800
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "clk"
+                                ],
+                                "inst": [],
+                                "llx": 1600,
+                                "lly": 900,
+                                "urx": 2400,
+                                "ury": 1600,
+                                "required_size": 800
+                            },
+                            {
+                                "net": [
+                                    "-1",
+                                    "req_msg[4]"
+                                ],
+                                "inst": [],
+                                "llx": 1600,
+                                "lly": 42375,
+                                "urx": 1600,
+                                "ury": 42400,
+                                "required_size": 800
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

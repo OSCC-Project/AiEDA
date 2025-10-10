@@ -1,0 +1,93 @@
+{
+    "Congestion": {
+        "map": {
+            "egr": {
+                "horizontal": "./example/sky130_gcd/output/iEDA/feature/egr_congestion_map/cts_egr_horizontal_overflow.csv",
+                "union": "./example/sky130_gcd/output/iEDA/feature/egr_congestion_map/cts_egr_union_overflow.csv",
+                "vertical": "./example/sky130_gcd/output/iEDA/feature/egr_congestion_map/cts_egr_vertical_overflow.csv"
+            },
+            "lutrudy": {
+                "horizontal": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/cts_lut_rudy_horizontal.csv",
+                "union": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/cts_lut_rudy_union.csv",
+                "vertical": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/cts_lut_rudy_vertical.csv"
+            },
+            "rudy": {
+                "horizontal": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/cts_rudy_horizontal.csv",
+                "union": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/cts_rudy_union.csv",
+                "vertical": "./example/sky130_gcd/output/iEDA/feature/RUDY_map/cts_rudy_vertical.csv"
+            }
+        },
+        "overflow": {
+            "max": {
+                "horizontal": 3,
+                "union": 4,
+                "vertical": 4
+            },
+            "top_average": {
+                "horizontal": 2.8999998569488525,
+                "union": 6.425000190734863,
+                "vertical": 4.699999809265137
+            },
+            "total": {
+                "horizontal": 12,
+                "union": 32,
+                "vertical": 20
+            }
+        },
+        "utilization": {
+            "lutrudy": {
+                "max": {
+                    "horizontal": 0.0014750000555068254,
+                    "union": 0.0021170000545680523,
+                    "vertical": 0.0010999999940395355
+                },
+                "top_average": {
+                    "horizontal": 0.005966749973595142,
+                    "union": 0.009260999970138073,
+                    "vertical": 0.004664975218474865
+                }
+            },
+            "rudy": {
+                "max": {
+                    "horizontal": 0.0014149999478831887,
+                    "union": 0.0020240000449121,
+                    "vertical": 0.0010740000288933516
+                },
+                "top_average": {
+                    "horizontal": 0.005615999456495047,
+                    "union": 0.008684325031936169,
+                    "vertical": 0.004471749998629093
+                }
+            }
+        }
+    },
+    "Density": {
+        "cell": {
+            "allcell_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_allcell_density.csv",
+            "macro_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_macro_density.csv",
+            "stdcell_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_stdcell_density.csv"
+        },
+        "margin": {
+            "horizontal": "",
+            "union": "",
+            "vertical": ""
+        },
+        "net": {
+            "allnet_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_allnet_density.csv",
+            "global_net_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_global_net_density.csv",
+            "local_net_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_local_net_density.csv"
+        },
+        "pin": {
+            "allcell_pin_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_allcell_pin_density.csv",
+            "macro_pin_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_macro_pin_density.csv",
+            "stdcell_pin_density": "./example/sky130_gcd/output/iEDA/feature/density_map/cts_stdcell_pin_density.csv"
+        }
+    },
+    "Wirelength": {
+        "FLUTE": 12994596,
+        "GRWL": 13219000,
+        "HPWL": 12023613,
+        "HTree": 16391118,
+        "VTree": 14652706
+    }
+}
