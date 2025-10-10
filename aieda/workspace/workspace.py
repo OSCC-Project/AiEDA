@@ -47,6 +47,18 @@ class Workspace:
             if parser.read():
                 design = parser.get_db().design
         return design
+        
+    def get_vectors_path(self):
+        return self.paths_table.ieda_output["vectors"]
+        
+    def get_nets_path(self):
+        return self.paths_table.ieda_vectors["nets"]
+        
+    def get_patchs_path(self):
+        return self.paths_table.ieda_vectors["patchs"]
+        
+    def get_wire_paths_path(self):
+        return self.paths_table.ieda_vectors["wire_paths"]
 
     def create_workspace(self, flow_list=None):
         """check if workspace exist, if not exist, create workspace"""

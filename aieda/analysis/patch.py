@@ -53,7 +53,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
 
             vector_loader = DataVectors(workspace)
 
-            patch_db = vector_loader.load_patchs(workspace.paths_table.ieda_vectors["patchs"])
+            patch_db = vector_loader.load_patchs(workspace.get_patchs_path())
 
             patch_list = []
             for vec_patch in patch_db:
@@ -447,7 +447,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
 
             vector_loader = DataVectors(workspace)
 
-            patch_db = vector_loader.load_patchs(workspace.paths_table.ieda_vectors["patchs"])
+            patch_db = vector_loader.load_patchs(workspace.get_patchs_path())
 
             patch_list = []
             for vec_patch in patch_db:
@@ -792,7 +792,7 @@ class MapAnalyzer(BaseAnalyzer):
 
             vector_loader = DataVectors(workspace)
 
-            patch_db = vector_loader.load_patchs(workspace.paths_table.ieda_vectors["patchs"])
+            patch_db = vector_loader.load_patchs(workspace.get_patchs_path())
 
             patch_list = []
             for vec_patch in patch_db:

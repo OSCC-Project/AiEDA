@@ -43,7 +43,7 @@ class ReportVectors:
             analyzer = WireDistributionAnalyzer()
             analyzer.load(
                 workspaces=workspace_list,
-                pattern=self.workspace.paths_table.ieda_vectors["nets"],
+                pattern=self.workspace.get_nets_path(),
                 dir_to_display_name=display_names_map,
             )
             analyzer.analyze()
@@ -71,7 +71,7 @@ class ReportVectors:
             analyzer = MetricsCorrelationAnalyzer()
             analyzer.load(
                 workspaces=workspace_list,
-                pattern=self.workspace.paths_table.ieda_vectors["nets"],
+                pattern=self.workspace.get_nets_path(),
                 dir_to_display_name=display_names_map,
             )
             analyzer.analyze()
@@ -96,9 +96,11 @@ class ReportVectors:
             from ...analysis import ResultStatisAnalyzer
             
             wire_analyzer = ResultStatisAnalyzer()
+            
+                
             wire_analyzer.load(
                 workspaces=workspace_list,
-                pattern=self.workspace.paths_table.ieda_output["vectors"],
+                pattern=self.workspace.get_vectors_path(),
                 dir_to_display_name=display_names_map,
                 calc_wire_num=False
             )
@@ -129,7 +131,7 @@ class ReportVectors:
             wire_analyzer = DelayAnalyzer()
             wire_analyzer.load(
                 workspaces=workspace_list,
-                pattern=self.workspace.paths_table.ieda_vectors["wire_paths"],
+                pattern=self.workspace.get_wire_paths_path(),
                 dir_to_display_name=display_names_map
             )
             wire_analyzer.analyze()
@@ -159,7 +161,7 @@ class ReportVectors:
             wire_analyzer = StageAnalyzer()
             wire_analyzer.load(
                 workspaces=workspace_list,
-                pattern=self.workspace.paths_table.ieda_vectors["wire_paths"],
+                pattern=self.workspace.get_wire_paths_path(),
                 dir_to_display_name=display_names_map
             )
             wire_analyzer.analyze()
@@ -194,7 +196,7 @@ class ReportVectors:
             analyzer = WireDensityAnalyzer()
             analyzer.load(
                 workspaces=workspace_list,
-                pattern=self.workspace.paths_table.ieda_vectors["patchs"],
+                pattern=self.workspace.get_patchs_path(),
                 dir_to_display_name=display_names_map,
             )
             analyzer.analyze()
@@ -224,7 +226,7 @@ class ReportVectors:
             wire_analyzer = FeatureCorrelationAnalyzer()
             wire_analyzer.load(
                 workspaces=workspace_list,
-                pattern=self.workspace.paths_table.ieda_vectors["patchs"],
+                pattern=self.workspace.get_patchs_path(),
                 dir_to_display_name=display_names_map,
             )
             wire_analyzer.analyze()
@@ -254,7 +256,7 @@ class ReportVectors:
             wire_analyzer = MapAnalyzer()
             wire_analyzer.load(
                 workspaces=workspace_list,
-                pattern=self.workspace.paths_table.ieda_vectors["patchs"],
+                pattern=self.workspace.get_patchs_path(),
                 dir_to_display_name=display_names_map,
             )
             wire_analyzer.analyze()

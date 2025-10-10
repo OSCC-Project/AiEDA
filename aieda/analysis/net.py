@@ -51,7 +51,7 @@ class WireDistributionAnalyzer(BaseAnalyzer):
 
             vector_loader = DataVectors(workspace)
 
-            net_db = vector_loader.load_nets(workspace.paths_table.ieda_vectors["nets"])
+            net_db = vector_loader.load_nets(workspace.get_nets_path())
 
             net_list = []
             for vec_net in net_db:
@@ -334,7 +334,7 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
 
             vector_loader = DataVectors(workspace)
 
-            net_db = vector_loader.load_nets(workspace.paths_table.ieda_vectors["nets"])
+            net_db = vector_loader.load_nets(workspace.get_nets_path())
 
             net_list = []
             for vec_net in net_db:

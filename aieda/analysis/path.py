@@ -49,7 +49,7 @@ class DelayAnalyzer(BaseAnalyzer):
 
             vector_loader = DataVectors(workspace)
 
-            path_db = vector_loader.load_timing_paths_metrics(workspace.paths_table.ieda_vectors["wire_paths"])
+            path_db = vector_loader.load_timing_paths_metrics(workspace.get_wire_paths_path())
 
             path_list = []
             for path_metric in path_db:
@@ -349,7 +349,7 @@ class StageAnalyzer(BaseAnalyzer):
 
             vector_loader = DataVectors(workspace)
 
-            path_db = vector_loader.load_timing_paths_metrics(workspace.paths_table.ieda_vectors["wire_paths"])
+            path_db = vector_loader.load_timing_paths_metrics(workspace.get_wire_paths_path())
 
             path_list = []
             for path_metric in path_db:
