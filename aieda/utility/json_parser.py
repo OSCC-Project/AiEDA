@@ -41,6 +41,10 @@ class JsonParser:
         if not os.path.exists(self.json_path):
             self.logger.error("json file not exist. path = %s", self.json_path)
             return False
+        
+        if os.path.getsize(self.json_path) == 0:
+            self.logger.warning("json file is empty. path = %s", self.json_path)
+            return False
 
         try:
             # compressed
