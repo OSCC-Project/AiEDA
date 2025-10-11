@@ -68,7 +68,7 @@ class GNNTransformerTrainingConfig:
         if self.data_config is None:
             self.data_config = RCNetworkDataConfig(
                 raw_input_dirs=self.raw_input_dirs,
-                pattern="/output/innovus/vectors/timing_data",
+                pattern="/output/iEDA/vectors/timing_data",
                 model_input_file="./rc_network_dataset.pt",
                 plot_dir="./rc_network_analysis_plots",
                 node_feature_dim=9,

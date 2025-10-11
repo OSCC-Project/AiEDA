@@ -125,7 +125,7 @@ class Workspace:
         #########################################################################
         from .config import ParametersParser
 
-        parser = ParametersParser(self.paths_table.parameters, self.logger)
+        parser = ParametersParser(self.paths_table.parameter, self.logger)
         parser.create_json(self.configs.parameters)
 
         #########################################################################
@@ -671,7 +671,7 @@ class Workspace:
         # update parameter.json
         from .config import ParametersParser
 
-        parser = ParametersParser(self.paths_table.parameters, self.logger)
+        parser = ParametersParser(self.paths_table.parameter, self.logger)
         parser.create_json(parameters)
 
         # update iEDA_config/pl_default_config.json
@@ -714,7 +714,7 @@ class Workspace:
     def print_paramters(self):
         from .config import ParametersParser
 
-        parser = ParametersParser(self.paths_table.parameters, self.logger)
+        parser = ParametersParser(self.paths_table.parameter, self.logger)
         parser.print_json()
 
     class PathsTable:
@@ -754,7 +754,7 @@ class Workspace:
             return "{}/config/workspace.json".format(self.directory)
 
         @property
-        def parameters(self):
+        def parameter(self):
             """path for parameters setting"""
             return "{}/config/parameter.json".format(self.directory)
 
@@ -1113,7 +1113,7 @@ class Workspace:
         def _init_parameters(self):
             from .config.json_parameters import ParametersParser
 
-            parser = ParametersParser(self.paths_table.parameters, self.logger)
+            parser = ParametersParser(self.paths_table.parameter, self.logger)
             return parser.get_db()
 
         def reset_flow_states(self):
