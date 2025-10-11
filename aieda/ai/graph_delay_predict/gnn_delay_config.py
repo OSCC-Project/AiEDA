@@ -18,7 +18,7 @@ class NodeDelayDataConfig(ConfigBase):
         self,
         # Data paths: raw data directories, model input file, visualization file storage directory
         raw_input_dirs: List[str],
-        pattern: str = "/output/innovus/vectors/timing_data",
+        pattern: str = "/output/iEDA/vectors/timing_data",
         model_input_file: str = "./gnn_node_delay_dataset.pt",
         plot_dir: str = "./gnn_node_delay_analysis_plots",
         
@@ -195,7 +195,7 @@ if __name__ == "__main__":
             "/data2/project_share/dataset_baseline/s44/workspace",
             "/data2/project_share/dataset_baseline/gcd/workspace"
         ],
-        pattern="/output/innovus/vectors/timing_data",
+        pattern="/output/iEDA/vectors/timing_data",
         model_input_file="./gnn_node_delay_dataset.pt",
         batch_size=32,
         random_seed=42

@@ -27,7 +27,7 @@ class RCNetworkDataConfig:
     """RC network data processing configuration"""
     # Data paths: raw data directories, model input file, visualization file storage directory
     raw_input_dirs: List[str]
-    pattern: str = "/output/innovus/vectors/timing_data"
+    pattern: str = "/output/iEDA/vectors/timing_data"
     model_input_file: str = "./rc_network_dataset.pt"
     plot_dir: str = "./rc_network_analysis_plots"
     
@@ -111,11 +111,11 @@ class RCNetworkDataProcessor:
             
             # Find timing data files
             possible_patterns = [
-                "/output/innovus/vectors/wire_paths",
-                "/output/innovus/vectors/wire_graph", 
-                "/output/innovus/vectors/timing_data",
-                "/output/innovus/feature/large_model/timing_data",
-                "/output/innovus/timing_data",
+                "/output/iEDA/vectors/wire_paths",
+                "/output/iEDA/vectors/wire_graph", 
+                "/output/iEDA/vectors/timing_data",
+                "/output/iEDA/feature/large_model/timing_data",
+                "/output/iEDA/timing_data",
                 "/timing_data"
             ]
             
@@ -881,7 +881,7 @@ if __name__ == "__main__":
             "/data2/project_share/dataset_baseline/s713/workspace",
             "/data2/project_share/dataset_baseline/s44/workspace"
         ],
-        pattern="/output/innovus/vectors/timing_data",
+        pattern="/output/iEDA/vectors/timing_data",
         model_input_file="./rc_network_dataset.pt",
         plot_dir="./rc_network_analysis_plots"
     )
