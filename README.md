@@ -317,12 +317,18 @@ Docker provides a containerized environment with all dependencies pre-configured
 ```bash
 # Test the fullflow (Recommended)
 python test/test_sky130_gcd.py
+# or
+uv run python test/test_sky130_gcd.py
 
 # Test physical design flow using iEDA
 python test/test_ieda_flows.py
+# or 
+uv run python test/test_ieda_flows.py
 
 # Test vector generation 
 python test/test_ieda_vectors.py
+# or
+uv run python test/test_ieda_vectors.py
 ```
 
 ### Basic Usage Examples
