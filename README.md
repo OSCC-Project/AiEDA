@@ -267,7 +267,9 @@ Design Files → Workspace → EDA Tools → Feature Extraction → AI Models �
    cmake ..
    make -j32 ieda_py
    ```
-   **Note:** Building ieda_py requires **sudo** privileges to download additional system libraries.
+   **Note:** 
+   - When compiling iEDA, you need to switch to the AiEDA directory (i.e., ~/AiEDA/), not the iEDA directory (i.e., ~/AiEDA/aieda/third_party/iEDA/).
+   - Building ieda_py requires **sudo** privileges to download additional system libraries. 
 
 4. **Run Tests:**
    ```bash
