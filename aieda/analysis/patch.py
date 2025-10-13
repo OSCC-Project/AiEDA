@@ -10,15 +10,16 @@ import os
 from typing import Dict, List, Optional
 
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib import ticker
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from ..data import DataVectors
 from ..workspace import Workspace
 from .base import BaseAnalyzer
+from .utility import save_fig
 
 
 class WireDensityAnalyzer(BaseAnalyzer):
@@ -322,7 +323,9 @@ class WireDensityAnalyzer(BaseAnalyzer):
             output_path = os.path.join(
                 save_path, "patch_congestion_wire_density_regression.png"
             )
-        plt.savefig(output_path, bbox_inches="tight")
+        save_fig(
+            plt.gcf(), output_path, bbox_inches="tight"
+        )
         plt.close()
 
         print(f"Wire density scatter plot saved to {output_path}")
@@ -685,7 +688,9 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
             output_path = self.workspaces[0].paths_table.get_image_path("patch_feature_correlation")
         else:
             output_path = os.path.join(save_path, "patch_feature_correlation.png")
-        plt.savefig(output_path)
+        save_fig(
+            plt.gcf(), output_path
+        )
         plt.close()
 
         print(f"Feature correlation heatmap saved to {output_path}")
@@ -1043,8 +1048,10 @@ class MapAnalyzer(BaseAnalyzer):
                 else:
                     output_path = os.path.join(save_path, f"patch_map_{design}_{feature.replace(' ', '_')}.png")
                 
-                plt.savefig(output_path)
-                plt.close()
+                save_fig(
+            plt.gcf(), output_path
+        )
+        plt.close()
 
     def _create_feature_comparison_grid(self, save_path: str, cmap: str) -> None:
         """Create a grid comparison of all features for each design."""
@@ -1100,5 +1107,7 @@ class MapAnalyzer(BaseAnalyzer):
             else:
                 output_path = os.path.join(save_path, f"patch_map_{design}_union.png")
             
-            plt.savefig(output_path)
-            plt.close()
+            save_fig(
+            plt.gcf(), output_path
+        )
+        plt.close()

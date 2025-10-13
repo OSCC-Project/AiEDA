@@ -23,6 +23,7 @@ from ..data import DataFeature
 from ..flows import DbFlow
 from ..workspace import Workspace
 from .base import BaseAnalyzer
+from .utility import save_fig
 
 
 class CellTypeAnalyzer(BaseAnalyzer):
@@ -182,8 +183,8 @@ class CellTypeAnalyzer(BaseAnalyzer):
         else:
             output_path = save_path + "/design_cell_type_top_10.png"
         
-        plt.savefig(
-            output_path, dpi=300, bbox_inches="tight"
+        save_fig(
+            plt.gcf(), output_path, dpi=300, bbox_inches="tight"
         )
         plt.close()
 
@@ -223,8 +224,8 @@ class CellTypeAnalyzer(BaseAnalyzer):
         else:
             output_path = save_path + "/design_cell_type_bottom_10.png"
         
-        plt.savefig(
-            output_path, dpi=300, bbox_inches="tight"
+        save_fig(
+            plt.gcf(), output_path, dpi=300, bbox_inches="tight"
         )
         plt.close()
 
@@ -384,7 +385,9 @@ class CoreUsageAnalyzer(BaseAnalyzer):
         else:
             output_path = save_path + "/design_core_usage_hist.png"
         
-        plt.savefig(output_path, bbox_inches="tight")
+        save_fig(
+            plt.gcf(), output_path, bbox_inches="tight"
+        )
         plt.close()
 
         print(f"Saved core usage chart to {output_path}:")
@@ -644,7 +647,9 @@ class PinDistributionAnalyzer(BaseAnalyzer):
         else:
             output_path = save_path + "/design_pin_vs_net_ratio.png"
         
-        plt.savefig(output_path, bbox_inches="tight")
+        save_fig(
+            plt.gcf(), output_path, bbox_inches="tight"
+        )
         print(f"Saved design_pin_vs_net_ratio.png to {output_path}")
         plt.close()
 
@@ -990,10 +995,8 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         else:
             output_path = save_path + "/design_result_stats_overview.png"
         
-        plt.savefig(
-            output_path,
-            dpi=300,
-            bbox_inches="tight",
+        save_fig(
+            plt.gcf(), output_path, dpi=300, bbox_inches="tight"
         )
         plt.close()
 
@@ -1029,8 +1032,8 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         else:
             output_path = save_path + "/design_result_stats_heatmap.png"
         
-        plt.savefig(
-            output_path, dpi=300, bbox_inches="tight"
+        save_fig(
+            plt.gcf(), output_path, dpi=300, bbox_inches="tight"
         )
         plt.close()
 
@@ -1065,7 +1068,8 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             plt.grid(axis="y", alpha=0.3)
 
             plt.tight_layout()
-            plt.savefig(
+            save_fig(
+                plt.gcf(),
                 save_path + "design_wire_number_analysis.png",
                 dpi=300,
                 bbox_inches="tight",

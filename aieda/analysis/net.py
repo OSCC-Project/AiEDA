@@ -17,6 +17,7 @@ import seaborn as sns
 from ..data import DataVectors
 from ..workspace import Workspace
 from .base import BaseAnalyzer
+from .utility import save_fig
 
 
 # =====================================
@@ -298,7 +299,9 @@ class WireDistributionAnalyzer(BaseAnalyzer):
         else:
             output_path = os.path.join(save_path, "net_wire_length_distribution.png")
         
-        plt.savefig(output_path)
+        save_fig(
+            plt.gcf(), output_path
+        )
         plt.close()
 
         print(f"Layer distribution plot saved to {output_path}")
@@ -578,7 +581,9 @@ class MetricsCorrelationAnalyzer(BaseAnalyzer):
         else:
             output_path = os.path.join(save_path, "net_correlation_matrix.png")
         
-        plt.savefig(output_path)
+        save_fig(
+            plt.gcf(), output_path
+        )
         plt.close()
 
         print(f"Correlation matrix plot saved to {output_path}")

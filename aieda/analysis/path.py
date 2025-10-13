@@ -17,6 +17,7 @@ from matplotlib import ticker
 from ..data import DataVectors
 from ..workspace import Workspace
 from .base import BaseAnalyzer
+from .utility import save_fig
 
 
 class DelayAnalyzer(BaseAnalyzer):
@@ -241,7 +242,9 @@ class DelayAnalyzer(BaseAnalyzer):
             output_path = self.workspaces[0].paths_table.get_image_path("path_delay_boxplot")
         else:
             output_path = os.path.join(save_path, "path_delay_boxplot.png")
-        plt.savefig(output_path, bbox_inches="tight")
+        save_fig(
+            plt.gcf(), output_path, bbox_inches="tight"
+        )
         plt.close()
 
         print(f"Delay boxplot saved to {output_path}")
@@ -313,7 +316,9 @@ class DelayAnalyzer(BaseAnalyzer):
             output_path = self.workspaces[0].paths_table.get_image_path("path_delay_scatter")
         else:
             output_path = os.path.join(save_path, "path_delay_scatter.png")
-        plt.savefig(output_path, bbox_inches="tight")
+        save_fig(
+            plt.gcf(), output_path, bbox_inches="tight"
+        )
         plt.close()
 
         print(f"Delay scatter plot saved to {output_path}")
@@ -541,7 +546,9 @@ class StageAnalyzer(BaseAnalyzer):
             output_path = self.workspaces[0].paths_table.get_image_path("path_stage_errorbar")
         else:
             output_path = os.path.join(save_path, "path_stage_errorbar.png")
-        plt.savefig(output_path, bbox_inches="tight")
+        save_fig(
+            plt.gcf(), output_path, bbox_inches="tight"
+        )
         plt.close()
 
         print(f"Stage errorbar plot saved to {output_path}")
@@ -610,7 +617,9 @@ class StageAnalyzer(BaseAnalyzer):
             output_path = self.workspaces[0].paths_table.get_image_path("path_stage_delay_scatter")
         else:
             output_path = os.path.join(save_path, "path_stage_delay_scatter.png")
-        plt.savefig(output_path, bbox_inches="tight")
+        save_fig(
+            plt.gcf(), output_path, bbox_inches="tight"
+        )
         plt.close()
 
         print(f"Stage scatter plot saved to {output_path}")
