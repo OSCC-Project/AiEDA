@@ -348,6 +348,32 @@ class VectorsParserJson(JsonParser):
                 vec_via = VectorVia()
                 vec_via.id = json_via.get("id")
                 vec_via.name = json_via.get("name")
+                
+                bottom_data = json_via.get("bottom")
+                vec_via.bottom = VectorViaRect()
+                vec_via.bottom.llx = bottom_data.get("llx")
+                vec_via.bottom.lly = bottom_data.get("lly")
+                vec_via.bottom.urx = bottom_data.get("urx")
+                vec_via.bottom.ury = bottom_data.get("ury")
+                
+                cut_data = json_via.get("cut")
+                vec_via.cut = VectorViaRect()
+                vec_via.cut.llx = cut_data.get("llx")
+                vec_via.cut.lly = cut_data.get("lly")
+                vec_via.cut.urx = cut_data.get("urx")
+                vec_via.cut.ury = cut_data.get("ury")
+                
+                top_data = json_via.get("top")
+                vec_via.top = VectorViaRect()
+                vec_via.top.llx = top_data.get("llx")
+                vec_via.top.lly = top_data.get("lly")
+                vec_via.top.urx = top_data.get("urx")
+                vec_via.top.ury = top_data.get("ury")
+                
+                vec_via.row = json_via.get("row")
+                vec_via.col = json_via.get("col")
+                vec_via.bottom_direction = json_via.get("bottom_direction")
+                vec_via.top_direction = json_via.get("top_direction")
 
                 vec_vias.vias.append(vec_via)
 

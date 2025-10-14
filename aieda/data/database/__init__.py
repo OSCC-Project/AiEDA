@@ -113,6 +113,7 @@ from .vectors import (
     VectorInstanceGraphEdge,
     VectorInstanceGraph,
     VectorPathMetrics,
+    VectorViaRect,
 )
 
 __all__ = [
@@ -220,4 +221,5 @@ __all__ = [
     'VectorInstanceGraphEdge',
     'VectorInstanceGraph',
     'VectorPathMetrics',
+    'VectorViaRect',
 ]
