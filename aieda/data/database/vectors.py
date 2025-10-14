@@ -28,6 +28,7 @@ class VectorNode:
 class VectorPath:
     node1: Optional[VectorNode] = None
     node2: Optional[VectorNode] = None
+    via: Optional[int] = None
 
 
 @dataclass

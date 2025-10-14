@@ -131,6 +131,9 @@ class VectorsParserJson(JsonParser):
                     vec_node2.layer = wire_data.get("l2")
                     vec_node2.pin_id = wire_data.get("p2")
                     wire_connections.node2 = vec_node2
+                    
+                    if "via" in wire_data:
+                        wire_connections.via = wire_data.get("via")
 
                     vec_wire.wire = wire_connections
 
@@ -161,6 +164,9 @@ class VectorsParserJson(JsonParser):
                         vec_path_node2.col = json_path.get("c2")
                         vec_path_node2.layer = json_path.get("l2")
                         wire_path.node2 = vec_path_node2
+
+                        if "via" in json_path:
+                            wire_path.via = json_path.get("via")
 
                         vec_wire.paths.append(wire_path)
 
@@ -284,6 +290,9 @@ class VectorsParserJson(JsonParser):
                                 vec_path_node2.layer = json_path.get("l2")
                                 vec_path_node2.pin_id = json_path.get("p2")
                                 wire_path.node2 = vec_path_node2
+
+                                if "via" in json_path:
+                                    wire_path.via = json_path.get("via")
 
                                 vec_wire.paths.append(wire_path)
 
