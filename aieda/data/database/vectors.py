@@ -28,6 +28,7 @@ class VectorNode:
 class VectorPath:
     node1: Optional[VectorNode] = None
     node2: Optional[VectorNode] = None
+    via: Optional[int] = None
 
 
 @dataclass
@@ -228,9 +229,23 @@ class VectorLayers(object):
 
 
 @dataclass
+class VectorViaRect:
+    llx: Optional[int] = None  
+    lly: Optional[int] = None  
+    urx: Optional[int] = None  
+    ury: Optional[int] = None 
+
+@dataclass
 class VectorVia:
     id: int = None
     name: str = None
+    bottom: Optional[VectorViaRect] = None
+    cut: Optional[VectorViaRect] = None
+    top: Optional[VectorViaRect] = None
+    row: Optional[int] = None
+    col: Optional[int] = None
+    bottom_direction: Optional[str] = None
+    top_direction: Optional[str] = None
 
 
 @dataclass

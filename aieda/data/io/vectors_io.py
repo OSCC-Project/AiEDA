@@ -131,6 +131,9 @@ class VectorsParserJson(JsonParser):
                     vec_node2.layer = wire_data.get("l2")
                     vec_node2.pin_id = wire_data.get("p2")
                     wire_connections.node2 = vec_node2
+                    
+                    if "via" in wire_data:
+                        wire_connections.via = wire_data.get("via")
 
                     vec_wire.wire = wire_connections
 
@@ -161,6 +164,9 @@ class VectorsParserJson(JsonParser):
                         vec_path_node2.col = json_path.get("c2")
                         vec_path_node2.layer = json_path.get("l2")
                         wire_path.node2 = vec_path_node2
+
+                        if "via" in json_path:
+                            wire_path.via = json_path.get("via")
 
                         vec_wire.paths.append(wire_path)
 
@@ -285,6 +291,9 @@ class VectorsParserJson(JsonParser):
                                 vec_path_node2.pin_id = json_path.get("p2")
                                 wire_path.node2 = vec_path_node2
 
+                                if "via" in json_path:
+                                    wire_path.via = json_path.get("via")
+
                                 vec_wire.paths.append(wire_path)
 
                             vec_net.wires.append(vec_wire)
@@ -339,6 +348,32 @@ class VectorsParserJson(JsonParser):
                 vec_via = VectorVia()
                 vec_via.id = json_via.get("id")
                 vec_via.name = json_via.get("name")
+                
+                bottom_data = json_via.get("bottom")
+                vec_via.bottom = VectorViaRect()
+                vec_via.bottom.llx = bottom_data.get("llx")
+                vec_via.bottom.lly = bottom_data.get("lly")
+                vec_via.bottom.urx = bottom_data.get("urx")
+                vec_via.bottom.ury = bottom_data.get("ury")
+                
+                cut_data = json_via.get("cut")
+                vec_via.cut = VectorViaRect()
+                vec_via.cut.llx = cut_data.get("llx")
+                vec_via.cut.lly = cut_data.get("lly")
+                vec_via.cut.urx = cut_data.get("urx")
+                vec_via.cut.ury = cut_data.get("ury")
+                
+                top_data = json_via.get("top")
+                vec_via.top = VectorViaRect()
+                vec_via.top.llx = top_data.get("llx")
+                vec_via.top.lly = top_data.get("lly")
+                vec_via.top.urx = top_data.get("urx")
+                vec_via.top.ury = top_data.get("ury")
+                
+                vec_via.row = json_via.get("row")
+                vec_via.col = json_via.get("col")
+                vec_via.bottom_direction = json_via.get("bottom_direction")
+                vec_via.top_direction = json_via.get("top_direction")
 
                 vec_vias.vias.append(vec_via)
 

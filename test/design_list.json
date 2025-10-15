@@ -1,0 +1,442 @@
+[
+    {
+        "design": "AIMP",
+        "alias": "AIMP",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/AIMP/syn_netlist/AIMP.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/AIMP/syn_netlist/asic_top_SYN_MAX_800M.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clock"
+        ]
+    },
+    {
+        "design": "AIMP_2.0",
+        "alias": "AIMP_2.0",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/AIMP_2.0/syn_netlist/AIMP_2.0.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/AIMP_2.0/syn_netlist/asic_top_AIMP_900M_SYN.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clock"
+        ]
+    },
+    {
+        "design": "ASIC",
+        "alias": "ASIC",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/ASIC/syn_netlist/ASIC.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/ASIC/syn_netlist/CPU.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "BEIHAI_2.0",
+        "alias": "BEIHAI_2.0",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/BEIHAI_2.0/syn_netlist/BEIHAI_2.0.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/BEIHAI_2.0/syn_netlist/asic_top_AIMP_BEIHAI_SYN_WCZ_1500M.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clock"
+        ]
+    },
+    {
+        "design": "BM64",
+        "alias": "BM64",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/BM64/syn_netlist/BM64.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/BM64/syn_netlist/BM64.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "Clk"
+        ]
+    },
+    {
+        "design": "PPU",
+        "alias": "PPU",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/PPU/syn_netlist/PPU.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/PPU/syn_netlist/PPU.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "T1",
+        "alias": "T1",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/T1/syn_netlist/T1.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/T1/syn_netlist/T1_SYN_MAX.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clock"
+        ]
+    },
+    {
+        "design": "T1_machamp",
+        "alias": "T1_machamp",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/T1_machamp/syn_netlist/T1_machamp.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/T1_machamp/syn_netlist/T1_SYN_MAX.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clock"
+        ]
+    },
+    {
+        "design": "T1_sandslash",
+        "alias": "T1_sandslash",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/T1_sandslash/syn_netlist/T1_sandslash.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/T1_sandslash/syn_netlist/T1_SYN_MAX.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clock"
+        ]
+    },
+    {
+        "design": "WUKONG",
+        "alias": "WUKONG",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/WUKONG/syn_netlist/WUKONG.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/WUKONG/syn_netlist/Top_SYN_TYP.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clock"
+        ]
+    },
+    {
+        "design": "aes",
+        "alias": "aes",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/aes/syn_netlist/aes.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/aes/syn_netlist/aes.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "aes_core",
+        "alias": "aes_core",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/aes_core/syn_netlist/aes_core.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/aes_core/syn_netlist/aes_core.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "apb4_archinfo",
+        "alias": "apb4_archinfo",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_archinfo/syn_netlist/apb4_archinfo.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_archinfo/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "apb4_clint",
+        "alias": "apb4_clint",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_clint/syn_netlist/apb4_clint.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_clint/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "apb4_i2c",
+        "alias": "apb4_i2c",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_i2c/syn_netlist/apb4_i2c.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_i2c/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "apb4_ps2",
+        "alias": "apb4_ps2",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_ps2/syn_netlist/apb4_ps2.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_ps2/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "apb4_pwm",
+        "alias": "apb4_pwm",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_pwm/syn_netlist/apb4_pwm.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_pwm/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "apb4_rng",
+        "alias": "apb4_rng",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_rng/syn_netlist/apb4_rng.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_rng/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "apb4_timer",
+        "alias": "apb4_timer",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_timer/syn_netlist/apb4_timer.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_timer/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "apb4_uart",
+        "alias": "apb4_uart",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_uart/syn_netlist/apb4_uart.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_uart/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "apb4_wdg",
+        "alias": "apb4_wdg",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_wdg/syn_netlist/apb4_wdg.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/apb4_wdg/syn_netlist/apb4.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "apb4_pclk"
+        ]
+    },
+    {
+        "design": "beihai",
+        "alias": "beihai",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/beihai/syn_netlist/beihai.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/beihai/syn_netlist/asic_top_SYN_WCZ_ista.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clock"
+        ]
+    },
+    {
+        "design": "blabla",
+        "alias": "blabla",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/blabla/syn_netlist/blabla.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/blabla/syn_netlist/blabla.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "eth_top",
+        "alias": "eth_top",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/eth_top/syn_netlist/eth_top.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/eth_top/syn_netlist/eth_top.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "wb_clk_i"
+        ]
+    },
+    {
+        "design": "gcd",
+        "alias": "gcd",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/gcd/syn_netlist/gcd.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/gcd/syn_netlist/gcd.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "jpeg_encoder",
+        "alias": "jpeg_encoder",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/jpeg_encoder/syn_netlist/jpeg_encoder.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/jpeg_encoder/syn_netlist/jpeg_encoder.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "picorv32",
+        "alias": "picorv32",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/picorv32/syn_netlist/picorv32.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/picorv32/syn_netlist/picorv32.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "s1238",
+        "alias": "s1238",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s1238/syn_netlist/s1238.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s1238/syn_netlist/s1238.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s13207",
+        "alias": "s13207",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s13207/syn_netlist/s13207.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s13207/syn_netlist/s13207.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s1488",
+        "alias": "s1488",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s1488/syn_netlist/s1488.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s1488/syn_netlist/s1488.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s15850",
+        "alias": "s15850",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s15850/syn_netlist/s15850.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s15850/syn_netlist/s15850.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s35932",
+        "alias": "s35932",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s35932/syn_netlist/s35932.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s35932/syn_netlist/s35932.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s38417",
+        "alias": "s38417",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s38417/syn_netlist/s38417.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s38417/syn_netlist/s38417.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s38584",
+        "alias": "s38584",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s38584/syn_netlist/s38584.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s38584/syn_netlist/s38584.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s44",
+        "alias": "s44",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s44/syn_netlist/s44.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s44/syn_netlist/s44.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "config_clk"
+        ]
+    },
+    {
+        "design": "s5378",
+        "alias": "s5378",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s5378/syn_netlist/s5378.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s5378/syn_netlist/s5378.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s713",
+        "alias": "s713",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s713/syn_netlist/s713.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s713/syn_netlist/s713.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "s9234",
+        "alias": "s9234",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s9234/syn_netlist/s9234.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/s9234/syn_netlist/s9234.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "CK"
+        ]
+    },
+    {
+        "design": "salsa20",
+        "alias": "salsa20",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/salsa20/syn_netlist/salsa20.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/salsa20/syn_netlist/salsa20.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    },
+    {
+        "design": "yadan_riscv_sopc",
+        "alias": "yadan_riscv_sopc",
+        "workspace": "/data2/home/zyx/aieda/aieda_fork/test/output",
+        "verilog": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/yadan_riscv_sopc/syn_netlist/yadan_riscv_sopc.v",
+        "sdc": "/data2/home/zyx/aieda/aieda_fork/example/dataset_skywater130/yadan_riscv_sopc/syn_netlist/yadan_riscv_sopc_SYN_MAX.sdc",
+        "spef": "",
+        "clk_port_name": [
+            "clk"
+        ]
+    }
+]
