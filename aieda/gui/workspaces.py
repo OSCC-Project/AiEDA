@@ -11,11 +11,12 @@ from PyQt5.QtWidgets import (
     QSplitter
 )
 
-from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtGui import QIcon, QFont, QColor
 from PyQt5.QtCore import Qt, QRect, QSize
 
 from aieda.gui.chip import ChipLayout
 from aieda.gui.workspace import WorkspaceUI
+from aieda.gui.chip3d import Chip3D
 from aieda.workspace import Workspace
 
 
@@ -109,6 +110,12 @@ class WorkspacesUI(QMainWindow):
         self.fit_btn.setToolTip("Fit View")
         self.control_bar.addWidget(self.fit_btn)
         
+        # Add 3D button
+        self.three_d_btn = QPushButton(QIcon("{}/icon/chip.png".format(current_dir)), "")
+        self.three_d_btn.setToolTip("3D View")
+        self.three_d_btn.clicked.connect(self.show_3d_view)
+        self.control_bar.addWidget(self.three_d_btn)
+        
         self.control_bar.addStretch()
         
         self.main_layout.addWidget(self.control_bar_widget)
@@ -196,6 +203,35 @@ class WorkspacesUI(QMainWindow):
         # Add status bar information display
         status_message = f"Design: {workspace.design}, Workspace: {workspace.directory}"
         self.statusBar().showMessage(status_message)
+        
+    def show_3d_view(self):
+        """Show 3D view of the chip layout in a new window."""
+        if not hasattr(self, 'workspace_ui') or not self.workspace_ui:
+            QMessageBox.warning(self, "No Workspace Loaded", "Please load a workspace first.")
+            return
+        
+        try:           
+            # Check if workspace has the required data
+            if not all(hasattr(self.workspace_ui, attr) for attr in ['vec_cells', 'vec_instances', 'vec_nets']):
+                QMessageBox.warning(self, "Insufficient Data", "The loaded workspace_ui does not have sufficient data for 3D visualization.")
+                return
+            
+            # Create color list
+            color_list = {}
+            color_list[None] = QColor(0, 0, 255, 150)  # Default blue color with transparency
+            
+            # Create and show Chip3D window
+            self.chip3d_window = Chip3D(
+                self.workspace_ui.workspace,
+                self.workspace_ui.vec_cells,
+                self.workspace_ui.vec_instances,
+                self.workspace_ui.vec_nets,
+                self.workspace_ui.color_list
+            )
+            self.chip3d_window.show()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to show 3D view: {str(e)}")
 
 
     def init_content_area(self):

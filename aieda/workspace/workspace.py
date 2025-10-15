@@ -1076,6 +1076,15 @@ class Workspace:
                 return "{}/patch_map_{}_union.png".format(self.analysis_dir, design_name)
             
             return self.analysis_images.get(image_type, None)
+        
+        @property
+        def html(self): 
+            paths = {
+                "nets_json": "{}/output/iEDA/data/gui/nets.json".format(self.directory),
+                "chip3d": "{}/output/iEDA/data/gui/chip3d.html".format(self.directory),
+            }
+            
+            return paths
 
     class Configs:
         def __init__(self, paths_table, logger):

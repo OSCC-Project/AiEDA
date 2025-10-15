@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt
 plt.ioff() 
 
 from aieda.workspace import workspace_create
-from aieda.gui import GuiLayout,WorkspaceUI,WorkspacesUI
+from aieda.gui import GuiLayout,WorkspaceUI,WorkspacesUI  # May be None if dependencies are missing
 
 def test_instance_graph(workspace):
     gui = GuiLayout(workspace)
@@ -62,6 +62,12 @@ def test_workspaces(workspace):
     import sys
     from PyQt5.QtWidgets import QApplication
     
+    # Check if WorkspacesUI is available
+    if WorkspacesUI is None:
+        print("Error: WorkspacesUI is not available. This is likely due to missing dependencies (PyQtWebEngine).")
+        print("Please install the required dependencies or try running test_workspace() instead.")
+        sys.exit(1)
+    
     # Check if running in an environment with graphical interface
     import os
     if os.environ.get('DISPLAY', '') == '' and sys.platform != 'win32':
@@ -88,6 +94,9 @@ def test_workspaces(workspace):
 
 if __name__ == "__main__":
     import os
+    
+    os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox --ignore-gpu-blocklist --disable-gpu-compositing --enable-native-gpu-memory-buffers"
+    
 
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
@@ -98,7 +107,14 @@ if __name__ == "__main__":
     
     # test_instance_graph(workspace)
     
-    # test_workspace(workspace)
-    test_workspaces(workspace)
-
+    try:
+        # First try to run the full workspaces UI
+        # test_workspace(workspace)
+        test_workspaces(workspace)
+    except SystemExit as e:
+        # If workspaces UI fails (exit code 1), try to run the basic workspace UI
+        if e.code == 1:
+            print("\nTrying to run basic workspace UI instead...")
+            test_workspace(workspace)
+    
     exit(0)
