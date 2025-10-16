@@ -231,7 +231,7 @@ class SceneManager {
             if (this.isRotationMode) {
                 // Rotation mode - check for Ctrl key
                 if (this.keys.ctrl) {
-                    this.rotateScene(deltaX * 0.2, deltaY * 0.2);
+                    this.moveCamera(deltaY)
                 } else {
                     this.rotateSceneWorldZAxis(-deltaX);   
                 }
@@ -259,26 +259,6 @@ class SceneManager {
         
         const zoomFactor = event.deltaY > 0 ? 1.1 : 0.9;
         this.camera.position.multiplyScalar(zoomFactor);
-    }
-
-    rotateScene(deltaX, deltaY) {
-        // More intuitive rotation that follows mouse movement
-        // The scene rotates as if you're grabbing and turning a physical object
-        
-        // Get the camera's current view direction and up vector
-        const cameraDirection = new THREE.Vector3();
-        this.camera.getWorldDirection(cameraDirection);
-        
-        // Calculate rotation axes relative to camera view
-        const cameraUp = this.camera.up.clone();
-        const cameraRight = new THREE.Vector3().crossVectors(cameraUp, cameraDirection).normalize();
-        
-        const xRotation = deltaX * 0.01 * this.rotationSpeed;
-        this.objectGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), xRotation);
-
-        const yRotation = deltaY * 0.01 * this.rotationSpeed;
-        this.objectGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), yRotation);
-
     }
 
     rotateSceneWorldZAxis(deltaX) {
@@ -533,6 +513,25 @@ class SceneManager {
             }
         }
     }
+
+    moveCamera(delta_z){
+        // Position camera at optimal distance with Z-up orientation
+        const bounds = this.dataManager.getBounds();
+        const viewInfo = this.calculateOptimalView(bounds);
+        this.camera.position.z += delta_z
+        // this.camera.position.set(
+        //     viewInfo.center.x + viewInfo.cameraOffset,
+        //     viewInfo.center.y + viewInfo.cameraOffset,
+        //     viewInfo.center.z + delta_z
+        // );
+        
+        this.camera.lookAt(viewInfo.center.x, viewInfo.center.y, viewInfo.center.z);
+        
+        // Ensure Z is up
+        // this.camera.up.set(0, 0, 1);
+        this.camera.updateProjectionMatrix();
+    }
+        
 
     clearScene() {
         // Remove all mesh groups
