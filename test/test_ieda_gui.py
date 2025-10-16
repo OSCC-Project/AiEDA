@@ -17,7 +17,18 @@ if os.environ.get('DISPLAY', '') == '' and sys.platform != 'win32':
     os.environ['MPLBACKEND'] = 'Agg'
 else:
     os.environ['MPLBACKEND'] = 'Qt5Agg'
-
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox --ignore-gpu-blocklist --disable-gpu-compositing --enable-native-gpu-memory-buffers"
+ 
+if os.environ.get('DISPLAY', '') == '' and sys.platform != 'win32':
+    print("Warning: No display device available in current environment (DISPLAY is empty)")
+    print("Running GUI applications on headless servers requires configuring a virtual display server (Xvfb) or using offscreen mode")
+    print("\nFor example, you can start a virtual display server with:")
+    print("  Xvfb :1 -screen 0 1024x768x16 &")
+    print("  export DISPLAY=:1")
+    print("\nThen run this script again")
+    sys.exit(1)
+    
+       
 import matplotlib
 matplotlib.use(os.environ['MPLBACKEND'], force=True)
 import matplotlib.pyplot as plt
@@ -33,17 +44,6 @@ def test_instance_graph(workspace):
 def test_workspace(workspace):
     import sys
     from PyQt5.QtWidgets import QApplication
-    
-    # Check if running in an environment with graphical interface
-    import os
-    if os.environ.get('DISPLAY', '') == '' and sys.platform != 'win32':
-        print("Warning: No display device available in current environment (DISPLAY is empty)")
-        print("Running GUI applications on headless servers requires configuring a virtual display server (Xvfb) or using offscreen mode")
-        print("\nFor example, you can start a virtual display server with:")
-        print("  Xvfb :1 -screen 0 1024x768x16 &")
-        print("  export DISPLAY=:1")
-        print("\nThen run this script again")
-        sys.exit(1)
     
     # Create application instance
     app = QApplication(sys.argv)
@@ -62,23 +62,6 @@ def test_workspaces(workspace):
     import sys
     from PyQt5.QtWidgets import QApplication
     
-    # Check if WorkspacesUI is available
-    if WorkspacesUI is None:
-        print("Error: WorkspacesUI is not available. This is likely due to missing dependencies (PyQtWebEngine).")
-        print("Please install the required dependencies or try running test_workspace() instead.")
-        sys.exit(1)
-    
-    # Check if running in an environment with graphical interface
-    import os
-    if os.environ.get('DISPLAY', '') == '' and sys.platform != 'win32':
-        print("Warning: No display device available in current environment (DISPLAY is empty)")
-        print("Running GUI applications on headless servers requires configuring a virtual display server (Xvfb) or using offscreen mode")
-        print("\nFor example, you can start a virtual display server with:")
-        print("  Xvfb :1 -screen 0 1024x768x16 &")
-        print("  export DISPLAY=:1")
-        print("\nThen run this script again")
-        sys.exit(1)
-    
     # Create application instance
     app = QApplication(sys.argv)
     
@@ -93,11 +76,6 @@ def test_workspaces(workspace):
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    import os
-    
-    os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--no-sandbox --ignore-gpu-blocklist --disable-gpu-compositing --enable-native-gpu-memory-buffers"
-    
-
     current_dir = os.path.split(os.path.abspath(__file__))[0]
     root = current_dir.rsplit("/", 1)[0]
 

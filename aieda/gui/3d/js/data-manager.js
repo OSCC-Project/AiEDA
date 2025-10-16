@@ -110,43 +110,47 @@ class DataManager {
     loadFromJSON(jsonData) {
         this.clear();
         
-        if (jsonData.shapes) {
-            jsonData.shapes.forEach(item => {
-                const color = item.color || { r: 1, g: 1, b: 1 };
-                
-                switch (item.type) {
-                    case 'Wire':
-                        this.addWire(
-                            item.x1, item.y1, item.z1,
-                            item.x2, item.y2, item.z2,
-                            item.comment || '',
-                            item.shapeClass || 'default',
-                            color
-                        );
-                        break;
-                    case 'Rect':
-                        this.addRect(
-                            item.x1, item.y1, item.z1,
-                            item.x2, item.y2, item.z2,
-                            item.comment || '',
-                            item.shapeClass || 'default',
-                            color
-                        );
-                        break;
-                    case 'Via':
-                        this.addVia(
-                            item.x1, item.y1, item.z1, item.z2,
-                            item.comment || '',
-                            item.shapeClass || 'default',
-                            color
-                        );
-                        break;
-                }
-            });
-        }
+        this.load_shapes(jsonData.instances)
+        this.load_shapes(jsonData.nets)
 
         this.autoScale();
     }
+
+    load_shapes(shapes){
+        shapes.forEach(item => {
+            const color = item.color || { r: 1, g: 1, b: 1 };
+            
+            switch (item.type) {
+                case 'Wire':
+                    this.addWire(
+                        item.x1, item.y1, item.z1,
+                        item.x2, item.y2, item.z2,
+                        item.comment || '',
+                        item.shapeClass || 'default',
+                        color
+                    );
+                    break;
+                case 'Rect':
+                    this.addRect(
+                        item.x1, item.y1, item.z1,
+                        item.x2, item.y2, item.z2,
+                        item.comment || '',
+                        item.shapeClass || 'default',
+                        color
+                    );
+                    break;
+                case 'Via':
+                    this.addVia(
+                        item.x1, item.y1, item.z1, item.z2,
+                        item.comment || '',
+                        item.shapeClass || 'default',
+                        color
+                    );
+                    break;
+            }
+        });
+    }
+        
 
     clear() {
         this.shapes.clear();

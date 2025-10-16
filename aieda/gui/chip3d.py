@@ -8,10 +8,9 @@ from typing import List, Dict, Optional, Tuple
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
                             QPushButton, QMessageBox, QSplitter)
 from PyQt5.QtCore import Qt, QUrl
-from PyQt5.QtGui import QColor, QFont
+from PyQt5.QtGui import QColor, QFont, QIcon
 from PyQt5.QtWebEngineWidgets import QWebEngineView
 
-from ..data import DataVectors
 from ..workspace import Workspace
 import json
 
@@ -34,45 +33,69 @@ class Chip3D(QWidget):
         self.vec_nets = vec_nets
         self.color_list = color_list
         
+        self.is_rotating = False
+        self.is_axes = False
+        
         # 初始化UI
         self.init_ui()
-        self.show_chip()
+        self.init_html()
     
     def init_ui(self):
-        """Initialize UI components including web view and control buttons"""
-        # Main layout
-        main_layout = QVBoxLayout(self)
-        
-        # Create control bar
-        control_layout = QHBoxLayout()
+        main_layout = QHBoxLayout(self)
+        control_layout = QVBoxLayout()
         
         # Add reset camera button
-        self.reset_camera_btn = QPushButton("Reset Camera")
+        import os
+        current_dir = os.path.split(os.path.abspath(__file__))[0]
+        
+        self.reset_camera_btn = QPushButton(QIcon("{}/icon/camera_reset.png".format(current_dir)), "")
+        self.reset_camera_btn.setToolTip("Reset Camera")
         self.reset_camera_btn.clicked.connect(self.reset_camera)
         control_layout.addWidget(self.reset_camera_btn)
         
-        # Add data refresh button
-        self.refresh_data_btn = QPushButton("Refresh Data")
-        self.refresh_data_btn.clicked.connect(self.refresh_data)
-        control_layout.addWidget(self.refresh_data_btn)
+        # Add data roate button
+        self.rotate_btn = QPushButton(QIcon("{}/icon/rotate_off.png".format(current_dir)), "")
+        self.rotate_btn.setToolTip("Rotation")
+        self.rotate_btn.clicked.connect(self.rotate_view)
+        control_layout.addWidget(self.rotate_btn)
+        
+        self.toggle_axes_btn = QPushButton(QIcon("{}/icon/axes_off.png".format(current_dir)), "")
+        self.toggle_axes_btn.setToolTip("Axes")
+        self.toggle_axes_btn.clicked.connect(self.toggle_axes)
+        control_layout.addWidget(self.toggle_axes_btn)
         
         # Add stretch to push buttons to the left
         control_layout.addStretch()
         
+        # 创建控制栏容器并设置固定宽度
+        control_widget = QWidget()
+        control_widget.setLayout(control_layout)
+        control_widget.setFixedWidth(60)  # 设置左侧控制栏的宽度为60像素
+        
         # Add control bar to main layout
-        main_layout.addLayout(control_layout)
+        main_layout.addWidget(control_widget)
         
         # Create WebEngineView for Three.js rendering
         self.web_view = QWebEngineView()
         self.web_view.setMinimumSize(1000, 800)
         main_layout.addWidget(self.web_view)
         
-        # 连接加载完成信号，用于注入数据
+        # laod data
         self.web_view.loadFinished.connect(self.on_page_loaded)
         
         self.setLayout(main_layout)
-        self.setWindowTitle("Chip 3D Layout Display")
-        self.resize(1000, 800)
+        self.setWindowTitle("Chip 3D")
+        self.showMaximized()
+        
+    def init_html(self):
+        """show layout in viewer"""
+        layout_viewer_path = os.path.join(os.path.dirname(__file__), '3d', 'chip.html')
+        
+        if not os.path.exists(layout_viewer_path):
+            QMessageBox.warning(self, "Error", f"Layout viewer not found at {layout_viewer_path}")
+            return
+
+        self.web_view.load(QUrl.fromLocalFile(layout_viewer_path))
     
     def resizeEvent(self, event):
         """Handle resize events"""
@@ -81,88 +104,107 @@ class Chip3D(QWidget):
         
     def reset_camera(self):
         """重置相机视角"""
-        # 使用JavaScript重置相机
-        self.web_view.page().runJavaScript("if (typeof app !== 'undefined' && app.sceneManager) { app.sceneManager.resetView(); }")
+        self.web_view.page().runJavaScript("if (typeof reset_camera !== 'undefined') { reset_camera(); }")
     
-    def refresh_data(self):
-        """刷新显示的数据"""
-        # 生成新的JSON数据
-        json_data = GenerateJsonNets(self.workspace, self.vec_nets, self.color_list).generate()
-        # 将数据传递给JavaScript
-        self.web_view.page().runJavaScript(f"updateChipData({json_data});")
+    def toggle_axes(self):
+        self.is_axes = not self.is_axes
+        
+        # 更新按钮图标和提示文本
+        current_dir = os.path.split(os.path.abspath(__file__))[0]
+        if self.is_axes:
+            self.toggle_axes_btn.setIcon(QIcon("{}/icon/axes_on.png".format(current_dir)))
+            self.toggle_axes_btn.setToolTip("Show Axes")
+        else:
+            self.toggle_axes_btn.setIcon(QIcon("{}/icon/axes_off.png".format(current_dir)))
+            self.toggle_axes_btn.setToolTip("Hide Axes")
+            
+        self.web_view.page().runJavaScript("if (typeof toggle_axes !== 'undefined') { toggle_axes(); }")
+        
+    def rotate_view(self):
+        """切换旋转模式"""
+        self.is_rotating = not self.is_rotating
+        
+        # 更新按钮图标和提示文本
+        current_dir = os.path.split(os.path.abspath(__file__))[0]
+        if self.is_rotating:
+            self.rotate_btn.setIcon(QIcon("{}/icon/rotate_on.png".format(current_dir)))
+            self.rotate_btn.setToolTip("Stop Rotation")
+        else:
+            self.rotate_btn.setIcon(QIcon("{}/icon/rotate_off.png".format(current_dir)))
+            self.rotate_btn.setToolTip("Start Rotation")
+        
+        # 调用JavaScript函数切换旋转模式
+        self.web_view.page().runJavaScript("if (typeof rotation_mode !== 'undefined') { rotation_mode(); }")
     
     def on_page_loaded(self, success):
-        """页面加载完成后的回调"""
+        """callback to load data"""
         if success:
-            # 页面加载成功后，注入数据
-            self.refresh_data()
+            json_data = self.generate()
+            self.web_view.page().runJavaScript(f"updateChipData({json_data});")
         else:
             print("Failed to load the 3D layout viewer")
     
-    def show_chip(self):
-        """加载layout-viewer到web_view中显示"""
-        # 获取layout-viewer的index.html路径
-        layout_viewer_path = os.path.join(os.path.dirname(__file__), '3d', 'chip.html')
-        
-        # 确保路径存在
-        if not os.path.exists(layout_viewer_path):
-            QMessageBox.warning(self, "Error", f"Layout viewer not found at {layout_viewer_path}")
-            return
-        
-        # 加载HTML文件
-        self.web_view.load(QUrl.fromLocalFile(layout_viewer_path))
-
-class GenerateJsonNets:
-    def __init__(self, workspace, vec_nets, color_list):
-        self.workspace = workspace
-        self.vec_nets = vec_nets
-        self.color_list = color_list
-    
     def generate(self):
-        """生成芯片数据的JSON格式"""
-        # 生成线网数据
-        json_nets = []
-        for vec_net in self.vec_nets:
-            for wire in vec_net.wires:
-                for path in wire.paths:
-                    layer_id = (path.node1.layer + path.node2.layer) / 2
-                    color_id = layer_id % len(self.color_list)
-                    color = {
-                        "r": self.color_list[color_id].red() / 255.0, 
-                        "g": self.color_list[color_id].green() / 255.0, 
-                        "b": self.color_list[color_id].blue() / 255.0
-                        }
-                    
-                    if path.node1.layer == path.node2.layer:
-                        type = "Wire"
-                    else:
-                        type = "Via"
-                    
-                    path_data = {
-                        "type": type,
-                        'x1': path.node1.real_x,
-                        'y1': path.node1.real_y,
-                        'z1': path.node1.layer,
-                        'x2': path.node2.real_x,
-                        'y2': path.node2.real_y,
-                        'z2': path.node2.layer,
-                        'color': color,
-                        'comment': f'Net_{vec_net.name}',
-                        'shapeClass': f'Net_Class_{path.node1.layer}'
-                    }
+        def generate_nets(vec_nets):
+            json_nets = []
+            for vec_net in self.vec_nets:
+                for wire in vec_net.wires:
+                    for path in wire.paths:
+                        layer_id = (path.node1.layer + path.node2.layer) / 2
+                        color_id = layer_id % len(self.color_list)
+                        color = {
+                            "r": self.color_list[color_id].red() / 255.0, 
+                            "g": self.color_list[color_id].green() / 255.0, 
+                            "b": self.color_list[color_id].blue() / 255.0
+                            }
                         
-                    json_nets.append(path_data)
-                    
+                        if path.node1.layer == path.node2.layer:
+                            type = "Wire"
+                        else:
+                            type = "Via"
+                        
+                        path_data = {
+                            "type": type,
+                            'x1': path.node1.real_x,
+                            'y1': path.node1.real_y,
+                            'z1': path.node1.layer,
+                            'x2': path.node2.real_x,
+                            'y2': path.node2.real_y,
+                            'z2': path.node2.layer,
+                            'color': color,
+                            'comment': f'Net_{vec_net.name}',
+                            'shapeClass': f'Net_Class_{path.node1.layer}'
+                        }
+                            
+                        json_nets.append(path_data)
+                        
+            return json_nets
         
-        # 创建完整的JSON数据对象
-        chip_data = {
-            "shapes": json_nets,
-            # 可以根据需要添加其他数据类型（如单元、过孔等）
-        }
+        def generate_instances(instances):
+            json_inst = []
+            for vec_instance in instances:
+                path_data = {
+                            "type": "Rect",
+                            'x1': vec_instance.llx,
+                            'y1': vec_instance.lly,
+                            'z1': 0,
+                            'x2': vec_instance.urx,
+                            'y2': vec_instance.ury,
+                            'z2': 0,
+                            'color': {"r" : 0.3, "g" : 0.3, "b" : 0.3},
+                            'comment': f'{vec_instance.name}',
+                            'shapeClass': f'{vec_instance.cell_id}'
+                        }
+                
+                json_inst.append(path_data)
+            
+            return json_inst
+
         
-        with open(self.workspace.paths_table.html["nets_json"], "w", encoding="utf-8") as f_writer:
-            json.dump(chip_data, f_writer, indent=4)
-            print("save json to {}".format(self.workspace.paths_table.html["nets_json"]))
+        chip_data = {}
         
-        # 将Python对象转换为JSON字符串
+        chip_data["instances"] = generate_instances(self.vec_instances.instances)    
+        chip_data["nets"] = generate_nets(self.vec_nets)
+
         return json.dumps(chip_data)
+    

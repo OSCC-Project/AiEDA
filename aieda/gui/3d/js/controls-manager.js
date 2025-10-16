@@ -12,7 +12,7 @@ class ControlsManager {
         this.currentColorCallback = null;
         this.currentGroupCallback = null;
         
-        this.setupEventListeners();
+        // this.setupEventListeners();
     }
 
     setupEventListeners() {

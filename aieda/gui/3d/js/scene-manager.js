@@ -15,7 +15,7 @@ class SceneManager {
         this.lastMousePos = { x: 0, y: 0 };
         this.isRotationMode = false;
         this.panSpeed = 0.5;
-        this.rotationSpeed = 1.0;
+        this.rotationSpeed = 0.2;
         
         // Keyboard state
         this.keys = {
@@ -187,8 +187,6 @@ class SceneManager {
         // Mouse events for tooltip
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
-        
-        this.canvas.addEventListener('mousemove', (event) => this.onMouseMove(event));
     }
 
     setupCustomControls() {
@@ -233,9 +231,9 @@ class SceneManager {
             if (this.isRotationMode) {
                 // Rotation mode - check for Ctrl key
                 if (this.keys.ctrl) {
-                    this.rotateSceneWorldZAxis(deltaX);
+                    this.rotateScene(deltaX * 0.2, deltaY * 0.2);
                 } else {
-                    this.rotateScene(deltaX, deltaY);
+                    this.rotateSceneWorldZAxis(-deltaX);   
                 }
             } else {
                 // Pan mode - reversed direction
@@ -275,18 +273,12 @@ class SceneManager {
         const cameraUp = this.camera.up.clone();
         const cameraRight = new THREE.Vector3().crossVectors(cameraUp, cameraDirection).normalize();
         
-        // Horizontal mouse movement (deltaX) rotates around the world Z-axis (since Z is up)
-        // This makes left/right mouse movement rotate the object left/right as expected
-        const zRotation = -deltaX * 0.01 * this.rotationSpeed;
-        this.objectGroup.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), zRotation);
-        
-        // Vertical mouse movement (deltaY) rotates around the camera's right vector
-        // This makes up/down mouse movement tilt the object up/down as expected
-        const xRotation = -deltaY * 0.01 * this.rotationSpeed;
-        
-        // Transform the camera's right vector to world space for consistent rotation
-        const worldRight = cameraRight.clone();
-        this.objectGroup.rotateOnWorldAxis(worldRight, xRotation);
+        const xRotation = deltaX * 0.01 * this.rotationSpeed;
+        this.objectGroup.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), xRotation);
+
+        const yRotation = deltaY * 0.01 * this.rotationSpeed;
+        this.objectGroup.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), yRotation);
+
     }
 
     rotateSceneWorldZAxis(deltaX) {
@@ -338,35 +330,6 @@ class SceneManager {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
-    }
-
-    onMouseMove(event) {
-        // This is for tooltip functionality only
-        const rect = this.canvas.getBoundingClientRect();
-        this.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        this.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-        this.raycaster.setFromCamera(this.mouse, this.camera);
-        
-        const tooltip = document.getElementById('tooltip');
-        const intersects = this.raycaster.intersectObjects(this.scene.children, true);
-
-        if (intersects.length > 0) {
-            const intersect = intersects[0];
-            const userData = intersect.object.userData;
-            
-            // Only show tooltip if the object has a comment AND its class is visible
-            if (userData.comment && userData.shapeClass && this.dataManager.isClassVisible(userData.shapeClass)) {
-                tooltip.style.display = 'block';
-                tooltip.style.left = event.clientX + 10 + 'px';
-                tooltip.style.top = event.clientY + 10 + 'px';
-                tooltip.textContent = userData.comment;
-            } else {
-                tooltip.style.display = 'none';
-            }
-        } else {
-            tooltip.style.display = 'none';
-        }
     }
 
     animate() {
