@@ -94,12 +94,14 @@ class DataVectors:
         patchs = []
 
         def read_from_dir():
-            # get data from nets directory
+            # get data from patchs directory
             for root, dirs, files in os.walk(patchs_dir):
-                for file in files:
+                for _, file in tqdm.tqdm(
+                    enumerate(files), total=len(files), desc="vectors read patchs"
+                ):
                     if file.endswith(".json"):
                         filepath = os.path.join(root, file)
-                        self.workspace.logger.info("read patchs from %s", filepath)
+
                         json_parser = VectorsParserJson(filepath)
 
                         patchs.extend(json_parser.get_patchs())
@@ -111,7 +113,7 @@ class DataVectors:
 
         if patch_path is not None and os.path.isfile(patch_path):
             self.workspace.logger.info("read patchs from %s", patch_path)
-            # get nets from nets josn file
+            # get patchs from patch josn file
             json_parser = VectorsParserJson(patch_path)
 
             patchs.extend(json_parser.get_patchs())
