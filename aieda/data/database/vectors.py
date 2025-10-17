@@ -215,6 +215,20 @@ class VectorTimingWirePathGraph(object):
     nodes: List[VectorTimingWireGraphNode] = field(default_factory=list)
     edges: List[VectorTimingWireGraphEdge] = field(default_factory=list)
 
+@dataclass
+class VectorTimingWirePathData(object):
+    capacitance_list: List[float] = field(default_factory=list)
+    slew_list: List[float] = field(default_factory=list)
+    resistance_list: List[float] = field(default_factory=list)
+    incr_list: List[float] = field(default_factory=list)
+    nodes: List[str] = field(default_factory=list)
+
+
+@dataclass
+class VectorPathMetrics:
+    stage: Optional[int] = None
+    inst_delay: List[float] = field(default_factory=list)
+    net_delay: List[float] = field(default_factory=list)
 
 @dataclass
 class VectorLayer:
@@ -310,8 +324,3 @@ class VectorInstanceGraph(object):
     edges: List[VectorInstanceGraphEdge] = field(default_factory=list)
 
 
-@dataclass
-class VectorPathMetrics:
-    stage: Optional[int] = None
-    inst_delay: List[float] = field(default_factory=list)
-    net_delay: List[float] = field(default_factory=list)

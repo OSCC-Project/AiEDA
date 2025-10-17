@@ -439,7 +439,6 @@ class VectorsParserJson(JsonParser):
             for json_node in tqdm(json_nodes, total=len(json_nodes), desc="load nodes"):
                 wire_node = VectorTimingWireGraphNode()
 
-                # patch
                 wire_node.id = json_node.get("id")
                 wire_node.name = json_node.get("name")
                 wire_node.is_pin = json_node.get("is_pin")
@@ -451,7 +450,6 @@ class VectorsParserJson(JsonParser):
             for json_edge in tqdm(json_edges, total=len(json_edges), desc="load edges"):
                 wire_edge = VectorTimingWireGraphEdge()
 
-                # patch
                 wire_edge.id = json_edge.get("id")
                 wire_edge.from_node = json_edge.get("from_node")
                 wire_edge.to_node = json_edge.get("to_node")
@@ -597,6 +595,45 @@ class VectorsParserJson(JsonParser):
         path_hash = path_data_package.generate_hash()
 
         return path_hash, wire_path_graph
+
+    def get_wire_paths_data(self) -> VectorTimingWirePathData:
+        """Get detailed wire path data including capacitance, slew, resistance, incr and nodes."""
+        
+        def remove_parentheses_content(s):
+            return s[:s.find("(")].strip() if s.find("(") != -1 else s
+
+        if self.read() is True:
+            path_data = VectorTimingWirePathData()
+
+            for json_item in self.json_data:
+                for key, json_value in json_item.items():
+                    if key.startswith("node_"):
+                        # Process node data
+                        node_name = json_value.get("Point")
+                        node_name = remove_parentheses_content(node_name)
+                        path_data.nodes.append(node_name)
+                        path_data.capacitance_list.append(json_value.get("Capacitance", 0))
+                        path_data.slew_list.append(json_value.get("slew", 0))
+                        path_data.resistance_list.append(0)  # Default R value for nodes
+
+                    elif key.startswith("net_arc_"):
+                        # Process net arc data
+                        path_data.incr_list.append(json_value.get("Incr", 0))
+                        for edge_key, edge_value in json_value.items():
+                            if edge_key.startswith("edge_"):
+                                path_data.capacitance_list.append(edge_value.get("wire_C", 0))
+                                path_data.slew_list.append(edge_value.get("to_slew", 0))
+                                path_data.resistance_list.append(edge_value.get("wire_R", 0))
+
+                                # Record edge node
+                                path_data.nodes.append(edge_value.get("wire_to_node", ""))
+
+                    elif key.startswith("inst_arc_"):
+                        # Process instance arc data
+                        path_data.incr_list.append(json_value.get("Incr", 0))
+
+            return path_data
+        return None
 
     def get_timing_paths_metrics(self) -> VectorPathMetrics:
 
