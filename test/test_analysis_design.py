@@ -69,7 +69,6 @@ def main():
         workspaces=workspace_list,
         pattern="/output/iEDA/vectors",
         dir_to_display_name=DISPLAY_NAME,
-        calc_wire_num=False,  # set to False to avoid calculating wire number
     )
     result_analyzer.analyze()
     result_analyzer.visualize(save_path=workspace_dir)

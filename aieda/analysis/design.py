@@ -12,7 +12,7 @@ import os
 import re
 from concurrent.futures import ProcessPoolExecutor
 from functools import partial
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,6 +20,7 @@ import pandas as pd
 import seaborn as sns
 
 from ..data import DataFeature
+from ..data import DataVectors
 from ..flows import DbFlow
 from ..workspace import Workspace
 from .base import BaseAnalyzer
@@ -714,14 +715,12 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             "wire_num_sum": 0,
             "accessible_designs": 0,
         }
-        self.calc_wire_num = False
 
     def load(
         self,
         workspaces: List[Workspace],
         dir_to_display_name: Optional[Dict[str, str]] = None,
         pattern: Optional[str] = None,
-        calc_wire_num: bool = False,
     ):
         """
         Load data from multiple directories.
@@ -730,22 +729,20 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             workspaces: List of base directories to process
             dir_to_display_name: Optional mapping from directory name to display name
             pattern: Path pattern to append to workspaces (required)
-            calc_wire_num: Whether to calculate wire number sum (time-consuming)
         """
         if pattern is None:
             raise ValueError("Pattern must be specified for result statistics analysis")
 
         self.workspaces = workspaces
-        self.calc_wire_num = calc_wire_num
 
-        # Build complete design path list
-        design_paths = []
+        # Build complete design path list with corresponding workspaces
+        workspace_path_params = []
         design_name_mapping = {}
 
         for workspace in workspaces:
             # Build complete path
             full_path = workspace.directory + pattern
-            design_paths.append(full_path)
+            workspace_path_params.append((workspace, full_path))
 
             # Extract design name from workspace
             design_name = workspace.design
@@ -753,15 +750,10 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             # Establish mapping from path to design name
             design_name_mapping[full_path] = design_name
 
-        # Use process pool to handle all designs in parallel
-        process_design_with_params = partial(
-            self._process_design, calc_wire_num=calc_wire_num
-        )
-
         with ProcessPoolExecutor(
-            max_workers=min(len(design_paths), multiprocessing.cpu_count())
+            max_workers=min(len(workspace_path_params), multiprocessing.cpu_count())
         ) as executor:
-            results = list(executor.map(process_design_with_params, design_paths))
+            results = list(executor.map(self._process_workspace_path_pair, workspace_path_params))
 
         # Process results
         for result in results:
@@ -873,16 +865,15 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             print(f"  Max: {self._format_size(values.max())}")
             print(f"  Total: {self._format_size(values.sum())}")
 
-        # Wire number statistics (if calculated)
-        if self.calc_wire_num:
-            print("\nWire Number Statistics:")
-            wire_values = df["wire_num_sum"]
-            print(f"  Mean: {wire_values.mean():.2f}")
-            print(f"  Median: {wire_values.median():.2f}")
-            print(f"  Min: {wire_values.min()}")
-            print(f"  Max: {wire_values.max()}")
-            print(f"  Total: {wire_values.sum()}")
-            print(f"  Std Dev: {wire_values.std():.2f}")
+        # Wire number statistics 
+        print("\nWire Number Statistics:")
+        wire_values = df["wire_num_sum"]
+        print(f"  Mean: {wire_values.mean():.2f}")
+        print(f"  Median: {wire_values.median():.2f}")
+        print(f"  Min: {wire_values.min()}")
+        print(f"  Max: {wire_values.max()}")
+        print(f"  Total: {wire_values.sum()}")
+        print(f"  Std Dev: {wire_values.std():.2f}")
 
     def report(self) -> str:
         """Generate a text report summarizing result statistics."""
@@ -908,8 +899,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         report_lines.append(f"- Patches: {self.total_stats['patches_count']} files, {self._format_size(self.total_stats['patches_size'])}")
         report_lines.append(f"- Paths: {self.total_stats['paths_count']} files, {self._format_size(self.total_stats['paths_size'])}")
         
-        if self.calc_wire_num:
-            report_lines.append(f"  Total wire numbers: {self.total_stats['wire_num_sum']:,}")
+        report_lines.append(f"  Total wire numbers: {self.total_stats['wire_num_sum']:,}")
         
         report_lines.append("")
         
@@ -919,9 +909,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             report_lines.append(f"  Nets: {self.total_stats['nets_count']/accessible_designs:.1f} files, {self._format_size(self.total_stats['nets_size']/accessible_designs)}")
             report_lines.append(f"  Patches: {self.total_stats['patches_count']/accessible_designs:.1f} files, {self._format_size(self.total_stats['patches_size']/accessible_designs)}")
             report_lines.append(f"  Paths: {self.total_stats['paths_count']/accessible_designs:.1f} files, {self._format_size(self.total_stats['paths_size']/accessible_designs)}")
-            
-            if self.calc_wire_num:
-                report_lines.append(f"  Wire numbers: {self.total_stats['wire_num_sum']/accessible_designs:.1f}")
+            report_lines.append(f"  Wire numbers: {self.total_stats['wire_num_sum']/accessible_designs:.1f}")
         
         report_lines.append("")
         
@@ -1037,90 +1025,102 @@ class ResultStatisAnalyzer(BaseAnalyzer):
         )
         plt.close()
 
-        # 3. Wire number distribution charts (if calculated)
-        if self.calc_wire_num and "wire_num_sum" in df.columns:
-            plt.figure(figsize=(12, 5))
+        # 3. Wire number distribution charts
+        plt.figure(figsize=(12, 5))
 
-            # Subplot 1: Wire number bar chart
-            plt.subplot(1, 2, 1)
-            wire_values = df["wire_num_sum"].sort_values(ascending=False)
-            plt.bar(range(len(wire_values)), wire_values, color="purple", alpha=0.7)
-            plt.title("All Designs - Wire Number Sum")
-            plt.xlabel("Design Rank")
-            plt.ylabel("Wire Number Sum")
-            plt.xticks(
-                range(len(wire_values)), wire_values.index, rotation=45, ha="right"
-            )
-            plt.grid(axis="y", alpha=0.3)
+        # Subplot 1: Wire number bar chart
+        plt.subplot(1, 2, 1)
+        wire_values = df["wire_num_sum"].sort_values(ascending=False)
+        plt.bar(range(len(wire_values)), wire_values, color="purple", alpha=0.7)
+        plt.title("All Designs - Wire Number Sum")
+        plt.xlabel("Design Rank")
+        plt.ylabel("Wire Number Sum")
+        plt.xticks(
+            range(len(wire_values)), wire_values.index, rotation=45, ha="right"
+        )
+        plt.grid(axis="y", alpha=0.3)
 
-            # Subplot 2: Wire number distribution histogram
-            plt.subplot(1, 2, 2)
-            plt.hist(
-                df["wire_num_sum"],
-                bins=max(5, len(df) // 2),
-                color="purple",
-                alpha=0.7,
-                edgecolor="black",
-            )
-            plt.title("Wire Number Sum Distribution")
-            plt.xlabel("Wire Number Sum")
-            plt.ylabel("Number of Designs")
-            plt.grid(axis="y", alpha=0.3)
+        # Subplot 2: Wire number distribution histogram
+        plt.subplot(1, 2, 2)
+        plt.hist(
+            df["wire_num_sum"],
+            bins=max(5, len(df) // 2),
+            color="purple",
+            alpha=0.7,
+            edgecolor="black",
+        )
+        plt.title("Wire Number Sum Distribution")
+        plt.xlabel("Wire Number Sum")
+        plt.ylabel("Number of Designs")
+        plt.grid(axis="y", alpha=0.3)
 
-            plt.tight_layout()
-            save_fig(
-                plt.gcf(),
-                save_path + "design_wire_number_analysis.png",
-                dpi=300,
-                bbox_inches="tight",
-            )
-            plt.close()
+        plt.tight_layout()
+        save_fig(
+            plt.gcf(),
+            save_path + "/design_wire_number_analysis.png",
+            dpi=300,
+            bbox_inches="tight",
+        )
+        plt.close()
 
-            print("Saved wire number analysis:")
-            print("- 'wire_number_analysis.png'")
+        print("Saved wire number analysis:")
+        print("- 'wire_number_analysis.png'")
 
         print("Saved result statistics visualizations:")
         print("- 'result_stats_overview.png' (Overview charts)")
         print("- 'result_stats_heatmap.png' (File count heatmap)")
 
-    def _process_design(self, design_path, calc_wire_num=False):
-        """Process a single design directory and return statistics."""
+    def _process_design(self, workspace, design_path):
+        """Process a single design directory and return statistics.
+        
+        Args:
+            workspace: The workspace object containing the design
+            design_path: Path to the design directory
+        """
         # Build subdirectory paths
         nets_dir = os.path.join(design_path, "nets")
         patches_dir = os.path.join(design_path, "patchs")
         paths_dir = os.path.join(design_path, "wire_paths")
 
-        try:
-            with ProcessPoolExecutor(max_workers=3) as executor:
-                dir_futures = {
-                    executor.submit(self._fast_dir_scan, nets_dir): "nets",
-                    executor.submit(self._fast_dir_scan, patches_dir): "patches",
-                    executor.submit(self._fast_dir_scan, paths_dir): "paths",
-                }
+        # Initialize results dictionary
+        results = {}
+        
+        # Process paths
+        paths_count, paths_size = self._fast_dir_scan(paths_dir)
+        results["paths"] = (paths_count, paths_size)
+        
+        # Process nets
+        _, nets_size = self._fast_dir_scan(nets_dir)
+        
+        data_vectors = DataVectors(workspace)
+        nets = data_vectors.load_nets()
+        nets_count = len(nets) if nets else 0
+        
+        results["nets"] = (nets_count, nets_size)
 
-                results = {}
-                for future in dir_futures:
-                    dir_type = dir_futures[future]
-                    try:
-                        file_count, size = future.result()
-                        results[dir_type] = (file_count, size)
-                    except Exception:
-                        results[dir_type] = (0, 0)
+        # Process patches 
+        _, patches_size = self._fast_dir_scan(patches_dir)
+        
+        data_vectors = DataVectors(workspace)
+        patches = data_vectors.load_patchs()
+        patches_count = len(patches) if patches else 0
+        
+        results["patches"] = (patches_count, patches_size)
 
-            # Calculate wire_num sum (potentially time-consuming, based on parameter)
-            wire_num_sum = 0
-            if calc_wire_num and results.get("nets", (0, 0))[0] > 0:
-                wire_num_sum = self._get_wire_num_sum_parallel(nets_dir)
+        # Calculate wire_num sum 
+        results["wire_num_sum"] = 0
+        for net in nets:
+            results["wire_num_sum"] += net.wire_num if hasattr(net, "wire_num") else 0
 
-            return {
-                "design_path": design_path,
-                "nets": results.get("nets", (0, 0)),
-                "patches": results.get("patches", (0, 0)),
-                "paths": results.get("paths", (0, 0)),
-                "wire_num_sum": wire_num_sum,
-            }
-        except Exception:
-            return None
+
+        return {
+            "design_path": design_path,
+            "nets": results.get("nets", (0, 0)),
+            "patches": results.get("patches", (0, 0)),
+            "paths": results.get("paths", (0, 0)),
+            "wire_num_sum": results.get("wire_num_sum", 0),
+        }
+
 
     def _fast_dir_scan(self, directory):
         """Quickly count files and calculate total size in directory."""
@@ -1144,41 +1144,6 @@ class ResultStatisAnalyzer(BaseAnalyzer):
 
         return file_count, total_size
 
-    def _process_net_file(self, file_path):
-        """Process a single net file and return wire_num."""
-        try:
-            with open(file_path, "r") as f:
-                for line in f:
-                    if '"wire_num":' in line:
-                        # Simple parsing to avoid loading entire JSON
-                        match = re.search(r'"wire_num":\s*(\d+)', line)
-                        if match:
-                            return int(match.group(1))
-                        break
-        except Exception:
-            pass
-        return 0
-
-    def _get_wire_num_sum_parallel(self, nets_dir, max_workers=None):
-        """Calculate sum of wire_num from all net files in specified directory in parallel."""
-        if not os.path.exists(nets_dir):
-            return 0
-
-        # Use glob pattern to match all net_*.json files
-        net_files = list(glob.glob(os.path.join(nets_dir, "net_*.json")))
-
-        if not net_files:
-            return 0
-
-        if max_workers is None:
-            max_workers = multiprocessing.cpu_count()
-
-        total_wire_num = 0
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            results = executor.map(self._process_net_file, net_files)
-            total_wire_num = sum(results)
-
-        return total_wire_num
 
     def _format_size(self, size_bytes):
         """Convert byte size to human-readable format (KB, MB, GB, etc.)."""
@@ -1192,3 +1157,7 @@ class ResultStatisAnalyzer(BaseAnalyzer):
             i += 1
 
         return f"{size_bytes:.2f} {size_units[i]}"
+    
+    def _process_workspace_path_pair(self, args):
+        workspace, path = args
+        return self._process_design(workspace, path)
