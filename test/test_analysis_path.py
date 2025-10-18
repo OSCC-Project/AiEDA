@@ -37,7 +37,7 @@ def main():
     # step 1: Path Delay Analysis
     delay_analyzer = DelayAnalyzer()
     delay_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/wire_paths",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -47,7 +47,7 @@ def main():
     # step 2: Path Stage Analysis
     stage_analyzer = StageAnalyzer()
     stage_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/wire_paths",
         dir_to_display_name=DISPLAY_NAME,
     )
