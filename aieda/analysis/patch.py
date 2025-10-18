@@ -29,7 +29,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
         super().__init__()
         self.patch_data = {}
         self.design_stats = {}
-        self.valid_layers = [2, 4, 6, 8, 10, 12]  # Important layers for analysis
+        self.routing_layers = None  # Will be determined dynamically based on wire_width
 
     def load(
         self,
@@ -71,44 +71,54 @@ class WireDensityAnalyzer(BaseAnalyzer):
                 }
 
                 # Extract per-layer congestion and wire density information
+                # Only consider routing layers (those with wire_width value)
                 layer_congestion = []
                 layer_wire_density = []
-
+                layer_info = []
                 for layer in vec_patch.patch_layer:
-                    if layer.congestion is not None and layer.wire_density is not None:
-                        layer_congestion.append(layer.congestion)
-                        layer_wire_density.append(layer.wire_density)
-                    else:
-                        layer_congestion.append(0.0)
-                        layer_wire_density.append(0.0)
-
-                # Ensure consistent list length (should have 20 layers)
-                while len(layer_congestion) < 20:
-                    layer_congestion.append(0.0)
-                    layer_wire_density.append(0.0)
-
-                # Keep only first 20 layers
-                layer_congestion = layer_congestion[:20]
-                layer_wire_density = layer_wire_density[:20]
+                    # Check if this is a routing layer (has wire_width value)
+                    if hasattr(layer, 'wire_width') and layer.wire_width > 0:
+                        layer_info.append({
+                            'id': layer.id,
+                            'wire_width': layer.wire_width
+                        })
+                        # Use 0.0 as default if congestion or wire_density is None
+                        layer_congestion.append(layer.congestion if layer.congestion is not None else 0.0)
+                        layer_wire_density.append(layer.wire_density if layer.wire_density is not None else 0.0)
 
                 patch_list.append(
                     {
                         "features": patch_features,
                         "layer_congestion": layer_congestion,
                         "layer_wire_density": layer_wire_density,
+                        "layer_info": layer_info,
                     }
                 )
 
             # create features DataFrame
             features_df = pd.DataFrame([p["features"] for p in patch_list])
 
-            # calculate average layer congestion and wire density
-            avg_layer_congestion = np.mean(
-                [p["layer_congestion"] for p in patch_list], axis=0
-            )
-            avg_layer_wire_density = np.mean(
-                [p["layer_wire_density"] for p in patch_list], axis=0
-            )
+            # Calculate average layer congestion and wire density
+            # Calculate averages only if there are layers
+            avg_layer_congestion = []
+            avg_layer_wire_density = []
+            if patch_list:
+                # Get max number of layers across all patches to handle variable layer counts
+                max_layers = max(len(p["layer_congestion"]) for p in patch_list)
+                
+                # For each layer position, calculate the average across all patches
+                for i in range(max_layers):
+                    layer_congestions = []
+                    layer_densities = []
+                    
+                    for p in patch_list:
+                        if i < len(p["layer_congestion"]):
+                            layer_congestions.append(p["layer_congestion"][i])
+                            layer_densities.append(p["layer_wire_density"][i])
+                    
+                    if layer_congestions:  # Only calculate average if there are values
+                        avg_layer_congestion.append(np.mean(layer_congestions))
+                        avg_layer_wire_density.append(np.mean(layer_densities))
 
             self.patch_data[design_name] = {
                 "design_name": design_name,
@@ -119,6 +129,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
                 "raw_layer_data": {
                     "congestion": [p["layer_congestion"] for p in patch_list],
                     "wire_density": [p["layer_wire_density"] for p in patch_list],
+                    "layer_info": [p["layer_info"] for p in patch_list] if patch_list else [],
                 },
             }
 
@@ -143,18 +154,23 @@ class WireDensityAnalyzer(BaseAnalyzer):
                 "raw_layer_data": data["raw_layer_data"],
             }
 
-            # Calculate layer-wise statistics
-            for layer in self.valid_layers:
-                if layer < len(data["avg_layer_congestion"]):
-                    stats[f"layer_{layer}_congestion"] = data["avg_layer_congestion"][
-                        layer
-                    ]
-                    stats[f"layer_{layer}_wire_density"] = data[
-                        "avg_layer_wire_density"
-                    ][layer]
-                else:
-                    stats[f"layer_{layer}_congestion"] = 0.0
-                    stats[f"layer_{layer}_wire_density"] = 0.0
+            # Determine routing layers based on layer_info from the first patch's data
+            # This assumes all patches have the same layer structure
+            if data["raw_layer_data"]["layer_info"] and len(data["raw_layer_data"]["layer_info"]) > 0:
+                # Get the first patch's layer_info
+                first_patch_layer_info = data["raw_layer_data"]["layer_info"][0]
+                self.routing_layers = [info['id'] for info in first_patch_layer_info]
+                
+                # Calculate layer-wise statistics
+                for i, layer_id in enumerate(self.routing_layers):
+                    if i < len(data["avg_layer_congestion"]):
+                        stats[f"layer_{layer_id}_congestion"] = data["avg_layer_congestion"][i]
+                        stats[f"layer_{layer_id}_wire_density"] = data["avg_layer_wire_density"][i]
+                    else:
+                        stats[f"layer_{layer_id}_congestion"] = 0.0
+                        stats[f"layer_{layer_id}_wire_density"] = 0.0
+            else:
+                self.routing_layers = []
 
             self.design_stats[design_name] = stats
 
@@ -177,33 +193,39 @@ class WireDensityAnalyzer(BaseAnalyzer):
         
         # Layer-wise congestion summary
         report_lines.append("**Layer-wise Congestion Summary**")
-        for layer in self.valid_layers:
-            layer_congestions = []
-            for stats in self.design_stats.values():
-                congestion = stats.get(f'layer_{layer}_congestion', 0.0)
-                if congestion > 0:
-                    layer_congestions.append(congestion)
-            
-            if layer_congestions:
-                avg_congestion = np.mean(layer_congestions)
-                max_congestion = np.max(layer_congestions)
-                report_lines.append(f"- Layer {layer}: Avg={avg_congestion:.3f}, Max={max_congestion:.3f} ({len(layer_congestions)} designs)")
+        if hasattr(self, 'routing_layers') and self.routing_layers:
+            for layer in self.routing_layers:
+                layer_congestions = []
+                for stats in self.design_stats.values():
+                    congestion = stats.get(f'layer_{layer}_congestion', 0.0)
+                    if congestion > 0:
+                        layer_congestions.append(congestion)
+                
+                if layer_congestions:
+                    avg_congestion = np.mean(layer_congestions)
+                    max_congestion = np.max(layer_congestions)
+                    report_lines.append(f"- Layer {layer}: Avg={avg_congestion:.3f}, Max={max_congestion:.3f} ({len(layer_congestions)} designs)")
+        else:
+            report_lines.append("- No routing layers identified for congestion analysis")
         
         report_lines.append("")
         
         # Layer-wise wire density summary
         report_lines.append("**Layer-wise Wire Density Summary**")
-        for layer in self.valid_layers:
-            layer_densities = []
-            for stats in self.design_stats.values():
-                density = stats.get(f'layer_{layer}_wire_density', 0.0)
-                if density > 0:
-                    layer_densities.append(density)
-            
-            if layer_densities:
-                avg_density = np.mean(layer_densities)
-                max_density = np.max(layer_densities)
-                report_lines.append(f"- Layer {layer}: Avg={avg_density:.3f}, Max={max_density:.3f} ({len(layer_densities)} designs)")
+        if hasattr(self, 'routing_layers') and self.routing_layers:
+            for layer in self.routing_layers:
+                layer_densities = []
+                for stats in self.design_stats.values():
+                    density = stats.get(f'layer_{layer}_wire_density', 0.0)
+                    if density > 0:
+                        layer_densities.append(density)
+                
+                if layer_densities:
+                    avg_density = np.mean(layer_densities)
+                    max_density = np.max(layer_densities)
+                    report_lines.append(f"- Layer {layer}: Avg={avg_density:.3f}, Max={max_density:.3f} ({len(layer_densities)} designs)")
+        else:
+            report_lines.append("- No routing layers identified for wire density analysis")
         
         report_lines.append("")
         
@@ -214,17 +236,23 @@ class WireDensityAnalyzer(BaseAnalyzer):
             patch_count = stats['file_count']
             
             # Calculate overall congestion and density averages
-            avg_congestion = np.mean([stats.get(f'layer_{layer}_congestion', 0.0) for layer in self.valid_layers])
-            avg_density = np.mean([stats.get(f'layer_{layer}_wire_density', 0.0) for layer in self.valid_layers])
-            
-            # Find most congested layer
-            max_congestion_layer = None
-            max_congestion_value = 0
-            for layer in self.valid_layers:
-                congestion = stats.get(f'layer_{layer}_congestion', 0.0)
-                if congestion > max_congestion_value:
-                    max_congestion_value = congestion
-                    max_congestion_layer = layer
+            if hasattr(self, 'routing_layers') and self.routing_layers:
+                avg_congestion = np.mean([stats.get(f'layer_{layer}_congestion', 0.0) for layer in self.routing_layers])
+                avg_density = np.mean([stats.get(f'layer_{layer}_wire_density', 0.0) for layer in self.routing_layers])
+                
+                # Find most congested layer
+                max_congestion_layer = None
+                max_congestion_value = 0
+                for layer in self.routing_layers:
+                    congestion = stats.get(f'layer_{layer}_congestion', 0.0)
+                    if congestion > max_congestion_value:
+                        max_congestion_value = congestion
+                        max_congestion_layer = layer
+            else:
+                avg_congestion = 0.0
+                avg_density = 0.0
+                max_congestion_layer = None
+                max_congestion_value = 0
             
             congestion_info = f"- Most congested: Layer {max_congestion_layer} ({max_congestion_value:.3f})" if max_congestion_layer else "No congestion data"
             
@@ -264,28 +292,29 @@ class WireDensityAnalyzer(BaseAnalyzer):
         colors = prop_cycle.by_key()["color"]
 
         # Ensure enough colors
-        if len(colors) < len(self.valid_layers):
-            colors = colors * (len(self.valid_layers) // len(colors) + 1)
+        if hasattr(self, 'routing_layers') and self.routing_layers:
+            if len(colors) < len(self.routing_layers):
+                colors = colors * (len(self.routing_layers) // len(colors) + 1)
 
-        # Create layer to color mapping
-        layer_color_map = {
-            layer: colors[i % len(colors)] for i, layer in enumerate(self.valid_layers)
-        }
+            # Create layer to color mapping
+            layer_color_map = {
+                layer: colors[i % len(colors)] for i, layer in enumerate(self.routing_layers)
+            }
 
-        for layer in self.valid_layers:
-            x_values = []
-            y_values = []
+            for layer in self.routing_layers:
+                x_values = []
+                y_values = []
 
-            for design_name, stats in self.design_stats.items():
-                x = stats.get(f"layer_{layer}_wire_density", 0)
-                y = stats.get(f"layer_{layer}_congestion", 0)
-                if x != 0 and y != 0:  # Filter out invalid data
-                    x_values.append(x)
-                    y_values.append(y)
+                for design_name, stats in self.design_stats.items():
+                    x = stats.get(f"layer_{layer}_wire_density", 0)
+                    y = stats.get(f"layer_{layer}_congestion", 0)
+                    if x != 0 and y != 0:  # Filter out invalid data
+                        x_values.append(x)
+                        y_values.append(y)
 
-            if len(x_values) > 1:  # Ensure enough points for fitting
+                # Always plot scatter regardless of point count
                 color = layer_color_map[layer]
-
+                
                 # Scatter plot
                 ax.scatter(
                     x_values,
@@ -296,7 +325,7 @@ class WireDensityAnalyzer(BaseAnalyzer):
                     s=50,
                 )
 
-                # Linear regression
+                # Linear regression only when enough points
                 if len(x_values) > 1:
                     z = np.polyfit(x_values, y_values, 1)
                     p = np.poly1d(z)
@@ -341,7 +370,14 @@ class WireDensityAnalyzer(BaseAnalyzer):
 
         # Plot 1: Average congestion by layer
         congestion_data = []
-        for layer in self.valid_layers:
+        layers_to_plot = []
+        if hasattr(self, 'routing_layers') and self.routing_layers:
+            layers_to_plot = self.routing_layers
+        else:
+            # Fallback to first few layers if routing_layers not set
+            layers_to_plot = range(2, 13, 2)  # Use layers 2, 4, 6, 8, 10, 12 as fallback
+        
+        for layer in layers_to_plot:
             layer_values = [
                 self.design_stats[d].get(f"layer_{layer}_congestion", 0)
                 for d in designs
@@ -351,8 +387,8 @@ class WireDensityAnalyzer(BaseAnalyzer):
         positions = np.arange(len(designs))
         width = 0.12
 
-        for i, layer in enumerate(self.valid_layers):
-            offset = (i - len(self.valid_layers) / 2) * width
+        for i, layer in enumerate(layers_to_plot):
+            offset = (i - len(layers_to_plot) / 2) * width
             ax1.bar(
                 positions + offset,
                 congestion_data[i],
@@ -371,15 +407,15 @@ class WireDensityAnalyzer(BaseAnalyzer):
 
         # Plot 2: Average wire density by layer
         wire_density_data = []
-        for layer in self.valid_layers:
+        for layer in layers_to_plot:
             layer_values = [
                 self.design_stats[d].get(f"layer_{layer}_wire_density", 0)
                 for d in designs
             ]
             wire_density_data.append(layer_values)
 
-        for i, layer in enumerate(self.valid_layers):
-            offset = (i - len(self.valid_layers) / 2) * width
+        for i, layer in enumerate(layers_to_plot):
+            offset = (i - len(layers_to_plot) / 2) * width
             ax2.bar(
                 positions + offset,
                 wire_density_data[i],
@@ -467,44 +503,54 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
                 }
 
                 # Extract per-layer congestion and wire density information
+                # Only consider routing layers (those with wire_width value)
                 layer_congestion = []
                 layer_wire_density = []
-
+                layer_info = []
                 for layer in vec_patch.patch_layer:
-                    if layer.congestion is not None and layer.wire_density is not None:
-                        layer_congestion.append(layer.congestion)
-                        layer_wire_density.append(layer.wire_density)
-                    else:
-                        layer_congestion.append(0.0)
-                        layer_wire_density.append(0.0)
-
-                # Ensure consistent list length (should have 20 layers)
-                while len(layer_congestion) < 20:
-                    layer_congestion.append(0.0)
-                    layer_wire_density.append(0.0)
-
-                # Keep only first 20 layers
-                layer_congestion = layer_congestion[:20]
-                layer_wire_density = layer_wire_density[:20]
+                    # Check if this is a routing layer (has wire_width value)
+                    if hasattr(layer, 'wire_width') and layer.wire_width > 0:
+                        layer_info.append({
+                            'id': layer.id,
+                            'wire_width': layer.wire_width
+                        })
+                        # Use 0.0 as default if congestion or wire_density is None
+                        layer_congestion.append(layer.congestion if layer.congestion is not None else 0.0)
+                        layer_wire_density.append(layer.wire_density if layer.wire_density is not None else 0.0)
 
                 patch_list.append(
                     {
                         "features": patch_features,
                         "layer_congestion": layer_congestion,
                         "layer_wire_density": layer_wire_density,
+                        "layer_info": layer_info,
                     }
                 )
 
             # create features DataFrame
             features_df = pd.DataFrame([p["features"] for p in patch_list])
 
-            # calculate average layer congestion and wire density
-            avg_layer_congestion = np.mean(
-                [p["layer_congestion"] for p in patch_list], axis=0
-            )
-            avg_layer_wire_density = np.mean(
-                [p["layer_wire_density"] for p in patch_list], axis=0
-            )
+            # Calculate average layer congestion and wire density
+            # Calculate averages only if there are layers
+            avg_layer_congestion = []
+            avg_layer_wire_density = []
+            if patch_list:
+                # Get max number of layers across all patches to handle variable layer counts
+                max_layers = max(len(p["layer_congestion"]) for p in patch_list)
+                
+                # For each layer position, calculate the average across all patches
+                for i in range(max_layers):
+                    layer_congestions = []
+                    layer_densities = []
+                    
+                    for p in patch_list:
+                        if i < len(p["layer_congestion"]):
+                            layer_congestions.append(p["layer_congestion"][i])
+                            layer_densities.append(p["layer_wire_density"][i])
+                    
+                    if layer_congestions:  # Only calculate average if there are values
+                        avg_layer_congestion.append(np.mean(layer_congestions))
+                        avg_layer_wire_density.append(np.mean(layer_densities))
 
             self.patch_data[design_name] = {
                 "design_name": design_name,
@@ -515,6 +561,7 @@ class FeatureCorrelationAnalyzer(BaseAnalyzer):
                 "raw_layer_data": {
                     "congestion": [p["layer_congestion"] for p in patch_list],
                     "wire_density": [p["layer_wire_density"] for p in patch_list],
+                    "layer_info": [p["layer_info"] for p in patch_list] if patch_list else [],
                 },
             }
 

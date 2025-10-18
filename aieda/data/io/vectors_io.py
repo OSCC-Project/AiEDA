@@ -254,8 +254,8 @@ class VectorsParserJson(JsonParser):
             vec_patch.macro_margin = patch_metadata.get("macro_margin")
             vec_patch.RUDY_congestion = patch_metadata.get("RUDY_congestion")
             vec_patch.EGR_congestion = patch_metadata.get("EGR_congestion")
-            vec_patch.timing_map = patch_metadata.get("timing_map")
-            vec_patch.power_map = patch_metadata.get("power_map")
+            vec_patch.timing_map = patch_metadata.get("timing")
+            vec_patch.power_map = patch_metadata.get("power")
             vec_patch.ir_drop_map = patch_metadata.get("IR_drop")
 
             # patch layer

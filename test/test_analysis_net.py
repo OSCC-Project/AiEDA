@@ -37,7 +37,7 @@ def main():
     # step 1: Wire Distribution Analysis
     wire_analyzer = WireDistributionAnalyzer()
     wire_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/nets",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -47,7 +47,7 @@ def main():
     # step 2: Metrics Correlation Analysis
     metric_analyzer = MetricsCorrelationAnalyzer()
     metric_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         dir_to_display_name=DISPLAY_NAME,
         pattern="/output/iEDA/vectors/nets",
     )

@@ -37,7 +37,7 @@ def main():
     # step 1: Wire Density Analysis
     wire_analyzer = WireDensityAnalyzer()
     wire_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -47,7 +47,7 @@ def main():
     # step 2: Feature Correlation Analysis
     feature_analyzer = FeatureCorrelationAnalyzer()
     feature_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -55,16 +55,11 @@ def main():
     feature_analyzer.visualize()
 
     # step 3: Map Analysis
-    import os
-
-    current_dir = os.path.split(os.path.abspath(__file__))[0]
-    root = current_dir.rsplit("/", 1)[0]
-    workspace_dir = "{}/example/sky130_test".format(root)
     workspace = workspace_create(directory=workspace_dir, design="gcd")
 
     map_analyzer = MapAnalyzer()
     map_analyzer.load(
-        workspace_dirs=[workspace],
+        workspaces=[workspace],
         pattern="/output/iEDA/vectors/patchs",
         dir_to_display_name={"gcd": "GCD"},
     )
