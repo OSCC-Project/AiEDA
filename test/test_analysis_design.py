@@ -38,7 +38,7 @@ def main():
     # step 1: test cell type analysis
     cell_analyzer = CellTypeAnalyzer()
     cell_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
         dir_to_display_name=DISPLAY_NAME,
     )
@@ -48,7 +48,7 @@ def main():
     # step 2: test core usage analysis
     core_analyzer = CoreUsageAnalyzer()
     core_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
     )
     core_analyzer.analyze()
@@ -57,7 +57,7 @@ def main():
     # step 3: test pin distribution analysis
     pin_analyzer = PinDistributionAnalyzer()
     pin_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.route),
     )
     pin_analyzer.analyze()
@@ -66,10 +66,9 @@ def main():
     # step 4: test result statistics
     result_analyzer = ResultStatisAnalyzer()
     result_analyzer.load(
-        workspace_dirs=workspace_list,
+        workspaces=workspace_list,
         pattern="/output/iEDA/vectors",
         dir_to_display_name=DISPLAY_NAME,
-        calc_wire_num=False,  # set to False to avoid calculating wire number
     )
     result_analyzer.analyze()
     result_analyzer.visualize(save_path=workspace_dir)

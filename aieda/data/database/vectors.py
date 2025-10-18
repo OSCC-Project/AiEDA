@@ -28,6 +28,7 @@ class VectorNode:
 class VectorPath:
     node1: Optional[VectorNode] = None
     node2: Optional[VectorNode] = None
+    via: Optional[int] = None
 
 
 @dataclass
@@ -214,6 +215,20 @@ class VectorTimingWirePathGraph(object):
     nodes: List[VectorTimingWireGraphNode] = field(default_factory=list)
     edges: List[VectorTimingWireGraphEdge] = field(default_factory=list)
 
+@dataclass
+class VectorTimingWirePathData(object):
+    capacitance_list: List[float] = field(default_factory=list)
+    slew_list: List[float] = field(default_factory=list)
+    resistance_list: List[float] = field(default_factory=list)
+    incr_list: List[float] = field(default_factory=list)
+    nodes: List[str] = field(default_factory=list)
+
+
+@dataclass
+class VectorPathMetrics:
+    stage: Optional[int] = None
+    inst_delay: List[float] = field(default_factory=list)
+    net_delay: List[float] = field(default_factory=list)
 
 @dataclass
 class VectorLayer:
@@ -228,9 +243,23 @@ class VectorLayers(object):
 
 
 @dataclass
+class VectorViaRect:
+    llx: Optional[int] = None  
+    lly: Optional[int] = None  
+    urx: Optional[int] = None  
+    ury: Optional[int] = None 
+
+@dataclass
 class VectorVia:
     id: int = None
     name: str = None
+    bottom: Optional[VectorViaRect] = None
+    cut: Optional[VectorViaRect] = None
+    top: Optional[VectorViaRect] = None
+    row: Optional[int] = None
+    col: Optional[int] = None
+    bottom_direction: Optional[str] = None
+    top_direction: Optional[str] = None
 
 
 @dataclass
@@ -295,8 +324,3 @@ class VectorInstanceGraph(object):
     edges: List[VectorInstanceGraphEdge] = field(default_factory=list)
 
 
-@dataclass
-class VectorPathMetrics:
-    stage: Optional[int] = None
-    inst_delay: List[float] = field(default_factory=list)
-    net_delay: List[float] = field(default_factory=list)

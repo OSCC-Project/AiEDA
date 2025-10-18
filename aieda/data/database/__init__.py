@@ -101,6 +101,7 @@ from .vectors import (
     VectorTimingWireGraphEdge,
     VectorTimingWireGraph,
     VectorTimingWirePathGraph,
+    VectorTimingWirePathData,
     VectorLayers,
     VectorLayer,
     VectorVias,
@@ -113,6 +114,7 @@ from .vectors import (
     VectorInstanceGraphEdge,
     VectorInstanceGraph,
     VectorPathMetrics,
+    VectorViaRect,
 )
 
 __all__ = [
@@ -208,10 +210,13 @@ __all__ = [
     'VectorTimingWireGraphEdge',
     'VectorTimingWireGraph',
     'VectorTimingWirePathGraph',
+    'VectorTimingWirePathData',
+    'VectorPathMetrics',
     'VectorLayers',
     'VectorLayer',
     'VectorVias',
     'VectorVia',
+    'VectorViaRect',
     'VectorCell',
     'VectorCells',
     'VectorInstance',
@@ -219,5 +224,4 @@ __all__ = [
     'VectorInstanceGraphNode',
     'VectorInstanceGraphEdge',
     'VectorInstanceGraph',
-    'VectorPathMetrics',
 ]

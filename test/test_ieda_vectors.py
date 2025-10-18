@@ -64,7 +64,10 @@ def test_vectors_load(workspace):
 
     timing_graph = data_load.load_timing_graph()
 
-    timint_wire_paths = data_load.load_timing_wire_paths()
+    timing_wire_paths = data_load.load_timing_wire_paths()
+    
+    wire_paths_data = data_load.load_wire_paths_data()
+    
 
     print(1)
 
@@ -78,7 +81,7 @@ if __name__ == "__main__":
     workspace = workspace_create(directory=workspace_dir, design="gcd")
 
     test_vectors_generation(workspace, patch_row_step=9, patch_col_step=9)
-    test_vectors_data_to_def(workspace)
+    # test_vectors_data_to_def(workspace)
     test_vectors_load(workspace)
 
     exit(0)
