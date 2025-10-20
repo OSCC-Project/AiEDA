@@ -46,7 +46,7 @@ def find_designs_with_place(dataset_dir):
     return sorted(designs)
 
 
-def get_design_files(dataset_dir, design_name):
+def get_design_files(dataset_dir, design_name, design_type):
     """Get paths to def and sdc files for a design."""
     design_dir = Path(dataset_dir) / design_name
 
@@ -55,7 +55,12 @@ def get_design_files(dataset_dir, design_name):
     def_files = list(place_dir.glob("*.def")) + list(place_dir.glob("*.def.gz"))
     if not def_files:
         return None, None
+    
     def_file = def_files[0]
+    for one_def_file in def_files:
+        if "_" + design_type + "_" in one_def_file.name:
+            def_file = one_def_file
+            break
 
     # Find sdc file - look in place directory
     sdc_files = list(place_dir.glob("*.sdc"))
@@ -278,6 +283,11 @@ Examples:
         '--output-dir',
         help='Output directory for extracted features (default: ./example/batch_place_features)'
     )
+    
+    parser.add_argument(
+        '--design-type',
+        help='Design type of place def'
+    )
 
     parser.add_argument(
         '--aieda-root',
@@ -317,6 +327,12 @@ Examples:
         current_dir = os.path.split(os.path.abspath(__file__))[0]
         root = current_dir.rsplit("/", 1)[0]
         output_base_dir = f"{root}/example/batch_place_features"
+        
+    if args.design_type:
+        design_type = args.design_type
+    else:
+        design_type = None
+        raise ValueError("Please specify design type")
 
     # Ensure output directory exists
     try:
@@ -347,7 +363,8 @@ Examples:
 
         try:
             # Get design files
-            def_file, sdc_file = get_design_files(dataset_dir, design_name)
+            # design_type  = '_b_place_HPWL_best'
+            def_file, sdc_file = get_design_files(dataset_dir, design_name, design_type)
             if not def_file or not sdc_file:
                 print(f"  Skipping: Missing required files")
                 continue
