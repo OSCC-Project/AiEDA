@@ -34,5 +34,7 @@ if __name__ == "__main__":
     workspace = workspace_create(workspace_dir, "gcd")
 
     report_summary(workspace)
+    
+    from PyQt5.QtWebEngine import QWebEngineView
 
     exit(0)

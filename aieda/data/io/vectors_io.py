@@ -21,281 +21,317 @@ class VectorsParserJson(JsonParser):
         vec_nets = []
 
         if self.read() is True:
-            for net_metadata in self.json_data:
-                # net
-                vec_net = VectorNet()
-                vec_net.id = net_metadata.get("id")
-                vec_net.name = net_metadata.get("name")
-
-                # net feature
-                net_feature = VectorNetFeature()
-                feature_data = net_metadata.get("feature", {})
-                net_feature.llx = feature_data.get("llx")
-                net_feature.lly = feature_data.get("lly")
-                net_feature.urx = feature_data.get("urx")
-                net_feature.ury = feature_data.get("ury")
-                net_feature.wire_len = feature_data.get("wire_len")
-                net_feature.via_num = feature_data.get("via_num")
-                net_feature.drc_num = feature_data.get("drc_num")
-                net_feature.R = feature_data.get("R")
-                net_feature.C = feature_data.get("C")
-                net_feature.power = feature_data.get("power")
-                net_feature.delay = feature_data.get("delay")
-                net_feature.slew = feature_data.get("slew")
-
-                if "aspect_ratio" in feature_data:
-                    net_feature.aspect_ratio = feature_data.get("aspect_ratio")
-                    net_feature.width = feature_data.get("width")
-                    net_feature.height = feature_data.get("height")
-                    net_feature.area = feature_data.get("area")
-                    net_feature.drc_type = feature_data.get("drc_type")
-                    net_feature.volume = feature_data.get("volume")
-                    net_feature.layer_ratio = feature_data.get("layer_ratio")
-
-                # parse place_feature
-                if "place_feature" in feature_data:
-                    place_feature_data = feature_data.get("place_feature", {})
-                    place_feature = VectorPlaceFeature()
-                    place_feature.pin_num = place_feature_data.get("pin_num")
-                    place_feature.aspect_ratio = place_feature_data.get("aspect_ratio")
-                    place_feature.width = place_feature_data.get("width")
-                    place_feature.height = place_feature_data.get("height")
-                    place_feature.area = place_feature_data.get("area")
-                    place_feature.l_ness = place_feature_data.get("l_ness")
-                    place_feature.rsmt = place_feature_data.get("rsmt")
-                    place_feature.hpwl = place_feature_data.get("hpwl")
-                    net_feature.place_feature = place_feature
-
-                vec_net.feature = net_feature
-
-                # pins
-                vec_net.pin_num = net_metadata.get("pin_num", 0)
-                json_pins = net_metadata.get("pins", [])
-                for json_pin in json_pins:
-                    vec_pin = VectorPin()
-                    vec_pin.id = json_pin.get("id")
-                    vec_pin.instance = json_pin.get("i")
-                    vec_pin.pin_name = json_pin.get("p")
-                    vec_pin.is_driver = json_pin.get("driver")
-
-                    vec_net.pins.append(vec_pin)
-
-                # wires
-                vec_net.wire_num = net_metadata.get("wire_num", 0)
-                json_wires = net_metadata.get("wires", [])
-                for json_wire in json_wires:
-                    vec_wire = VectorWire()
-                    vec_wire.id = json_wire.get("id")
-
-                    # wire feature
-                    wire_feature = VectorWireFeature()
-                    wire_feature_data = json_wire.get("feature", {})
-                    wire_feature.wire_width = wire_feature_data.get("wire_width")
-                    wire_feature.wire_len = wire_feature_data.get("wire_len")
-                    wire_feature.drc_num = wire_feature_data.get("drc_num")
-                    wire_feature.R = wire_feature_data.get("R")
-                    wire_feature.C = wire_feature_data.get("C")
-                    wire_feature.power = wire_feature_data.get("power")
-                    wire_feature.delay = wire_feature_data.get("delay")
-                    wire_feature.slew = wire_feature_data.get("slew")
-                    wire_feature.congestion = wire_feature_data.get("congestion")
-                    wire_feature.wire_density = wire_feature_data.get("wire_density")
-                    wire_feature.drc_type = wire_feature_data.get("drc_type")
-
-                    vec_wire.feature = wire_feature
-
-                    # wire connections
-                    wire_data = json_wire.get("wire", {})
-                    wire_connections = VectorPath()
-
-                    vec_node1 = VectorNode()
-                    vec_node1.id = wire_data.get("id1")
-                    vec_node1.x = wire_data.get("x1")
-                    vec_node1.y = wire_data.get("y1")
-                    vec_node1.real_x = wire_data.get("real_x1")
-                    vec_node1.real_y = wire_data.get("real_y1")
-                    vec_node1.row = wire_data.get("r1")
-                    vec_node1.col = wire_data.get("c1")
-                    vec_node1.layer = wire_data.get("l1")
-                    vec_node1.pin_id = wire_data.get("p1")
-                    wire_connections.node1 = vec_node1
-
-                    vec_node2 = VectorNode()
-                    vec_node2.id = wire_data.get("id2")
-                    vec_node2.x = wire_data.get("x2")
-                    vec_node2.y = wire_data.get("y2")
-                    vec_node2.real_x = wire_data.get("real_x2")
-                    vec_node2.real_y = wire_data.get("real_y2")
-                    vec_node2.row = wire_data.get("r2")
-                    vec_node2.col = wire_data.get("c2")
-                    vec_node2.layer = wire_data.get("l2")
-                    vec_node2.pin_id = wire_data.get("p2")
-                    wire_connections.node2 = vec_node2
-
-                    vec_wire.wire = wire_connections
-
-                    # path
-                    vec_wire.path_num = json_wire.get("path_num", 0)
-                    json_paths = json_wire.get("paths", [])
-                    for json_path in json_paths:
-                        wire_path = VectorPath()
-
-                        vec_path_node1 = VectorNode()
-                        vec_path_node1.id = json_path.get("id1")
-                        vec_path_node1.x = json_path.get("x1")
-                        vec_path_node1.y = json_path.get("y1")
-                        vec_path_node1.real_x = json_path.get("real_x1")
-                        vec_path_node1.real_y = json_path.get("real_y1")
-                        vec_path_node1.row = json_path.get("r1")
-                        vec_path_node1.col = json_path.get("c1")
-                        vec_path_node1.layer = json_path.get("l1")
-                        wire_path.node1 = vec_path_node1
-
-                        vec_path_node2 = VectorNode()
-                        vec_path_node2.id = json_path.get("id2")
-                        vec_path_node2.x = json_path.get("x2")
-                        vec_path_node2.y = json_path.get("y2")
-                        vec_path_node2.real_x = json_path.get("real_x2")
-                        vec_path_node2.real_y = json_path.get("real_y2")
-                        vec_path_node2.row = json_path.get("r2")
-                        vec_path_node2.col = json_path.get("c2")
-                        vec_path_node2.layer = json_path.get("l2")
-                        wire_path.node2 = vec_path_node2
-
-                        vec_wire.paths.append(wire_path)
-
-                    vec_net.wires.append(vec_wire)
-
-                # routing graph
-                routing_graph_data = net_metadata.get("routing_graph", {})
-                vertices = []
-                for v in routing_graph_data.get("vertices", []):
-                    point = VectorNetRoutingPoint(
-                        x=v["x"], y=v["y"], layer_id=v["layer_id"]
-                    )
-                    vertex = VectorNetRoutingVertex(
-                        id=v["id"],
-                        is_pin=v["is_pin"],
-                        is_driver_pin=v["is_driver_pin"],
-                        point=point,
-                    )
-                    vertices.append(vertex)
-
-                edges = []
-                for e in routing_graph_data.get("edges", []):
-                    path = [VectorNetRoutingPoint(**p) for p in e["path"]]
-                    edge = VectorNetRoutingEdge(
-                        source_id=e["source_id"], target_id=e["target_id"], path=path
-                    )
-                    edges.append(edge)
-                routing_graph = VectorNetRoutingGraph(vertices=vertices, edges=edges)
-                vec_net.routing_graph = routing_graph
-
+            # multi nets in json_data
+            if isinstance(self.json_data, list):
+                for net_metadata in self.json_data:
+                    vec_net = self._parse_single_net(net_metadata)
+                    vec_nets.append(vec_net)
+            else:
+                # sing net in json_data
+                vec_net = self._parse_single_net(self.json_data)
                 vec_nets.append(vec_net)
 
         return vec_nets
+    
+    def _parse_single_net(self, net_metadata) -> VectorNet:
+        """parse a single net from net_metadata dict."""
+        try:
+            # net
+            vec_net = VectorNet()
+            vec_net.id = net_metadata.get("id")
+            vec_net.name = net_metadata.get("name")
+
+            # net feature
+            net_feature = VectorNetFeature()
+            feature_data = net_metadata.get("feature", {})
+            net_feature.llx = feature_data.get("llx")
+            net_feature.lly = feature_data.get("lly")
+            net_feature.urx = feature_data.get("urx")
+            net_feature.ury = feature_data.get("ury")
+            net_feature.wire_len = feature_data.get("wire_len")
+            net_feature.via_num = feature_data.get("via_num")
+            net_feature.drc_num = feature_data.get("drc_num")
+            net_feature.R = feature_data.get("R")
+            net_feature.C = feature_data.get("C")
+            net_feature.power = feature_data.get("power")
+            net_feature.delay = feature_data.get("delay")
+            net_feature.slew = feature_data.get("slew")
+            net_feature.aspect_ratio = feature_data.get("aspect_ratio")
+            net_feature.width = feature_data.get("width")
+            net_feature.height = feature_data.get("height")
+            net_feature.area = feature_data.get("area")
+            net_feature.drc_type = feature_data.get("drc_type")
+            net_feature.volume = feature_data.get("volume")
+            net_feature.layer_ratio = feature_data.get("layer_ratio")
+
+            # parse place_feature
+            place_feature_data = feature_data.get("place_feature", {})
+            place_feature = VectorPlaceFeature()
+            place_feature.pin_num = place_feature_data.get("pin_num")
+            place_feature.aspect_ratio = place_feature_data.get("aspect_ratio")
+            place_feature.width = place_feature_data.get("width")
+            place_feature.height = place_feature_data.get("height")
+            place_feature.area = place_feature_data.get("area")
+            place_feature.l_ness = place_feature_data.get("l_ness")
+            place_feature.rsmt = place_feature_data.get("rsmt")
+            place_feature.hpwl = place_feature_data.get("hpwl")
+            net_feature.place_feature = place_feature
+
+            vec_net.feature = net_feature
+
+            # pins
+            vec_net.pin_num = net_metadata.get("pin_num", 0)
+            json_pins = net_metadata.get("pins", [])
+            for json_pin in json_pins:
+                vec_pin = VectorPin()
+                vec_pin.id = json_pin.get("id")
+                vec_pin.instance = json_pin.get("i")
+                vec_pin.pin_name = json_pin.get("p")
+                vec_pin.is_driver = json_pin.get("driver")
+
+                vec_net.pins.append(vec_pin)
+
+            # wires
+            vec_net.wire_num = net_metadata.get("wire_num", 0)
+            json_wires = net_metadata.get("wires", [])
+            for json_wire in json_wires:
+                vec_wire = VectorWire()
+                vec_wire.id = json_wire.get("id")
+
+                # wire feature
+                wire_feature = VectorWireFeature()
+                wire_feature_data = json_wire.get("feature", {})
+                wire_feature.wire_width = wire_feature_data.get("wire_width")
+                wire_feature.wire_len = wire_feature_data.get("wire_len")
+                wire_feature.drc_num = wire_feature_data.get("drc_num")
+                wire_feature.R = wire_feature_data.get("R")
+                wire_feature.C = wire_feature_data.get("C")
+                wire_feature.power = wire_feature_data.get("power")
+                wire_feature.delay = wire_feature_data.get("delay")
+                wire_feature.slew = wire_feature_data.get("slew")
+                wire_feature.congestion = wire_feature_data.get("congestion")
+                wire_feature.wire_density = wire_feature_data.get("wire_density")
+                wire_feature.drc_type = wire_feature_data.get("drc_type")
+
+                vec_wire.feature = wire_feature
+
+                # wire connections
+                wire_data = json_wire.get("wire", {})
+                wire_connections = VectorPath()
+
+                vec_node1 = VectorNode()
+                vec_node1.id = wire_data.get("id1")
+                vec_node1.x = wire_data.get("x1")
+                vec_node1.y = wire_data.get("y1")
+                vec_node1.real_x = wire_data.get("real_x1")
+                vec_node1.real_y = wire_data.get("real_y1")
+                vec_node1.row = wire_data.get("r1")
+                vec_node1.col = wire_data.get("c1")
+                vec_node1.layer = wire_data.get("l1")
+                vec_node1.pin_id = wire_data.get("p1")
+                wire_connections.node1 = vec_node1
+
+                vec_node2 = VectorNode()
+                vec_node2.id = wire_data.get("id2")
+                vec_node2.x = wire_data.get("x2")
+                vec_node2.y = wire_data.get("y2")
+                vec_node2.real_x = wire_data.get("real_x2")
+                vec_node2.real_y = wire_data.get("real_y2")
+                vec_node2.row = wire_data.get("r2")
+                vec_node2.col = wire_data.get("c2")
+                vec_node2.layer = wire_data.get("l2")
+                vec_node2.pin_id = wire_data.get("p2")
+                wire_connections.node2 = vec_node2
+                
+                if "via" in wire_data:
+                    wire_connections.via = wire_data.get("via")
+
+                vec_wire.wire = wire_connections
+
+                # path
+                vec_wire.path_num = json_wire.get("path_num", 0)
+                json_paths = json_wire.get("paths", [])
+                for json_path in json_paths:
+                    wire_path = VectorPath()
+
+                    vec_path_node1 = VectorNode()
+                    vec_path_node1.id = json_path.get("id1")
+                    vec_path_node1.x = json_path.get("x1")
+                    vec_path_node1.y = json_path.get("y1")
+                    vec_path_node1.real_x = json_path.get("real_x1")
+                    vec_path_node1.real_y = json_path.get("real_y1")
+                    vec_path_node1.row = json_path.get("r1")
+                    vec_path_node1.col = json_path.get("c1")
+                    vec_path_node1.layer = json_path.get("l1")
+                    wire_path.node1 = vec_path_node1
+
+                    vec_path_node2 = VectorNode()
+                    vec_path_node2.id = json_path.get("id2")
+                    vec_path_node2.x = json_path.get("x2")
+                    vec_path_node2.y = json_path.get("y2")
+                    vec_path_node2.real_x = json_path.get("real_x2")
+                    vec_path_node2.real_y = json_path.get("real_y2")
+                    vec_path_node2.row = json_path.get("r2")
+                    vec_path_node2.col = json_path.get("c2")
+                    vec_path_node2.layer = json_path.get("l2")
+                    wire_path.node2 = vec_path_node2
+
+                    if "via" in json_path:
+                        wire_path.via = json_path.get("via")
+
+                    vec_wire.paths.append(wire_path)
+
+                vec_net.wires.append(vec_wire)
+
+            # routing graph
+            routing_graph_data = net_metadata.get("routing_graph", {})
+            vertices = []
+            for v in routing_graph_data.get("vertices", []):
+                point = VectorNetRoutingPoint(
+                    x=v["x"], y=v["y"], layer_id=v["layer_id"]
+                )
+                vertex = VectorNetRoutingVertex(
+                    id=v["id"],
+                    is_pin=v["is_pin"],
+                    is_driver_pin=v["is_driver_pin"],
+                    point=point,
+                )
+                vertices.append(vertex)
+
+            edges = []
+            for e in routing_graph_data.get("edges", []):
+                path = [VectorNetRoutingPoint(**p) for p in e["path"]]
+                edge = VectorNetRoutingEdge(
+                    source_id=e["source_id"], target_id=e["target_id"], path=path
+                )
+                edges.append(edge)
+            routing_graph = VectorNetRoutingGraph(vertices=vertices, edges=edges)
+            vec_net.routing_graph = routing_graph
+
+            return vec_net
+        except Exception as e:
+            self.logger.error(f"Error parsing net data: {e}")
+            return None
 
     def get_patchs(self) -> list[VectorPatch]:
         vec_patchs = []
-        if self.read():
-            for json_patch in tqdm(
-                self.json_data, total=len(self.json_data), desc="load patchs"
-            ):
-
-                vec_patch = VectorPatch()
-
-                # patch
-                vec_patch.id = json_patch.get("id")
-                vec_patch.patch_id_row = json_patch.get("patch_id_row")
-                vec_patch.patch_id_col = json_patch.get("patch_id_col")
-                vec_patch.llx = json_patch.get("llx")
-                vec_patch.lly = json_patch.get("lly")
-                vec_patch.urx = json_patch.get("urx")
-                vec_patch.ury = json_patch.get("ury")
-                vec_patch.row_min = json_patch.get("row_min")
-                vec_patch.row_max = json_patch.get("row_max")
-                vec_patch.col_min = json_patch.get("col_min")
-                vec_patch.col_max = json_patch.get("col_max")
-                vec_patch.cell_density = json_patch.get("cell_density")
-                vec_patch.pin_density = json_patch.get("pin_density")
-                vec_patch.net_density = json_patch.get("net_density")
-                vec_patch.macro_margin = json_patch.get("macro_margin")
-                vec_patch.RUDY_congestion = json_patch.get("RUDY_congestion")
-                vec_patch.EGR_congestion = json_patch.get("EGR_congestion")
-                vec_patch.timing_map = json_patch.get("timing_map")
-                vec_patch.power_map = json_patch.get("power_map")
-                vec_patch.ir_drop_map = json_patch.get("IR_drop")
-
-                # patch layer
-                json_patch_layers = json_patch.get("patch_layer", [])
-                for json_patch_layer in json_patch_layers:
-                    patch_layer = VectorPatchLayer()
-                    patch_layer.id = json_patch_layer.get("id")
-                    patch_layer.net_num = json_patch_layer.get("net_num")
-                    feature = json_patch_layer.get("feature", {})
-                    patch_layer.wire_width = feature.get("wire_width")
-                    patch_layer.wire_len = feature.get("wire_len")
-                    patch_layer.wire_density = feature.get("wire_density")
-                    patch_layer.congestion = feature.get("congestion")
-
-                    json_nets = json_patch_layer.get("nets", [])
-                    for json_net in json_nets:
-                        # net
-                        vec_net = VectorNet()
-                        vec_net.id = json_net.get("id")
-                        vec_net.name = json_net.get("name")
-
-                        # wires
-                        vec_net.wire_num = json_net.get("wire_num")
-                        json_wires = json_net.get("wires", [])
-                        for json_wire in json_wires:
-                            vec_wire = VectorWire()
-                            vec_wire.id = json_wire.get("id")
-
-                            # wire feature
-                            wire_feature = VectorWireFeature()
-                            feature = json_wire.get("feature", {})
-                            wire_feature.wire_len = feature.get("wire_len")
-
-                            vec_wire.feature = wire_feature
-
-                            # path
-                            vec_wire.path_num = json_wire.get("path_num")
-                            json_paths = json_wire.get("paths", [])
-                            for json_path in json_paths:
-                                wire_path = VectorPath()
-
-                                vec_path_node1 = VectorNode()
-                                vec_path_node1.id = json_path.get("id1")
-                                vec_path_node1.x = json_path.get("x1")
-                                vec_path_node1.y = json_path.get("y1")
-                                vec_path_node1.row = json_path.get("r1")
-                                vec_path_node1.col = json_path.get("c1")
-                                vec_path_node1.layer = json_path.get("l1")
-                                vec_path_node1.pin_id = json_path.get("p1")
-                                wire_path.node1 = vec_path_node1
-
-                                vec_path_node2 = VectorNode()
-                                vec_path_node2.id = json_path.get("id2")
-                                vec_path_node2.x = json_path.get("x2")
-                                vec_path_node2.y = json_path.get("y2")
-                                vec_path_node2.row = json_path.get("r2")
-                                vec_path_node2.col = json_path.get("c2")
-                                vec_path_node2.layer = json_path.get("l2")
-                                vec_path_node2.pin_id = json_path.get("p2")
-                                wire_path.node2 = vec_path_node2
-
-                                vec_wire.paths.append(wire_path)
-
-                            vec_net.wires.append(vec_wire)
-
-                        patch_layer.nets.append(vec_net)
-
-                    vec_patch.patch_layer.append(patch_layer)
-
+        
+        if self.read() is True:
+            # multi patches in json_data
+            if isinstance(self.json_data, list):
+                for patch_metadata in tqdm(
+                    self.json_data, total=len(self.json_data), desc="load patchs"
+                ):
+                    vec_patch = self._parse_single_patch(patch_metadata)
+                    vec_patchs.append(vec_patch)
+            else:
+                # single patch in json_data
+                vec_patch = self._parse_single_patch(self.json_data)
                 vec_patchs.append(vec_patch)
 
         return vec_patchs
+    
+    def _parse_single_patch(self, patch_metadata) -> VectorPatch:
+        """parse a single patch from patch_metadata dict."""
+        try:
+            vec_patch = VectorPatch()
+
+            # patch
+            vec_patch.id = patch_metadata.get("id")
+            vec_patch.patch_id_row = patch_metadata.get("patch_id_row")
+            vec_patch.patch_id_col = patch_metadata.get("patch_id_col")
+            vec_patch.llx = patch_metadata.get("llx")
+            vec_patch.lly = patch_metadata.get("lly")
+            vec_patch.urx = patch_metadata.get("urx")
+            vec_patch.ury = patch_metadata.get("ury")
+            vec_patch.row_min = patch_metadata.get("row_min")
+            vec_patch.row_max = patch_metadata.get("row_max")
+            vec_patch.col_min = patch_metadata.get("col_min")
+            vec_patch.col_max = patch_metadata.get("col_max")
+            vec_patch.cell_density = patch_metadata.get("cell_density")
+            vec_patch.pin_density = patch_metadata.get("pin_density")
+            vec_patch.net_density = patch_metadata.get("net_density")
+            vec_patch.macro_margin = patch_metadata.get("macro_margin")
+            vec_patch.RUDY_congestion = patch_metadata.get("RUDY_congestion")
+            vec_patch.EGR_congestion = patch_metadata.get("EGR_congestion")
+            vec_patch.timing_map = patch_metadata.get("timing")
+            vec_patch.power_map = patch_metadata.get("power")
+            vec_patch.ir_drop_map = patch_metadata.get("IR_drop")
+
+            # patch layer
+            json_patch_layers = patch_metadata.get("patch_layer", [])
+            for json_patch_layer in json_patch_layers:
+                patch_layer = VectorPatchLayer()
+                patch_layer.id = json_patch_layer.get("id")
+                patch_layer.net_num = json_patch_layer.get("net_num")
+                feature = json_patch_layer.get("feature", {})
+                patch_layer.wire_width = feature.get("wire_width")
+                patch_layer.wire_len = feature.get("wire_len")
+                patch_layer.wire_density = feature.get("wire_density")
+                patch_layer.congestion = feature.get("congestion")
+
+                json_nets = json_patch_layer.get("nets", [])
+                for json_net in json_nets:
+                    # net
+                    vec_net = VectorNet()
+                    vec_net.id = json_net.get("id")
+                    vec_net.name = json_net.get("name")
+
+                    # wires
+                    vec_net.wire_num = json_net.get("wire_num")
+                    json_wires = json_net.get("wires", [])
+                    for json_wire in json_wires:
+                        vec_wire = VectorWire()
+                        vec_wire.id = json_wire.get("id")
+
+                        # wire feature
+                        wire_feature = VectorWireFeature()
+                        feature = json_wire.get("feature", {})
+                        wire_feature.wire_len = feature.get("wire_len")
+
+                        vec_wire.feature = wire_feature
+
+                        # path
+                        vec_wire.path_num = json_wire.get("path_num")
+                        json_paths = json_wire.get("paths", [])
+                        for json_path in json_paths:
+                            wire_path = VectorPath()
+
+                            vec_path_node1 = VectorNode()
+                            vec_path_node1.id = json_path.get("id1")
+                            vec_path_node1.x = json_path.get("x1")
+                            vec_path_node1.y = json_path.get("y1")
+                            vec_path_node1.row = json_path.get("r1")
+                            vec_path_node1.col = json_path.get("c1")
+                            vec_path_node1.layer = json_path.get("l1")
+                            vec_path_node1.pin_id = json_path.get("p1")
+                            wire_path.node1 = vec_path_node1
+
+                            vec_path_node2 = VectorNode()
+                            vec_path_node2.id = json_path.get("id2")
+                            vec_path_node2.x = json_path.get("x2")
+                            vec_path_node2.y = json_path.get("y2")
+                            vec_path_node2.row = json_path.get("r2")
+                            vec_path_node2.col = json_path.get("c2")
+                            vec_path_node2.layer = json_path.get("l2")
+                            vec_path_node2.pin_id = json_path.get("p2")
+                            wire_path.node2 = vec_path_node2
+
+                            if "via" in json_path:
+                                wire_path.via = json_path.get("via")
+
+                            vec_wire.paths.append(wire_path)
+
+                        vec_net.wires.append(vec_wire)
+
+                    patch_layer.nets.append(vec_net)
+
+                vec_patch.patch_layer.append(patch_layer)
+
+            return vec_patch
+        except Exception as e:
+            self.logger.error(f"Error parsing patch data: {e}")
+            return None
 
     def get_cells(self) -> VectorCells:
         vec_cells = VectorCells()
@@ -339,6 +375,32 @@ class VectorsParserJson(JsonParser):
                 vec_via = VectorVia()
                 vec_via.id = json_via.get("id")
                 vec_via.name = json_via.get("name")
+                
+                bottom_data = json_via.get("bottom")
+                vec_via.bottom = VectorViaRect()
+                vec_via.bottom.llx = bottom_data.get("llx")
+                vec_via.bottom.lly = bottom_data.get("lly")
+                vec_via.bottom.urx = bottom_data.get("urx")
+                vec_via.bottom.ury = bottom_data.get("ury")
+                
+                cut_data = json_via.get("cut")
+                vec_via.cut = VectorViaRect()
+                vec_via.cut.llx = cut_data.get("llx")
+                vec_via.cut.lly = cut_data.get("lly")
+                vec_via.cut.urx = cut_data.get("urx")
+                vec_via.cut.ury = cut_data.get("ury")
+                
+                top_data = json_via.get("top")
+                vec_via.top = VectorViaRect()
+                vec_via.top.llx = top_data.get("llx")
+                vec_via.top.lly = top_data.get("lly")
+                vec_via.top.urx = top_data.get("urx")
+                vec_via.top.ury = top_data.get("ury")
+                
+                vec_via.row = json_via.get("row")
+                vec_via.col = json_via.get("col")
+                vec_via.bottom_direction = json_via.get("bottom_direction")
+                vec_via.top_direction = json_via.get("top_direction")
 
                 vec_vias.vias.append(vec_via)
 
@@ -377,7 +439,6 @@ class VectorsParserJson(JsonParser):
             for json_node in tqdm(json_nodes, total=len(json_nodes), desc="load nodes"):
                 wire_node = VectorTimingWireGraphNode()
 
-                # patch
                 wire_node.id = json_node.get("id")
                 wire_node.name = json_node.get("name")
                 wire_node.is_pin = json_node.get("is_pin")
@@ -389,7 +450,6 @@ class VectorsParserJson(JsonParser):
             for json_edge in tqdm(json_edges, total=len(json_edges), desc="load edges"):
                 wire_edge = VectorTimingWireGraphEdge()
 
-                # patch
                 wire_edge.id = json_edge.get("id")
                 wire_edge.from_node = json_edge.get("from_node")
                 wire_edge.to_node = json_edge.get("to_node")
@@ -535,6 +595,45 @@ class VectorsParserJson(JsonParser):
         path_hash = path_data_package.generate_hash()
 
         return path_hash, wire_path_graph
+
+    def get_wire_paths_data(self) -> VectorTimingWirePathData:
+        """Get detailed wire path data including capacitance, slew, resistance, incr and nodes."""
+        
+        def remove_parentheses_content(s):
+            return s[:s.find("(")].strip() if s.find("(") != -1 else s
+
+        if self.read() is True:
+            path_data = VectorTimingWirePathData()
+
+            for json_item in self.json_data:
+                for key, json_value in json_item.items():
+                    if key.startswith("node_"):
+                        # Process node data
+                        node_name = json_value.get("Point")
+                        node_name = remove_parentheses_content(node_name)
+                        path_data.nodes.append(node_name)
+                        path_data.capacitance_list.append(json_value.get("Capacitance", 0))
+                        path_data.slew_list.append(json_value.get("slew", 0))
+                        path_data.resistance_list.append(0)  # Default R value for nodes
+
+                    elif key.startswith("net_arc_"):
+                        # Process net arc data
+                        path_data.incr_list.append(json_value.get("Incr", 0))
+                        for edge_key, edge_value in json_value.items():
+                            if edge_key.startswith("edge_"):
+                                path_data.capacitance_list.append(edge_value.get("wire_C", 0))
+                                path_data.slew_list.append(edge_value.get("to_slew", 0))
+                                path_data.resistance_list.append(edge_value.get("wire_R", 0))
+
+                                # Record edge node
+                                path_data.nodes.append(edge_value.get("wire_to_node", ""))
+
+                    elif key.startswith("inst_arc_"):
+                        # Process instance arc data
+                        path_data.incr_list.append(json_value.get("Incr", 0))
+
+            return path_data
+        return None
 
     def get_timing_paths_metrics(self) -> VectorPathMetrics:
 

@@ -267,7 +267,9 @@ Design Files → Workspace → EDA Tools → Feature Extraction → AI Models �
    cmake ..
    make -j32 ieda_py
    ```
-   **Note:** Building ieda_py requires **sudo** privileges to download additional system libraries.
+   **Note:** 
+   - When compiling iEDA, you need to switch to the AiEDA directory (i.e., ~/AiEDA/), not the iEDA directory (i.e., ~/AiEDA/aieda/third_party/iEDA/).
+   - Building ieda_py requires **sudo** privileges to download additional system libraries. 
 
 4. **Run Tests:**
    ```bash
@@ -317,12 +319,18 @@ Docker provides a containerized environment with all dependencies pre-configured
 ```bash
 # Test the fullflow (Recommended)
 python test/test_sky130_gcd.py
+# or
+uv run python test/test_sky130_gcd.py
 
 # Test physical design flow using iEDA
 python test/test_ieda_flows.py
+# or 
+uv run python test/test_ieda_flows.py
 
 # Test vector generation 
 python test/test_ieda_vectors.py
+# or
+uv run python test/test_ieda_vectors.py
 ```
 
 ### Basic Usage Examples

@@ -15,7 +15,7 @@
     "net_density": 0.19290123456790123,
     "macro_margin": 255180,
     "RUDY_congestion": 0.0005800384417290502,
-    "EGR_congestion": -8.0,
+    "EGR_congestion": 2.0,
     "timing": -0.468079,
     "power": 1.2346833948636887e-06,
     "IR_drop": 0.0,
@@ -56,7 +56,7 @@
                 "wire_width": 170,
                 "wire_len": 0,
                 "wire_density": 0.0,
-                "congestion": 0.0
+                "congestion": 1.0
             },
             "net_num": 2,
             "nets": [
@@ -222,7 +222,7 @@
                 "wire_width": 140,
                 "wire_len": 960,
                 "wire_density": 0.00720164609053498,
-                "congestion": -5.0
+                "congestion": 3.0
             },
             "net_num": 2,
             "nets": [
@@ -410,7 +410,7 @@
                 "wire_width": 140,
                 "wire_len": 2640,
                 "wire_density": 0.019804526748971193,
-                "congestion": -3.0
+                "congestion": -2.0
             },
             "net_num": 1,
             "nets": [

@@ -64,7 +64,7 @@
                 "wire_width": 140,
                 "wire_len": 4320,
                 "wire_density": 0.032407407407407406,
-                "congestion": -8.0
+                "congestion": -10.0
             },
             "net_num": 1,
             "nets": [
@@ -122,7 +122,7 @@
                 "wire_width": 140,
                 "wire_len": 0,
                 "wire_density": 0.0,
-                "congestion": -7.0
+                "congestion": -5.0
             },
             "net_num": 0,
             "nets": []

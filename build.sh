@@ -124,7 +124,26 @@ check_requirements() {
     
     if [[ $major -lt 3 ]] || [[ $major -eq 3 && $minor -lt 10 ]]; then
         print_error "Python 3.10+ is required, found: $python_version"
-        exit 1
+        
+        # Suggest conda installation
+        if command -v conda &> /dev/null; then
+            print_info "Would you like to install Python 3.10.16 using conda?"
+            read -p "Create conda environment 'aieda' with Python 3.10.16? (y/n): " answer
+            
+            if [[ "$answer" == [Yy]* ]]; then
+                print_info "Creating conda environment 'aieda' with Python 3.10.16..."
+                conda create -n aieda python=3.10.16 -y
+                print_success "Conda environment 'aieda' created successfully"
+                print_info "Please activate the environment with 'conda activate aieda' and run the script again"
+                exit 0
+            else
+                print_info "You can manually install Python 3.10+ or specify a correct Python command with --python"
+                exit 1
+            fi
+        else
+            print_info "Please install Python 3.10+ or specify correct Python command with --python"
+            exit 1
+        fi
     fi
     
     print_success "Python $python_version found"

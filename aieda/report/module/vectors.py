@@ -95,18 +95,17 @@ class ReportVectors:
         
             from ...analysis import ResultStatisAnalyzer
             
-            wire_analyzer = ResultStatisAnalyzer()
+            analyzer = ResultStatisAnalyzer()
             
                 
-            wire_analyzer.load(
+            analyzer.load(
                 workspaces=workspace_list,
                 pattern=self.workspace.get_vectors_path(),
                 dir_to_display_name=display_names_map,
-                calc_wire_num=False
             )
-            wire_analyzer.analyze()
-            wire_analyzer.visualize()
-            analyse_content = wire_analyzer.report()
+            analyzer.analyze()
+            analyzer.visualize()
+            analyse_content = analyzer.report()
             
             images = [
                 self.get_image_path(
@@ -128,15 +127,15 @@ class ReportVectors:
         
             from ...analysis import DelayAnalyzer
             
-            wire_analyzer = DelayAnalyzer()
-            wire_analyzer.load(
+            analyzer = DelayAnalyzer()
+            analyzer.load(
                 workspaces=workspace_list,
                 pattern=self.workspace.get_wire_paths_path(),
                 dir_to_display_name=display_names_map
             )
-            wire_analyzer.analyze()
-            wire_analyzer.visualize()
-            analyse_content = wire_analyzer.report()
+            analyzer.analyze()
+            analyzer.visualize()
+            analyse_content = analyzer.report()
             
             images = [
                 self.get_image_path(
@@ -158,15 +157,15 @@ class ReportVectors:
         
             from ...analysis import StageAnalyzer
             
-            wire_analyzer = StageAnalyzer()
-            wire_analyzer.load(
+            analyzer = StageAnalyzer()
+            analyzer.load(
                 workspaces=workspace_list,
                 pattern=self.workspace.get_wire_paths_path(),
                 dir_to_display_name=display_names_map
             )
-            wire_analyzer.analyze()
-            wire_analyzer.visualize()
-            analyse_content = wire_analyzer.report()
+            analyzer.analyze()
+            analyzer.visualize()
+            analyse_content = analyzer.report()
             
             images = [
                 self.get_image_path(
@@ -223,15 +222,15 @@ class ReportVectors:
         
             from ...analysis import FeatureCorrelationAnalyzer
             
-            wire_analyzer = FeatureCorrelationAnalyzer()
-            wire_analyzer.load(
+            analyzer = FeatureCorrelationAnalyzer()
+            analyzer.load(
                 workspaces=workspace_list,
                 pattern=self.workspace.get_patchs_path(),
                 dir_to_display_name=display_names_map,
             )
-            wire_analyzer.analyze()
-            wire_analyzer.visualize()
-            analyse_content = wire_analyzer.report()
+            analyzer.analyze()
+            analyzer.visualize()
+            analyse_content = analyzer.report()
             
             images = [
                 self.get_image_path(
@@ -253,17 +252,17 @@ class ReportVectors:
         
             from ...analysis import MapAnalyzer
             
-            wire_analyzer = MapAnalyzer()
-            wire_analyzer.load(
+            analyzer = MapAnalyzer()
+            analyzer.load(
                 workspaces=workspace_list,
                 pattern=self.workspace.get_patchs_path(),
                 dir_to_display_name=display_names_map,
             )
-            wire_analyzer.analyze()
-            wire_analyzer.visualize()
-            analyse_content = wire_analyzer.report()
+            analyzer.analyze()
+            analyzer.visualize()
+            analyse_content = analyzer.report()
             
-            images = wire_analyzer.image_paths
+            images = analyzer.image_paths
             
             image_gen = self.Images(images)
             iamge_content = image_gen.images_content(height="300", per_row=4)

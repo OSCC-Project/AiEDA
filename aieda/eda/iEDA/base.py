@@ -7,20 +7,18 @@
 """
 import os
 
-if os.environ.get("iEDA") == "ON":
-    from ...third_party.iEDA.bin import ieda_py as ieda
-else:
-    ieda = None
 
-from ...workspace import Workspace
 from ...flows import DbFlow
+from ...workspace import Workspace
 
 
 class IEDABase:
     """Manage flow"""
 
     def __init__(self, workspace: Workspace, flow: DbFlow):
-        if ieda == None:
+        if os.environ.get("iEDA") == "ON":
+            from ...third_party.iEDA.bin import ieda_py as ieda
+        else:
             workspace.logger.error("Error, iEDA library is not load.")
             exit(0)
         self.ieda = ieda
