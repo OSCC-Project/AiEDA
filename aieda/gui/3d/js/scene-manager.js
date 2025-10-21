@@ -3,7 +3,15 @@ class SceneManager {
         this.canvas = canvas;
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 10000);
-        this.renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        
+        // 渲染器优化：减少antialias以提高性能
+        this.renderer = new THREE.WebGLRenderer({ 
+            canvas: canvas, 
+            antialias: true,
+            powerPreference: 'high-performance', // 优先使用高性能GPU
+            precision: 'mediump' // 使用中等精度以提高性能
+        });
+        
         this.dataManager = new DataManager();
         
         this.meshGroups = new Map(); // className -> THREE.Group
@@ -25,6 +33,18 @@ class SceneManager {
         // Pan state
         this.panOffset = { x: 0, y: 0 };
         
+        // 优化：缓存常用的Vector3对象
+        this._rightVector = new THREE.Vector3();
+        this._upVector = new THREE.Vector3();
+        this._panVector = new THREE.Vector3();
+        this._worldZAxis = new THREE.Vector3(0, 0, 1);
+        
+        // 优化：渲染节流
+        this._lastRenderTime = 0;
+        this._renderInterval = 16; // 约60fps
+        this._needsUpdate = false;
+        this._isRebuilding = false; // 场景重建状态标志
+        
         this.setupScene();
         this.setupEventListeners();
         this.setupCustomControls();
@@ -36,20 +56,16 @@ class SceneManager {
         // Setup renderer
         this.renderer.setSize(this.canvas.parentElement.clientWidth, this.canvas.parentElement.clientHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        
+        // 优化：简化阴影计算以提高性能
+        this.renderer.shadowMap.enabled = false; // 禁用阴影以提高性能
 
         // Setup camera with initial view: XY plane at bottom, Z-axis pointing up
         this.setupInitialCameraPosition();
 
-        // Setup lighting
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+        // Setup lighting - 简化灯光以提高性能
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6); // 增加环境光强度以补偿阴影禁用
         this.scene.add(ambientLight);
-
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
-        directionalLight.position.set(100, 100, 50);
-        directionalLight.castShadow = true;
-        this.scene.add(directionalLight);
 
         // Create a group for all objects that we want to rotate/pan
         this.objectGroup = new THREE.Group();
@@ -228,10 +244,15 @@ class SceneManager {
             const deltaX = currentPos.x - this.lastMousePos.x;
             const deltaY = currentPos.y - this.lastMousePos.y;
             
+            // 优化：当移动量很小时不执行更新，避免微小抖动
+            if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) {
+                return;
+            }
+            
             if (this.isRotationMode) {
                 // Rotation mode - check for Ctrl key
                 if (this.keys.ctrl) {
-                    this.moveCamera(deltaY)
+                    this.moveCamera(deltaY);
                 } else {
                     this.rotateSceneWorldZAxis(-deltaX);   
                 }
@@ -239,6 +260,9 @@ class SceneManager {
                 // Pan mode - reversed direction
                 this.panScene(deltaX, deltaY);
             }
+            
+            // 标记场景需要更新
+            this._needsUpdate = true;
         }
         
         this.lastMousePos = currentPos;
@@ -262,39 +286,30 @@ class SceneManager {
     }
 
     rotateSceneWorldZAxis(deltaX) {
-        // Z-axis only rotation around the world coordinate system Z-axis
-        // This rotates around the absolute Z-axis of the coordinate system,
-        // not the viewport/camera Z-axis. Positive deltaX rotates counterclockwise
-        // when viewed from above (looking down the positive Z-axis).
+        // 优化：使用缓存的世界Z轴向量，避免重复创建
         const zRotation = -deltaX * 0.01 * this.rotationSpeed;
-        
-        // Use the world Z-axis vector explicitly to ensure strict Z-axis rotation
-        const worldZAxis = new THREE.Vector3(0, 0, 1);
-        this.objectGroup.rotateOnWorldAxis(worldZAxis, zRotation);
+        this.objectGroup.rotateOnWorldAxis(this._worldZAxis, zRotation);
     }
 
     panScene(deltaX, deltaY) {
-        // Convert screen space movement to world space
-        // Reversed direction: positive deltaX moves scene left, positive deltaY moves scene down
+        // 优化：使用缓存的向量对象，避免频繁创建新对象
+        this.camera.updateMatrixWorld(); // 确保矩阵是最新的
         
-        // Get camera's right and up vectors
-        const cameraMatrix = this.camera.matrixWorld.clone();
-        const right = new THREE.Vector3();
-        const up = new THREE.Vector3();
+        // 获取相机的右方向和上方向向量
+        this._rightVector.setFromMatrixColumn(this.camera.matrixWorld, 0); // X列
+        this._upVector.setFromMatrixColumn(this.camera.matrixWorld, 1);    // Y列
         
-        right.setFromMatrixColumn(cameraMatrix, 0); // X column
-        up.setFromMatrixColumn(cameraMatrix, 1);    // Y column
-        
-        // Calculate pan distance based on camera distance
+        // 计算平移距离
         const distance = this.camera.position.length();
         const panScale = distance * 0.001 * this.panSpeed;
         
-        // Apply panning with reversed direction
-        const panVector = new THREE.Vector3();
-        panVector.addScaledVector(right, deltaX * panScale);  // Reversed: removed minus sign
-        panVector.addScaledVector(up, -deltaY * panScale);   // Reversed: changed plus to minus
+        // 应用平移
+        this._panVector.set(0, 0, 0);
+        this._panVector.addScaledVector(this._rightVector, deltaX * panScale);
+        this._panVector.addScaledVector(this._upVector, -deltaY * panScale);
         
-        this.objectGroup.position.add(panVector);
+        // 直接修改对象组位置
+        this.objectGroup.position.add(this._panVector);
     }
 
     setRotationMode(enabled) {
@@ -313,8 +328,16 @@ class SceneManager {
     }
 
     animate() {
+        const currentTime = performance.now();
+        
+        // 优化：使用时间节流来限制渲染频率，重建场景时暂停渲染
+        if (!this._isRebuilding && (currentTime - this._lastRenderTime >= this._renderInterval || this._needsUpdate)) {
+            this.renderer.render(this.scene, this.camera);
+            this._lastRenderTime = currentTime;
+            this._needsUpdate = false; // 重置更新标志
+        }
+        
         requestAnimationFrame(() => this.animate());
-        this.renderer.render(this.scene, this.camera);
     }
 
     addWire(x1, y1, z1, x2, y2, z2, comment, shapeClass, color) {
@@ -550,14 +573,208 @@ class SceneManager {
         this.dataManager.clear();
     }
 
-    loadFromJSON(jsonData) {
+    async loadFromJSON(jsonData) {
         this.clearScene();
-        this.dataManager.loadFromJSON(jsonData);
-        this.rebuildScene();
-        this.resetView();
+        try {
+            // 等待数据完全加载和缩放完成
+            await this.dataManager.loadFromJSON(jsonData);
+            // 数据加载完成后重建场景和重置视图，等待场景重建完成
+            await this.rebuildScene();
+            this.resetView();
+        } catch (error) {
+            console.error('Error loading scene from JSON:', error);
+            // 即使出错也尝试重建场景，可能会显示部分内容
+            await this.rebuildScene();
+            this.resetView();
+        }
     }
 
-    rebuildScene() {
+    async rebuildScene() {
+        // 标记场景正在重建，暂停渲染以提高性能
+        this._isRebuilding = true;
+        
+        try {
+            // 收集所有需要处理的类别
+            const classPromises = [];
+            
+            this.dataManager.shapes.forEach((shapes, className) => {
+                // 为每个类别创建一个Promise
+                const classPromise = new Promise((resolve) => {
+                    const color = this.dataManager.getClassColor(className);
+                    const meshes = [];
+                    
+                    // 预处理阶段：创建所有网格但不添加到场景
+                    shapes.forEach(shape => {
+                        let mesh;
+                        switch (shape.type) {
+                            case 'Wire':
+                                // 修改createWireMesh使其返回mesh而直接添加
+                                mesh = this._createWireMeshAsync(
+                                    shape.x1, shape.y1, shape.z1,
+                                    shape.x2, shape.y2, shape.z2,
+                                    shape.comment, shape.shapeClass, color
+                                );
+                                break;
+                            case 'Rect':
+                                mesh = this._createRectMeshAsync(
+                                    shape.x1, shape.y1, shape.z1,
+                                    shape.x2, shape.y2, shape.z2,
+                                    shape.comment, shape.shapeClass, color
+                                );
+                                break;
+                            case 'Via':
+                                mesh = this._createViaMeshAsync(
+                                    shape.x1, shape.y1, shape.z1, shape.z2,
+                                    shape.comment, shape.shapeClass, color
+                                );
+                                break;
+                        }
+                        if (mesh) {
+                            meshes.push({ mesh, className });
+                        }
+                    });
+                    
+                    resolve(meshes);
+                });
+                
+                classPromises.push(classPromise);
+            });
+            
+            // 并行处理所有类别
+            const allResults = await Promise.all(classPromises);
+            
+            // 合并所有结果
+            const allMeshes = allResults.flat();
+            
+            // 批量添加阶段：一次性将所有网格添加到场景中
+            this._batchAddMeshesToScene(allMeshes);
+            
+        } catch (error) {
+            console.error('Error during scene rebuilding:', error);
+            // 回退到同步方式
+            this._rebuildSceneSync();
+        } finally {
+            // 标记重建完成，恢复渲染
+            this._isRebuilding = false;
+            this._needsUpdate = true; // 触发重新渲染
+        }
+    }
+    
+    // 异步版本的createWireMesh，只创建网格不添加到场景
+    _createWireMeshAsync(x1, y1, z1, x2, y2, z2, comment, shapeClass, color) {
+        // Calculate wire direction and length
+        const direction = new THREE.Vector3(x2 - x1, y2 - y1, z2 - z1);
+        const length = direction.length();
+        direction.normalize();
+
+        // Create a cylindrical geometry for the wire with visible thickness
+        const wireRadius = Math.max(0.1, length * 0.002);
+        const geometry = new THREE.CylinderGeometry(wireRadius, wireRadius, length, 8);
+
+        const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(color.r, color.g, color.b),
+            transparent: color.a !== undefined,
+            opacity: color.a !== undefined ? color.a : 1.0
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // Position the mesh at the midpoint of the wire
+        const midpoint = new THREE.Vector3(
+            (x1 + x2) / 2,
+            (y1 + y2) / 2,
+            (z1 + z2) / 2
+        );
+        mesh.position.copy(midpoint);
+
+        // Align the cylinder with the wire direction
+        const up = new THREE.Vector3(0, 1, 0);
+        const quaternion = new THREE.Quaternion();
+        quaternion.setFromUnitVectors(up, direction);
+        mesh.setRotationFromQuaternion(quaternion);
+
+        mesh.userData = { comment, shapeClass, type: 'Wire' };
+        return mesh;
+    }
+    
+    // 异步版本的createRectMesh，只创建网格不添加到场景
+    _createRectMeshAsync(x1, y1, z1, x2, y2, z2, comment, shapeClass, color) {
+        const width = Math.abs(x2 - x1);
+        const height = Math.abs(y2 - y1);
+        const centerX = (x1 + x2) / 2;
+        const centerY = (y1 + y2) / 2;
+
+        const geometry = new THREE.PlaneGeometry(width, height);
+        const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(color.r, color.g, color.b),
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: color.a !== undefined ? color.a : 0.85
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(centerX, centerY, z1);
+        mesh.userData = { comment, shapeClass, type: 'Rect' };
+        return mesh;
+    }
+    
+    // 异步版本的createViaMesh，只创建网格不添加到场景
+    _createViaMeshAsync(x, y, z1, z2, comment, shapeClass, color) {
+        // Calculate via direction and length
+        const length = Math.abs(z2 - z1);
+        const centerZ = (z1 + z2) / 2;
+
+        // Create a cylindrical geometry for the via
+        const viaRadius = Math.max(0.05, length * 0.001);
+        const geometry = new THREE.CylinderGeometry(viaRadius, viaRadius, length, 8);
+
+        const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(color.r, color.g, color.b),
+            transparent: color.a !== undefined,
+            opacity: color.a !== undefined ? color.a : 1.0
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // Position the mesh at the center point
+        mesh.position.set(x, y, centerZ);
+
+        // Rotate to align with Z-axis (cylinder default is Y-axis)
+        mesh.rotateX(Math.PI / 2);
+
+        mesh.userData = { comment, shapeClass, type: 'Via' };
+        return mesh;
+    }
+    
+    // 批量添加网格到场景
+    _batchAddMeshesToScene(meshes) {
+        // 按className分组网格
+        const meshesByClass = new Map();
+        
+        meshes.forEach(({ mesh, className }) => {
+            if (!meshesByClass.has(className)) {
+                meshesByClass.set(className, []);
+            }
+            meshesByClass.get(className).push(mesh);
+        });
+        
+        // 批量添加每个类别的网格
+        meshesByClass.forEach((classMeshes, className) => {
+            if (!this.meshGroups.has(className)) {
+                const group = new THREE.Group();
+                group.name = className;
+                this.meshGroups.set(className, group);
+                this.objectGroup.add(group);
+            }
+            
+            const group = this.meshGroups.get(className);
+            // 批量添加所有网格到组
+            classMeshes.forEach(mesh => group.add(mesh));
+        });
+    }
+    
+    // 同步版本的rebuildScene，用于错误处理时的回退
+    _rebuildSceneSync() {
         this.dataManager.shapes.forEach((shapes, className) => {
             const color = this.dataManager.getClassColor(className);
             shapes.forEach(shape => {
