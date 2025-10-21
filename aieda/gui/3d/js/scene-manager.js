@@ -74,6 +74,48 @@ class SceneManager {
         this.animate();
     }
 
+    // 合并网格组，返回合并后的网格
+    mergeGroup(groupName) {
+        const group = this.meshGroups.get(groupName);
+        if (!group || !THREE.BufferGeometryUtils) {
+            console.warn('Group not found or BufferGeometryUtils not available');
+            return null;
+        }
+        
+        try {
+            const meshes = [];
+            group.traverse(child => {
+                if (child.isMesh) {
+                    meshes.push(child);
+                }
+            });
+            
+            if (meshes.length === 0) return null;
+            
+            // 准备合并的几何体数组
+            const geometries = [];
+            meshes.forEach(mesh => {
+                const geometry = mesh.geometry.clone();
+                geometry.applyMatrix4(mesh.matrixWorld);
+                geometries.push(geometry);
+            });
+            
+            // 合并几何体
+            const mergedGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries, true);
+            const mergedMesh = new THREE.Mesh(mergedGeometry, meshes[0].material);
+            mergedMesh.userData = {
+                type: 'MergedGroup',
+                originalCount: meshes.length,
+                groupName: groupName
+            };
+            
+            return mergedMesh;
+        } catch (error) {
+            console.error('Error merging group:', error);
+            return null;
+        }
+    }
+
     setupInitialCameraPosition() {
         // Position camera to view XY plane from above at an angle
         // XY plane is at the bottom (Z=0), positive Z points up
@@ -768,9 +810,183 @@ class SceneManager {
             }
             
             const group = this.meshGroups.get(className);
-            // 批量添加所有网格到组
-            classMeshes.forEach(mesh => group.add(mesh));
+            
+            // 按类型和材质合并网格，优化渲染性能
+            this._mergeAndAddMeshes(group, classMeshes);
         });
+    }
+    
+    // 合并相同类型和材质的网格并添加到组
+    _mergeAndAddMeshes(group, meshes) {
+        // 按类型和材质进行更细粒度的分组
+        const meshesByTypeAndMaterial = new Map();
+        
+        meshes.forEach(mesh => {
+            const type = mesh.userData.type || 'Unknown';
+            // 使用材质实例作为键，确保材质相同的网格才会被合并
+            // const key = `${type}-${mesh.material.id}`;
+            const key = `${type}`;
+            
+            if (!meshesByTypeAndMaterial.has(key)) {
+                meshesByTypeAndMaterial.set(key, []);
+            }
+            meshesByTypeAndMaterial.get(key).push(mesh);
+        });
+        
+        // 对每个分组进行几何体合并
+        meshesByTypeAndMaterial.forEach((typeMeshes, key) => {
+            // 如果网格数量较少，直接添加而不合并以保持灵活性
+            if (typeMeshes.length <= 10) {
+                typeMeshes.forEach(mesh => group.add(mesh));
+                return;
+            }
+            
+            try {
+                // 使用自定义的网格合并方法
+                const mergedMesh = this._mergeMeshes(typeMeshes);
+                if (mergedMesh) {
+                    // 添加合并后的网格到组
+                    group.add(mergedMesh);
+                } else {
+                    // 如果合并失败，回退到单独添加每个网格
+                    typeMeshes.forEach(mesh => group.add(mesh));
+                }
+            } catch (error) {
+                console.warn(`Error merging meshes of type ${key}:`, error);
+                // 如果合并失败，回退到单独添加每个网格
+                typeMeshes.forEach(mesh => group.add(mesh));
+            }
+        });
+    }
+    
+    // 自定义网格合并方法，不依赖BufferGeometryUtils
+    _mergeMeshes(meshes) {
+        if (!meshes || meshes.length === 0) return null;
+        
+        // 创建新的合并几何体
+        const mergedGeometry = new THREE.BufferGeometry();
+        
+        // 存储所有顶点和索引数据
+        let positions = [];
+        let normals = [];
+        let uvs = [];
+        let indices = [];
+        
+        let vertexOffset = 0;
+        
+        // 遍历所有网格，收集顶点和索引数据
+        meshes.forEach(mesh => {
+            // 确保几何体已更新
+            mesh.updateMatrixWorld(true);
+            
+            // 获取几何体（如果是BufferGeometry直接使用，否则转换）
+            const geometry = mesh.geometry.isBufferGeometry ? mesh.geometry : mesh.geometry.toBufferGeometry();
+            
+            // 确保几何体有位置属性
+            if (!geometry.attributes.position) return;
+            
+            // 获取顶点位置数据
+            const positionAttribute = geometry.attributes.position;
+            
+            // 获取顶点法线（如果存在）
+            const normalAttribute = geometry.attributes.normal;
+            
+            // 获取UV坐标（如果存在）
+            const uvAttribute = geometry.attributes.uv;
+            
+            // 获取索引数据
+            const geometryIndices = geometry.getIndex();
+            
+            // 复制变换矩阵
+            const matrix = mesh.matrixWorld.clone();
+            
+            // 处理每个顶点
+            for (let i = 0; i < positionAttribute.count; i++) {
+                // 创建顶点对象
+                const vertex = new THREE.Vector3(
+                    positionAttribute.getX(i),
+                    positionAttribute.getY(i),
+                    positionAttribute.getZ(i)
+                );
+                
+                // 应用变换矩阵
+                vertex.applyMatrix4(matrix);
+                
+                // 添加到位置数组
+                positions.push(vertex.x, vertex.y, vertex.z);
+                
+                // 添加法线（如果存在且已应用变换）
+                if (normalAttribute) {
+                    const normal = new THREE.Vector3(
+                        normalAttribute.getX(i),
+                        normalAttribute.getY(i),
+                        normalAttribute.getZ(i)
+                    );
+                    // 应用旋转部分的变换（忽略平移和缩放）
+                    const normalMatrix = new THREE.Matrix3().getNormalMatrix(matrix);
+                    normal.applyMatrix3(normalMatrix).normalize();
+                    normals.push(normal.x, normal.y, normal.z);
+                }
+                
+                // 添加UV坐标（如果存在）
+                if (uvAttribute) {
+                    uvs.push(uvAttribute.getX(i), uvAttribute.getY(i));
+                }
+            }
+            
+            // 处理索引
+            if (geometryIndices) {
+                // 有索引数组
+                for (let i = 0; i < geometryIndices.count; i++) {
+                    indices.push(geometryIndices.getX(i) + vertexOffset);
+                }
+            } else {
+                // 无索引数组，使用顺序索引
+                for (let i = 0; i < positionAttribute.count; i++) {
+                    indices.push(i + vertexOffset);
+                }
+            }
+            
+            // 更新顶点偏移量
+            vertexOffset += positionAttribute.count;
+        });
+        
+        // 设置合并几何体的属性
+        mergedGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        
+        // 设置法线（如果有）
+        if (normals.length > 0) {
+            mergedGeometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+        } else {
+            // 自动计算法线
+            mergedGeometry.computeVertexNormals();
+        }
+        
+        // 设置UV坐标（如果有）
+        if (uvs.length > 0) {
+            mergedGeometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+        }
+        
+        // 设置索引
+        mergedGeometry.setIndex(new THREE.Uint32BufferAttribute(indices, 1));
+        
+        // 优化几何体
+        mergedGeometry.computeBoundingBox();
+        mergedGeometry.computeBoundingSphere();
+        
+        // 创建合并后的网格
+        const mergedMesh = new THREE.Mesh(mergedGeometry, meshes[0].material);
+        
+        // 存储合并前的网格信息用于引用
+        const userDataArray = meshes.map(mesh => mesh.userData);
+        mergedMesh.userData = {
+            type: meshes[0].userData.type,
+            shapeClass: meshes[0].userData.shapeClass,
+            mergedCount: meshes.length,
+            originalMeshes: userDataArray // 存储原始网格的用户数据
+        };
+        
+        return mergedMesh;
     }
     
     // 同步版本的rebuildScene，用于错误处理时的回退

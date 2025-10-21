@@ -173,7 +173,7 @@ class Chip3D(QWidget):
                             'z2': path.node2.layer,
                             'color': color,
                             'comment': f'Net_{vec_net.name}',
-                            'shapeClass': f'Net_Class_{path.node1.layer}'
+                            'shapeClass': f'Layer_{path.node1.layer}'
                         }
                             
                         json_nets.append(path_data)
