@@ -7,6 +7,8 @@
 """
 import os
 import tqdm
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import multiprocessing
 
 from typing import List
 
@@ -57,17 +59,43 @@ class DataVectors:
         nets = []
 
         def read_from_dir():
-            # get data from nets directory
+            # 收集所有JSON文件路径
+            json_files = []
             for root, dirs, files in os.walk(nets_dir):
-                for _, file in tqdm.tqdm(
-                    enumerate(files), total=len(files), desc="vectors read nets"
-                ):
+                for file in files:
                     if file.endswith(".json"):
-                        filepath = os.path.join(root, file)
-
-                        json_parser = VectorsParserJson(filepath)
-
-                        nets.extend(json_parser.get_nets())
+                        json_files.append(os.path.join(root, file))
+            
+            # 如果文件数量较少，使用顺序处理
+            if len(json_files) < 10:
+                for filepath in tqdm.tqdm(json_files, desc="vectors read nets"):
+                    json_parser = VectorsParserJson(filepath)
+                    nets.extend(json_parser.get_nets())
+            else:
+                # 使用线程池并行处理
+                max_workers = min(multiprocessing.cpu_count(), 16)
+                results = []
+                
+                with tqdm.tqdm(total=len(json_files), desc="vectors read nets") as pbar:
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        # 提交所有任务
+                        future_to_file = {executor.submit(process_net_file, filepath): filepath 
+                                        for filepath in json_files}
+                        
+                        # 收集结果
+                        for future in as_completed(future_to_file):
+                            try:
+                                result = future.result()
+                                if result:
+                                    nets.extend(result)
+                            except Exception as e:
+                                print(f"Error processing file {future_to_file[future]}: {e}")
+                            pbar.update(1)
+        
+        def process_net_file(filepath):
+            """在线程中处理单个网络文件"""
+            json_parser = VectorsParserJson(filepath)
+            return json_parser.get_nets()
 
         if nets_dir is not None and os.path.isdir(nets_dir):
             self.workspace.logger.info("read nets from %s", nets_dir)
@@ -94,17 +122,42 @@ class DataVectors:
         patchs = []
 
         def read_from_dir():
-            # get data from patchs directory
+            # 收集所有JSON文件路径
+            json_files = []
             for root, dirs, files in os.walk(patchs_dir):
-                for _, file in tqdm.tqdm(
-                    enumerate(files), total=len(files), desc="vectors read patchs"
-                ):
+                for file in files:
                     if file.endswith(".json"):
-                        filepath = os.path.join(root, file)
-
-                        json_parser = VectorsParserJson(filepath)
-
-                        patchs.extend(json_parser.get_patchs())
+                        json_files.append(os.path.join(root, file))
+            
+            # 如果文件数量较少，使用顺序处理
+            if len(json_files) < 10:
+                for filepath in tqdm.tqdm(json_files, desc="vectors read patchs"):
+                    json_parser = VectorsParserJson(filepath)
+                    patchs.extend(json_parser.get_patchs())
+            else:
+                # 使用线程池并行处理
+                max_workers = min(multiprocessing.cpu_count(), 16)
+                
+                with tqdm.tqdm(total=len(json_files), desc="vectors read patchs") as pbar:
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        # 提交所有任务
+                        future_to_file = {executor.submit(process_patch_file, filepath): filepath 
+                                        for filepath in json_files}
+                        
+                        # 收集结果
+                        for future in as_completed(future_to_file):
+                            try:
+                                result = future.result()
+                                if result:
+                                    patchs.extend(result)
+                            except Exception as e:
+                                print(f"Error processing file {future_to_file[future]}: {e}")
+                            pbar.update(1)
+        
+        def process_patch_file(filepath):
+            """在线程中处理单个patch文件"""
+            json_parser = VectorsParserJson(filepath)
+            return json_parser.get_patchs()
 
         if patchs_dir is not None and os.path.isdir(patchs_dir):
             self.workspace.logger.info("read patchs from %s", patchs_dir)
@@ -139,20 +192,48 @@ class DataVectors:
         wire_paths = []
 
         def read_from_dir():
-            # get data from directory
+            # 收集所有JSON文件路径
+            json_files = []
             for root, dirs, files in os.walk(timing_paths_dir):
-                for _, file in tqdm.tqdm(
-                    enumerate(files), total=len(files), desc="timing wire paths"
-                ):
+                for file in files:
                     if file.endswith(".json"):
-                        filepath = os.path.join(root, file)
-
-                        parser = VectorsParserJson(
-                            json_path=filepath, logger=self.workspace.logger
-                        )
-                        path_hash, wire_path_graph = parser.get_timing_wire_paths()
-
-                        wire_paths.append((path_hash, wire_path_graph))
+                        json_files.append(os.path.join(root, file))
+            
+            # 如果文件数量较少，使用顺序处理
+            if len(json_files) < 10:
+                for filepath in tqdm.tqdm(json_files, desc="timing wire paths"):
+                    parser = VectorsParserJson(
+                        json_path=filepath, logger=self.workspace.logger
+                    )
+                    path_hash, wire_path_graph = parser.get_timing_wire_paths()
+                    wire_paths.append((path_hash, wire_path_graph))
+            else:
+                # 使用线程池并行处理
+                max_workers = min(multiprocessing.cpu_count(), 16)
+                
+                with tqdm.tqdm(total=len(json_files), desc="timing wire paths") as pbar:
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        # 提交所有任务
+                        future_to_file = {executor.submit(process_wire_path_file, filepath): filepath 
+                                        for filepath in json_files}
+                        
+                        # 收集结果
+                        for future in as_completed(future_to_file):
+                            try:
+                                result = future.result()
+                                if result:
+                                    wire_paths.append(result)
+                            except Exception as e:
+                                print(f"Error processing file {future_to_file[future]}: {e}")
+                            pbar.update(1)
+        
+        def process_wire_path_file(filepath):
+            """在线程中处理单个wire path文件"""
+            parser = VectorsParserJson(
+                json_path=filepath, logger=self.workspace.logger
+            )
+            path_hash, wire_path_graph = parser.get_timing_wire_paths()
+            return (path_hash, wire_path_graph)
 
         if timing_paths_dir is not None and os.path.isdir(timing_paths_dir):
             self.workspace.logger.info("read paths from %s", timing_paths_dir)
@@ -186,20 +267,47 @@ class DataVectors:
         wire_paths = []
 
         def read_from_dir():
-            # get data from directory
+            # 收集所有JSON文件路径
+            json_files = []
             for root, dirs, files in os.walk(timing_paths_dir):
-                for _, file in tqdm.tqdm(
-                    enumerate(files), total=len(files), desc="timing wire paths"
-                ):
+                for file in files:
                     if file.endswith(".json"):
-                        filepath = os.path.join(root, file)
-
-                        parser = VectorsParserJson(
-                            json_path=filepath, logger=self.workspace.logger
-                        )
-                        vec_paths = parser.get_timing_paths_metrics()
-
-                        wire_paths.append(vec_paths)
+                        json_files.append(os.path.join(root, file))
+            
+            # 如果文件数量较少，使用顺序处理
+            if len(json_files) < 10:
+                for filepath in tqdm.tqdm(json_files, desc="timing wire paths"):
+                    parser = VectorsParserJson(
+                        json_path=filepath, logger=self.workspace.logger
+                    )
+                    vec_paths = parser.get_timing_paths_metrics()
+                    wire_paths.append(vec_paths)
+            else:
+                # 使用线程池并行处理
+                max_workers = min(multiprocessing.cpu_count(), 16)
+                
+                with tqdm.tqdm(total=len(json_files), desc="timing wire paths") as pbar:
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        # 提交所有任务
+                        future_to_file = {executor.submit(process_timing_metrics_file, filepath): filepath 
+                                        for filepath in json_files}
+                        
+                        # 收集结果
+                        for future in as_completed(future_to_file):
+                            try:
+                                result = future.result()
+                                if result:
+                                    wire_paths.append(result)
+                            except Exception as e:
+                                print(f"Error processing file {future_to_file[future]}: {e}")
+                            pbar.update(1)
+        
+        def process_timing_metrics_file(filepath):
+            """在线程中处理单个timing metrics文件"""
+            parser = VectorsParserJson(
+                json_path=filepath, logger=self.workspace.logger
+            )
+            return parser.get_timing_paths_metrics()
 
         if timing_paths_dir is not None and os.path.isdir(timing_paths_dir):
             self.workspace.logger.info("read paths from %s", timing_paths_dir)
@@ -234,20 +342,47 @@ class DataVectors:
         wire_paths_data = []
 
         def read_from_dir():
-            # get data from directory
+            # 收集所有JSON文件路径
+            json_files = []
             for root, dirs, files in os.walk(timing_paths_dir):
-                for _, file in tqdm.tqdm(
-                    enumerate(files), total=len(files), desc="wire paths data"
-                ):
+                for file in files:
                     if file.endswith(".json"):
-                        filepath = os.path.join(root, file)
-
-                        parser = VectorsParserJson(
-                            json_path=filepath, logger=self.workspace.logger
-                        )
-                        wire_path_data = parser.get_wire_paths_data()
-
-                        wire_paths_data.append(wire_path_data)
+                        json_files.append(os.path.join(root, file))
+            
+            # 如果文件数量较少，使用顺序处理
+            if len(json_files) < 10:
+                for filepath in tqdm.tqdm(json_files, desc="wire paths data"):
+                    parser = VectorsParserJson(
+                        json_path=filepath, logger=self.workspace.logger
+                    )
+                    wire_path_data = parser.get_wire_paths_data()
+                    wire_paths_data.append(wire_path_data)
+            else:
+                # 使用线程池并行处理
+                max_workers = min(multiprocessing.cpu_count(), 16)
+                
+                with tqdm.tqdm(total=len(json_files), desc="wire paths data") as pbar:
+                    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                        # 提交所有任务
+                        future_to_file = {executor.submit(process_wire_paths_data_file, filepath): filepath 
+                                        for filepath in json_files}
+                        
+                        # 收集结果
+                        for future in as_completed(future_to_file):
+                            try:
+                                result = future.result()
+                                if result:
+                                    wire_paths_data.append(result)
+                            except Exception as e:
+                                print(f"Error processing file {future_to_file[future]}: {e}")
+                            pbar.update(1)
+        
+        def process_wire_paths_data_file(filepath):
+            """在线程中处理单个wire paths数据文件"""
+            parser = VectorsParserJson(
+                json_path=filepath, logger=self.workspace.logger
+            )
+            return parser.get_wire_paths_data()
 
         if timing_paths_dir is not None and os.path.isdir(timing_paths_dir):
             self.workspace.logger.info("read wire paths data from %s", timing_paths_dir)
