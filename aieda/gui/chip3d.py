@@ -59,6 +59,12 @@ class Chip3D(QWidget):
         self.top_view_btn.clicked.connect(self.top_view)
         control_layout.addWidget(self.top_view_btn)
         
+        # Add left view button
+        self.left_view_btn = QPushButton(QIcon("{}/icon/left_view.png".format(current_dir)), "")
+        self.left_view_btn.setToolTip("Left View")
+        self.left_view_btn.clicked.connect(self.left_view)
+        control_layout.addWidget(self.left_view_btn)
+        
         # Add data roate button
         self.rotate_btn = QPushButton(QIcon("{}/icon/rotate_off.png".format(current_dir)), "")
         self.rotate_btn.setToolTip("Rotation")
@@ -144,6 +150,9 @@ class Chip3D(QWidget):
     
     def top_view(self):
         self.web_view.page().runJavaScript("if (typeof top_view !== 'undefined') { top_view(); }")
+        
+    def left_view(self):
+        self.web_view.page().runJavaScript("if (typeof left_view !== 'undefined') { left_view(); }")
     
     def on_page_loaded(self, success):
         """callback to load data"""

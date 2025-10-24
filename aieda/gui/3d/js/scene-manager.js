@@ -1060,4 +1060,50 @@ class SceneManager {
         // 触发重新渲染
         this._needsUpdate = true;
     }
+
+    leftView() {
+        // 将摄像头位置移动到面向y轴和z轴中心的视角（左侧视图）
+        const bounds = this.dataManager.getBounds();
+        
+        if (bounds.min.x === Infinity) {
+            // 没有数据时使用默认位置
+            this.camera.position.set(-500, 500, 500);
+            this.camera.lookAt(500, 500, 500);
+        } else {
+            // 计算y轴和z轴中心坐标
+            const centerY = (bounds.min.y + bounds.max.y) / 2;
+            const centerZ = (bounds.min.z + bounds.max.z) / 2;
+            
+            // 计算x轴最小值（左侧）作为摄像头的x位置
+            // 向左偏移一定距离，确保能看到整个版图
+            const maxDimension = Math.max(
+                bounds.max.y - bounds.min.y,
+                bounds.max.z - bounds.min.z
+            );
+            
+            // 设置摄像头位置在左侧，面向y-z平面中心
+            const cameraX = bounds.min.x - maxDimension * 1.5;
+            const cameraY = centerY;
+            const cameraZ = centerZ;
+            
+            this.camera.position.set(cameraX, cameraY, cameraZ);
+            
+            // 看向中心点
+            this.camera.lookAt(bounds.min.x, centerY, centerZ);
+        }
+        
+        // 确保z轴朝上
+        this.camera.up.set(0, 0, 1);
+        this.camera.updateProjectionMatrix();
+        
+        // 触发重新渲染
+        this._needsUpdate = true;
+    }
+}
+
+// 全局函数，供Python端调用
+function left_view() {
+    if (window.sceneManager) {
+        window.sceneManager.leftView();
+    }
 }
