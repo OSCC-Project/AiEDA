@@ -32,7 +32,6 @@ from aieda.eda.iEDA.cts import IEDACts
 from aieda.eda.iEDA.io import IEDAIO
 from aieda.data.database.enum import FeatureOption
 from aieda.workspace.workspace import Workspace
-from aieda.ai.design_parameter_optimization.config import ConfigManagement
 from aieda.data.database.parameters import EDAParameters
 
 
