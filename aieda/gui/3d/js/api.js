@@ -75,3 +75,21 @@ globalThis.reset_camera = function () {
         console.error('Error toggling axes:', e);
     }
 }
+
+// set camera from top to bottom
+globalThis.top_view = function () {
+    try {
+        // 获取app实例
+        const app = window.app || document.app;
+
+        if (!app || !app.sceneManager) {
+            console.error('App or sceneManager not initialized');
+            return;
+        }
+
+        app.sceneManager.topView();
+
+    } catch (e) {
+        console.error('Error top view:', e);
+    }
+}

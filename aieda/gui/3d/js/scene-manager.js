@@ -1023,4 +1023,41 @@ class SceneManager {
     getDataManager() {
         return this.dataManager;
     }
+    
+    topView() {
+        // 将摄像头位置移到x,y轴的中心，从上往下看版图
+        const bounds = this.dataManager.getBounds();
+        
+        if (bounds.min.x === Infinity) {
+            // 没有数据时使用默认位置
+            this.camera.position.set(500, 500, 1000);
+            this.camera.lookAt(500, 500, 0);
+        } else {
+            // 计算中心坐标
+            const centerX = (bounds.min.x + bounds.max.x) / 2;
+            const centerY = (bounds.min.y + bounds.max.y) / 2;
+            
+            // 计算最大尺寸以确定适当的高度
+            const maxDimension = Math.max(
+                bounds.max.x - bounds.min.x,
+                bounds.max.y - bounds.min.y
+            );
+            
+            // 设置高度为最大尺寸的1.5倍，确保能看到整个版图
+            const height = maxDimension * 1.5;
+            
+            // 设置摄像头位置在正上方，向下看
+            this.camera.position.set(centerX, centerY, height);
+            
+            // 看向中心点
+            this.camera.lookAt(centerX, centerY, 0);
+        }
+        
+        // 确保Z轴朝上
+        this.camera.up.set(0, 0, 1);
+        this.camera.updateProjectionMatrix();
+        
+        // 触发重新渲染
+        this._needsUpdate = true;
+    }
 }

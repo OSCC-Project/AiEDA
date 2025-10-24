@@ -285,16 +285,17 @@ class WorkspacesUI(QMainWindow):
             QMessageBox.warning(self, "Warning", "Please load a workspace first.")
         
     def load_workspace_dialog(self):
-        """Show dialog to load a workspace from file."""
+        """Show dialog to load a workspace from directory."""
         options = QFileDialog.Options()
-        file_path, _ = QFileDialog.getOpenFileName(self, "Load Workspace", "", "Workspace Files (*.json);;All Files (*)", options=options)
+        dir_path = QFileDialog.getExistingDirectory(self, "Load Workspace Directory", "", options=options)
         
-        if file_path:
+        if dir_path:
             try:
-                workspace = Workspace.load_from_json(file_path)
+                # 直接从文件夹路径创建Workspace对象
+                workspace = Workspace(dir_path)
                 self.load_workspace(workspace)
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Failed to load workspace: {str(e)}")
+                QMessageBox.critical(self, "Error", f"Failed to load workspace from directory: {str(e)}")
                 
                                   
     class WorkspaceListUI(QWidget):
