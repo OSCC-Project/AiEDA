@@ -5,9 +5,9 @@ import sys
 import os
 from PyQt5.QtWidgets import (
     QWidget, QGraphicsScene, QGraphicsView, QHBoxLayout, QVBoxLayout, 
-    QGraphicsRectItem, QGraphicsLineItem, QLabel, QGraphicsItem
+    QGraphicsRectItem, QGraphicsLineItem, QGraphicsPathItem, QLabel, QGraphicsItem
 )
-from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush
+from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush, QPainterPath
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QThreadPool, QRunnable, QObject
 
 from .basic import ZoomableGraphicsView
@@ -344,15 +344,39 @@ class PatchesLayout(QWidget):
             if layer_id not in self.layer_items:
                 self.layer_items[layer_id] = []
                 
-            # 根据数据创建GUI元素
+            # Group items by color to reduce number of QGraphicsItems
+            items_by_color = {}
+            
+            # Organize items by color
             for item_data in items_data:
-                wire_pen = QPen(item_data['color'], 30)
-                line_item = QGraphicsLineItem(
-                    item_data['x1'], item_data['y1'],
-                    item_data['x2'], item_data['y2']
-                )
-                line_item.setPen(wire_pen)
-                self.layer_items[layer_id].append(line_item)
+                color = item_data['color']
+                # Convert QColor to hashable key (using string representation)
+                color_key = str(color)
+                if color_key not in items_by_color:
+                    # Store both the key and the original color
+                    items_by_color[color_key] = {'color': color, 'items': []}
+                items_by_color[color_key]['items'].append(item_data)
+            
+            # Create merged QGraphicsPathItems instead of individual items
+            for _, color_data in items_by_color.items():
+                color = color_data['color']
+                color_items = color_data['items']
+                path = QPainterPath()
+                
+                # For wires, create lines in the path
+                for item_data in color_items:
+                    if not path.isEmpty():
+                        path.moveTo(item_data['x1'], item_data['y1'])
+                        path.lineTo(item_data['x2'], item_data['y2'])
+                    else:
+                        # First segment - start with moveTo
+                        path.moveTo(item_data['x1'], item_data['y1'])
+                        path.lineTo(item_data['x2'], item_data['y2'])
+                
+                # Create path item for wires
+                path_item = QGraphicsPathItem(path)
+                path_item.setPen(QPen(color, 30))
+                self.layer_items[layer_id].append(path_item)
             
             # 添加到场景
             should_add_to_scene = True

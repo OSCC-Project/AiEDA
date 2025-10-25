@@ -177,7 +177,7 @@ class WorkspaceUI(QWidget):
     def load_data(self):
         """Load design data from the workspace"""
         from ..data import DataVectors
-        data_loader = DataVectors(self.workspace)
+        data_loader = DataVectors(self.workspace, vectors_paths=self.workspace.paths_table_inner.innovus_vectors)
         self.vec_instances = data_loader.load_instances()
         self.vec_cells = data_loader.load_cells()
         self.vec_nets = data_loader.load_nets()

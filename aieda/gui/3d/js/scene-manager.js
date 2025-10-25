@@ -989,35 +989,181 @@ class SceneManager {
         return mergedMesh;
     }
     
-    // 同步版本的rebuildScene，用于错误处理时的回退
+    // 优化版的同步rebuildScene，通过合并相同类型和材质的网格来提高性能
     _rebuildSceneSync() {
+        // 按类型和材质分组收集形状数据
+        const shapesByTypeAndClass = new Map();
+        
         this.dataManager.shapes.forEach((shapes, className) => {
             const color = this.dataManager.getClassColor(className);
             shapes.forEach(shape => {
-                switch (shape.type) {
-                    case 'Wire':
-                        this.createWireMesh(
-                            shape.x1, shape.y1, shape.z1,
-                            shape.x2, shape.y2, shape.z2,
-                            shape.comment, shape.shapeClass, color
-                        );
-                        break;
-                    case 'Rect':
-                        this.createRectMesh(
-                            shape.x1, shape.y1, shape.z1,
-                            shape.x2, shape.y2, shape.z2,
-                            shape.comment, shape.shapeClass, color
-                        );
-                        break;
-                    case 'Via':
-                        this.createViaMesh(
-                            shape.x1, shape.y1, shape.z1, shape.z2,
-                            shape.comment, shape.shapeClass, color
-                        );
-                        break;
+                // 使用类型作为键进行分组
+                const key = `${shape.type}-${className}`;
+                
+                if (!shapesByTypeAndClass.has(key)) {
+                    shapesByTypeAndClass.set(key, {
+                        shapeType: shape.type,
+                        className: className,
+                        color: color,
+                        shapes: []
+                    });
                 }
+                
+                shapesByTypeAndClass.get(key).shapes.push(shape);
             });
         });
+        
+        // 对每组数据创建合并后的网格
+        shapesByTypeAndClass.forEach((groupData, key) => {
+            const { shapeType, color, shapes } = groupData;
+            
+            // 如果形状数量较少，直接单独创建（保持灵活性）
+            if (shapes.length <= 20) {
+                shapes.forEach(shape => {
+                    this._createSingleShapeMesh(shape, shapeType, color);
+                });
+                return;
+            }
+            
+            // 否则创建合并的网格
+            try {
+                this._createMergedShapeMesh(shapes, shapeType, color);
+            } catch (error) {
+                console.warn(`Error creating merged mesh for ${key}:`, error);
+                // 合并失败时回退到单独创建
+                shapes.forEach(shape => {
+                    this._createSingleShapeMesh(shape, shapeType, color);
+                });
+            }
+        });
+    }
+    
+    // 创建单个形状的网格
+    _createSingleShapeMesh(shape, shapeType, color) {
+        switch (shapeType) {
+            case 'Wire':
+                this.createWireMesh(
+                    shape.x1, shape.y1, shape.z1,
+                    shape.x2, shape.y2, shape.z2,
+                    shape.comment, shape.shapeClass, color
+                );
+                break;
+            case 'Rect':
+                this.createRectMesh(
+                    shape.x1, shape.y1, shape.z1,
+                    shape.x2, shape.y2, shape.z2,
+                    shape.comment, shape.shapeClass, color
+                );
+                break;
+            case 'Via':
+                this.createViaMesh(
+                    shape.x1, shape.y1, shape.z1, shape.z2,
+                    shape.comment, shape.shapeClass, color
+                );
+                break;
+        }
+    }
+    
+    // 创建合并的形状网格
+    _createMergedShapeMesh(shapes, shapeType, color) {
+        const meshes = [];
+        
+        // 首先创建所有单个网格
+        shapes.forEach(shape => {
+            let mesh;
+            switch (shapeType) {
+                case 'Wire':
+                    mesh = this._createWireGeometry(
+                        shape.x1, shape.y1, shape.z1,
+                        shape.x2, shape.y2, shape.z2,
+                        shape.comment, shape.shapeClass, color
+                    );
+                    break;
+                case 'Rect':
+                    mesh = this._createRectGeometry(
+                        shape.x1, shape.y1, shape.z1,
+                        shape.x2, shape.y2, shape.z2,
+                        shape.comment, shape.shapeClass, color
+                    );
+                    break;
+                case 'Via':
+                    mesh = this._createViaGeometry(
+                        shape.x1, shape.y1, shape.z1, shape.z2,
+                        shape.comment, shape.shapeClass, color
+                    );
+                    break;
+                default:
+                    return;
+            }
+            
+            if (mesh) {
+                meshes.push(mesh);
+            }
+        });
+        
+        // 使用现有的合并方法合并网格
+        if (meshes.length > 0) {
+            const mergedMesh = this._mergeMeshes(meshes);
+            if (mergedMesh) {
+                // 添加到相应的组
+                const className = meshes[0].userData.shapeClass;
+                if (!this.meshGroups.has(className)) {
+                    const group = new THREE.Group();
+                    group.name = className;
+                    this.meshGroups.set(className, group);
+                    this.objectGroup.add(group);
+                }
+                this.meshGroups.get(className).add(mergedMesh);
+            }
+        }
+    }
+    
+    // 提取wire网格创建逻辑，返回geometry而不是直接添加
+    _createWireGeometry(x1, y1, z1, x2, y2, z2, comment, shapeClass, color) {
+        // 这里假设createWireMesh内部的逻辑，需要根据实际实现调整
+        // 返回创建的mesh但不添加到场景
+        const material = new THREE.MeshBasicMaterial({ color: color });
+        const geometry = new THREE.BoxGeometry(Math.abs(x2 - x1), Math.abs(y2 - y1), Math.abs(z2 - z1));
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // 设置位置
+        mesh.position.set(
+            (x1 + x2) / 2,
+            (y1 + y2) / 2,
+            (z1 + z2) / 2
+        );
+        
+        mesh.userData = { type: 'Wire', comment: comment, shapeClass: shapeClass };
+        return mesh;
+    }
+    
+    // 提取rect网格创建逻辑，返回geometry而不是直接添加
+    _createRectGeometry(x1, y1, z1, x2, y2, z2, comment, shapeClass, color) {
+        const material = new THREE.MeshBasicMaterial({ color: color });
+        const geometry = new THREE.BoxGeometry(Math.abs(x2 - x1), Math.abs(y2 - y1), Math.abs(z2 - z1));
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        mesh.position.set(
+            (x1 + x2) / 2,
+            (y1 + y2) / 2,
+            (z1 + z2) / 2
+        );
+        
+        mesh.userData = { type: 'Rect', comment: comment, shapeClass: shapeClass };
+        return mesh;
+    }
+    
+    // 提取via网格创建逻辑，返回geometry而不是直接添加
+    _createViaGeometry(x1, y1, z1, z2, comment, shapeClass, color) {
+        const material = new THREE.MeshBasicMaterial({ color: color });
+        // 假设via是圆柱体或立方体
+        const geometry = new THREE.BoxGeometry(1, 1, Math.abs(z2 - z1)); // 简化处理
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        mesh.position.set(x1, y1, (z1 + z2) / 2);
+        
+        mesh.userData = { type: 'Via', comment: comment, shapeClass: shapeClass };
+        return mesh;
     }
 
     getDataManager() {
@@ -1098,12 +1244,5 @@ class SceneManager {
         
         // 触发重新渲染
         this._needsUpdate = true;
-    }
-}
-
-// 全局函数，供Python端调用
-function left_view() {
-    if (window.sceneManager) {
-        window.sceneManager.leftView();
     }
 }

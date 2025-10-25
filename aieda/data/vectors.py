@@ -18,13 +18,17 @@ from .io import VectorsParserJson
 
 
 class DataVectors:
-    def __init__(self, workspace: Workspace):
+    def __init__(self, workspace: Workspace, vectors_paths = None):
         self.workspace = workspace
+        if vectors_paths is None:
+            self.vectors_paths = self.workspace.paths_table.ieda_vectors
+        else:
+            self.vectors_paths = vectors_paths
 
     def load_cells(self, cells_path: str = None):
         if cells_path is None:
             # read from workspace vectors/tech/cells.json
-            cells_path = self.workspace.paths_table.ieda_vectors["cells"]
+            cells_path = self.vectors_paths["cells"]
 
         parser = VectorsParserJson(json_path=cells_path, logger=self.workspace.logger)
         return parser.get_cells()
@@ -32,7 +36,7 @@ class DataVectors:
     def load_layers(self, tech_path: str = None):
         if tech_path is None:
             # read from workspace vectors/tech/tech.json
-            tech_path = self.workspace.paths_table.ieda_vectors["tech"]
+            tech_path = self.vectors_paths["tech"]
 
         parser = VectorsParserJson(json_path=tech_path, logger=self.workspace.logger)
         return parser.get_layers()
@@ -40,7 +44,7 @@ class DataVectors:
     def load_vias(self, tech_path: str = None):
         if tech_path is None:
             # read from workspace vectors/tech/tech.json
-            tech_path = self.workspace.paths_table.ieda_vectors["tech"]
+            tech_path = self.vectors_paths["tech"]
 
         parser = VectorsParserJson(json_path=tech_path, logger=self.workspace.logger)
         return parser.get_vias()
@@ -48,7 +52,7 @@ class DataVectors:
     def load_instances(self, instances_path: str = None):
         if instances_path is None:
             # read from workspace vectors/instances/instances.json
-            instances_path = self.workspace.paths_table.ieda_vectors["instances"]
+            instances_path = self.vectors_paths["instances"]
 
         parser = VectorsParserJson(
             json_path=instances_path, logger=self.workspace.logger
@@ -111,7 +115,7 @@ class DataVectors:
 
         if nets_dir is None and net_path is None:
             # read nets from output/vectors/nets in workspace
-            nets_dir = self.workspace.paths_table.ieda_vectors["nets"]
+            nets_dir = self.vectors_paths["nets"]
 
             self.workspace.logger.info("read nets from workspace %s", nets_dir)
             read_from_dir()
@@ -173,7 +177,7 @@ class DataVectors:
 
         if patchs_dir is None and patch_path is None:
             # read patchs from output/vectors/patchs in workspace
-            patchs_dir = self.workspace.paths_table.ieda_vectors["patchs"]
+            patchs_dir = self.vectors_paths["patchs"]
 
             self.workspace.logger.info("read patchs from workspace %s", patchs_dir)
             read_from_dir()
@@ -182,7 +186,7 @@ class DataVectors:
 
     def load_timing_graph(self, graph_path: str = None):
         if graph_path is None:
-            graph_path = self.workspace.paths_table.ieda_vectors["timing_wire_graph"]
+            graph_path = self.vectors_paths["timing_wire_graph"]
         parser = VectorsParserJson(json_path=graph_path, logger=self.workspace.logger)
         return parser.get_wire_graph()
 
@@ -252,7 +256,7 @@ class DataVectors:
 
         if timing_paths_dir is None and file_path is None:
             # read paths from output/vectors/wire_paths in workspace
-            timing_paths_dir = self.workspace.paths_table.ieda_vectors["wire_paths"]
+            timing_paths_dir = self.vectors_paths["wire_paths"]
 
             self.workspace.logger.info(
                 "read timing paths from workspace %s", timing_paths_dir
@@ -326,7 +330,7 @@ class DataVectors:
 
         if timing_paths_dir is None and file_path is None:
             # read paths from output/vectors/wire_paths in workspace
-            timing_paths_dir = self.workspace.paths_table.ieda_vectors["wire_paths"]
+            timing_paths_dir = self.vectors_paths["wire_paths"]
 
             self.workspace.logger.info(
                 "read timing paths from workspace %s", timing_paths_dir
@@ -402,7 +406,7 @@ class DataVectors:
 
         if timing_paths_dir is None and file_path is None:
             # read paths from output/vectors/wire_paths in workspace
-            timing_paths_dir = self.workspace.paths_table.ieda_vectors["wire_paths"]
+            timing_paths_dir = self.vectors_paths["wire_paths"]
 
             self.workspace.logger.info(
                 "read wire paths data from workspace %s", timing_paths_dir
@@ -413,7 +417,7 @@ class DataVectors:
 
     def load_instance_graph(self, graph_path: str = None):
         if graph_path is None:
-            graph_path = self.workspace.paths_table.ieda_vectors[
+            graph_path = self.vectors_paths[
                 "timing_instance_graph"
             ]
 
