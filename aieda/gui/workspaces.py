@@ -61,9 +61,9 @@ class WorkspacesUI(QMainWindow):
         self.control_bar_widget = None
         
         self.init_ui()
-        self.showMaximized()
         
         self.load_workspace(workspace)
+        self.showMaximized()
         
     def init_ui(self):
         """Initialize all user interface components of the application window."""
@@ -292,7 +292,9 @@ class WorkspacesUI(QMainWindow):
         if dir_path:
             try:
                 # 直接从文件夹路径创建Workspace对象
-                workspace = Workspace(dir_path)
+                import sys
+                workspace_create = sys.modules['workspace_create']
+                workspace = workspace_create(dir_path)
                 self.load_workspace(workspace)
             except Exception as e:
                 QMessageBox.critical(self, "Error", f"Failed to load workspace from directory: {str(e)}")

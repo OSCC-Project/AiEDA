@@ -17,13 +17,15 @@ if TYPE_CHECKING:
     from ..data.database.parameters import EDAParameters
 
 
-def workspace_create(directory: str, design: str, flow_list=None):
+def workspace_create(directory: str, design: str=None, flow_list=None):
     ws = Workspace(directory=directory, design=design)
 
     ws.create_workspace(flow_list=flow_list)
 
     return ws
 
+import sys
+sys.modules['workspace_create'] = workspace_create
 
 class Workspace:
     def __init__(self, directory: str, design: str=None):
