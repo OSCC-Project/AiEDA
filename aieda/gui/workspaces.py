@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, QLabel, QPushButton, QFileDialog, 
     QMessageBox, QGroupBox, QGridLayout, QCheckBox, 
     QMenuBar, QMenu, QAction, QListWidget, QListWidgetItem,
-    QSplitter
+    QSplitter, QTextEdit
 )
 
 from PyQt5.QtGui import QIcon, QFont, QColor
@@ -299,7 +299,7 @@ class WorkspacesUI(QMainWindow):
                 
                                   
     class WorkspaceListUI(QWidget):
-        """UI component for displaying list of workspaces with icons in a 4-column layout."""
+        """UI component for displaying list of workspaces with information display area."""
         
         def __init__(self):
             """Initialize the WorkspaceListUI component."""
@@ -307,10 +307,11 @@ class WorkspacesUI(QMainWindow):
             
             self.workspaces = {}
             self.list_widget = None
+            self.text_display = None
             self.init_ui()
             
         def init_ui(self):
-            """Initialize the workspace list UI components."""
+            """Initialize the workspace list UI components with vertical split layout."""
             layout = QVBoxLayout(self)
             
             title_label = QLabel("Workspaces List")
@@ -320,6 +321,10 @@ class WorkspacesUI(QMainWindow):
             title_label.setFont(font)
             layout.addWidget(title_label)
             
+            # Create splitter for vertical distribution
+            splitter = QSplitter(Qt.Vertical)
+            
+            # Initialize list widget
             self.list_widget = QListWidget()
             self.list_widget.setMinimumWidth(280)
             self.setMinimumWidth(300)
@@ -328,8 +333,28 @@ class WorkspacesUI(QMainWindow):
             self.list_widget.setFlow(QListWidget.LeftToRight)
             self.list_widget.setWrapping(True)
             self.list_widget.setResizeMode(QListWidget.Adjust)
-            # self.list_widget.setGridSize(QSize(140, 60))
-            layout.addWidget(self.list_widget)
+            
+            # Initialize text display area
+            self.text_display = QTextEdit("Select a workspace to see details")
+            self.text_display.setReadOnly(True)
+            self.text_display.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+            self.text_display.setStyleSheet("background-color: white; padding: 0px; border-radius: 4px;")
+            self.text_display.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            self.text_display.setAcceptRichText(True)
+            
+            # Add widgets to splitter
+            splitter.addWidget(self.list_widget)
+            splitter.addWidget(self.text_display)
+            
+            # Set equal sizes for both parts
+            splitter.setSizes([1, 1])
+            
+            # Add splitter to layout
+            layout.addWidget(splitter)
+            
+            # Connect signals
+            self.list_widget.itemClicked.connect(self.on_item_clicked)
+            self.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
             
         def add_workspace(self, workspace):
             """Add a workspace to the list.
@@ -359,9 +384,26 @@ class WorkspacesUI(QMainWindow):
                 item.setFont(font)
                 item.setTextAlignment(Qt.AlignCenter)
                 self.list_widget.addItem(item)
-            
-            self.list_widget.itemDoubleClicked.connect(self.on_item_double_clicked)
           
+        def on_item_clicked(self, item):
+            """Handle click event on workspace items to display workspace information.
+            
+            Args:
+                item: The clicked QListWidgetItem
+            """
+            design_name = item.text()
+            if design_name in self.workspaces:
+                workspace = self.workspaces[design_name]
+                self.load_workspace(workspace)
+          
+        def refresh_views(self, parent_window):
+            """Refresh chip, chip3d and patch views after loading new workspace.
+            
+            Args:
+                parent_window: The parent window containing the views
+            """
+            parent_window.refresh_ui()
+            
         def on_item_double_clicked(self, item):
             """Handle double-click event on workspace items.
             
@@ -374,3 +416,92 @@ class WorkspacesUI(QMainWindow):
                 parent_window = self.window()
                 if hasattr(parent_window, 'load_workspace'):
                     parent_window.load_workspace(workspace)
+                    # 加载完workspace后刷新所有视图
+                    self.refresh_views(parent_window)
+        
+        def make_title(self, tile):
+            """Create HTML title element."""
+            info_str = []
+            info_str.append(f"<div style='margin-top: 20px; padding-top: 10px; border-top: 1px solid #ccc;'>"  
+                            f"<h3>{tile}</h3></div>")
+            return info_str
+        
+        def make_seperator(self):
+            """Create HTML separator element."""
+            info_str = []
+            info_str.append("<hr>")
+            return info_str
+        
+        def make_line_space(self):
+            """Add a visible blank line to HTML content."""
+            info_str = []
+            info_str.append("<div style='margin-top: 10px;'></div>")
+            return info_str
+        
+        def make_parameters(self, parameters):
+            """Create HTML parameters list."""
+            info_str = []
+            if isinstance(parameters, list):
+                for (key, value) in parameters:
+                    info_str.append(f"<p><b>{key} :</b> {value}</p>")
+            else:
+                (key, value) = parameters
+                info_str.append(f"<p><b>{key} :</b> {value}</p>")
+            return info_str
+        
+        def make_table(self, headers=[], contents=[]):
+            """Create HTML table."""
+            info_str = []
+            info_str.append("<table border='1' cellspacing='0' cellpadding='3' style='border-collapse:collapse;'>")
+            
+            # Add header row
+            if headers:
+                info_str.append("<tr style='background-color:#f0f0f0;'>")
+                for header in headers:
+                    info_str.append(f"<th style='width:150px;'>{header}</th>")
+                info_str.append("</tr>")
+            
+            # Add content rows
+            for values in contents:
+                if len(values) != len(headers):
+                    continue
+                
+                info_str.append("<tr>")
+                for value in values:
+                    info_str.append(f"<td style='text-align:left;'>{value}</td>")
+                info_str.append("</tr>")
+                    
+            info_str.append("</table>")
+            return info_str
+        
+        def make_html(self, info_str=[]):
+            """Set HTML content to text display."""
+            self.text_display.setHtml('\n'.join(info_str))
+            self.text_display.verticalScrollBar().setValue(
+                self.text_display.verticalScrollBar().maximum())
+        
+        def load_workspace(self, workspace):
+            """Load workspace information and display it in text area."""
+            info_str = []
+            
+            info_str += self.make_title("Workspace information")
+            
+            info_str += self.make_parameters(("Design", workspace.design))
+            info_str += self.make_parameters(("Directory", workspace.directory))
+            info_str += self.make_parameters(("Process node", workspace.configs.workspace.process_node))
+            info_str += self.make_parameters(("version", workspace.configs.workspace.version))
+            
+            info_str += self.make_seperator()
+            
+            info_str += self.make_title("Flows")
+            
+            flow_headers = ["Step", "EDA Tool", "State", "Runtime"]
+            flow_values = []
+            
+            for flow in workspace.configs.flows:
+                flow_values.append((flow.step.value, flow.eda_tool, flow.state.value, flow.runtime))
+                  
+            info_str += self.make_table(flow_headers, flow_values)
+            
+            # Set HTML content
+            self.make_html(info_str)

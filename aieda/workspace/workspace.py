@@ -50,6 +50,12 @@ class Workspace:
         
     def get_vectors_path(self):
         return self.paths_table.ieda_output["vectors"]
+    
+    def get_vectors(self, tool = "iEDA"):
+        if tool == "iEDA":
+            return self.paths_table.ieda_vectors
+        else:
+            return None
         
     def get_nets_path(self):
         return self.paths_table.ieda_vectors["nets"]

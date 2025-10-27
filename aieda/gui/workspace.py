@@ -177,7 +177,7 @@ class WorkspaceUI(QWidget):
     def load_data(self):
         """Load design data from the workspace"""
         from ..data import DataVectors
-        data_loader = DataVectors(self.workspace)
+        data_loader = DataVectors(self.workspace, vectors_paths=self.workspace.get_vectors())
         self.vec_instances = data_loader.load_instances()
         self.vec_cells = data_loader.load_cells()
         self.vec_nets = data_loader.load_nets()
@@ -203,6 +203,7 @@ class WorkspaceUI(QWidget):
         # Set row stretch factors to make top and bottom rows equal height
         self.main_layout.setRowStretch(0, 1)  # Top row
         self.main_layout.setRowStretch(1, 1)  # Bottom row
+        
         
     def load_layout(self):
         """Load and initialize the chip layout UI components"""
