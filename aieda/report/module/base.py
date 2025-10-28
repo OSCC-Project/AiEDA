@@ -236,3 +236,206 @@ class ReportBase:
                 content.append("")  # Add empty line after each row
             
             return content
+        
+    class BaseHtml:
+        def __init__(self, workspace: Workspace, display_names_map=None):
+            self.workspace = workspace
+            self.content = []
+            self.display_names_map = display_names_map
+            
+        def make_title(self, tile):
+            info_str= []
+            info_str.append(f"<div style='margin-top: 20px; padding-top: 10px; border-top: 1px solid #ccc;'>"
+                            f"<h3>{tile}</h3></div>")
+            return info_str
+                
+        def make_seperator(self):
+            info_str= []
+            info_str.append("<hr>")
+            
+            return info_str
+        
+        def make_line_space(self):
+            """Add a visible blank line to HTML content"""
+            info_str= []
+            info_str.append("<div style='margin-top: 10px;'></div>")
+            
+            return info_str
+        
+        def make_parameters(self, parameters):
+            info_str= []
+            if isinstance(parameters, list):
+                for (key, value) in parameters:
+                    info_str.append(f"<p><b>{key} :</b> {value}</p>")
+            else:
+                (key, value) = parameters
+                info_str.append(f"<p><b>{key} :</b> {value}</p>")
+            return info_str
+        
+        def make_table(self, headers=[], contents=[]):
+            info_str= []
+            info_str.append("<table border='1' cellspacing='0' cellpadding='3' style='border-collapse:collapse;'>")
+            
+            # 添加表头行，确保所有header在同一行
+            if headers:
+                info_str.append("<tr style='background-color:#f0f0f0;'>")
+                for header in headers:
+                    info_str.append(f"<th style='width:150px;'>{header}</th>")
+                info_str.append("</tr>")
+            
+            for values in contents:
+                if len(values) != len(headers):
+                    continue
+                
+                info_str.append("<tr>")
+                for value in values:
+                    info_str.append(f"<td style='text-align:left;'>{value}</td>")
+                info_str.append("</tr>")
+                    
+            info_str.append("</table>")
+            
+            return info_str
+        
+def markdown_to_html(markdown_text):
+    """Simple markdown to HTML conversion (no external dependencies)
+    
+    Args:
+        markdown_text: str or list, markdown content
+        
+    Returns:
+        str: HTML content
+    """
+    def _process_inline_formatting(text):
+        """Process inline markdown formatting (bold, italic, etc.)"""
+        # Process bold (**text**)
+        text = text.replace('**', '<strong>', 1)
+        if '**' in text:
+            text = text.replace('**', '</strong>', 1)
+        # Process italic (*text*)
+        text = text.replace('*', '<em>', 1)
+        if '*' in text:
+            text = text.replace('*', '</em>', 1)
+        # Process inline code (`code`)
+        while '`' in text:
+            start = text.find('`')
+            text = text[:start] + '<code>' + text[start+1:]
+            if '`' in text[start+6:]:
+                end = text.find('`', start+6)
+                text = text[:end] + '</code>' + text[end+1:]
+            else:
+                break
+        return text
+
+    # If input is list, join to string
+    if isinstance(markdown_text, list):
+        markdown_text = '\n'.join(markdown_text)
+    elif not isinstance(markdown_text, str):
+        markdown_text = str(markdown_text)
+    
+    # Split into lines and process
+    lines = markdown_text.split('\n')
+    html_lines = []
+    
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        
+        # Headers
+        if line.startswith('# '):
+            html_lines.append(f'<h1>{line[2:]}</h1>')
+        elif line.startswith('## '):
+            html_lines.append(f'<h2>{line[3:]}</h2>')
+        elif line.startswith('### '):
+            html_lines.append(f'<h3>{line[4:]}</h3>')
+        elif line.startswith('#### '):
+            html_lines.append(f'<h4>{line[5:]}</h4>')
+        elif line.startswith('##### '):
+            html_lines.append(f'<h5>{line[6:]}</h5>')
+        elif line.startswith('###### '):
+            html_lines.append(f'<h6>{line[7:]}</h6>')
+        # Tables
+        elif line.startswith('|') and '|' in line and i + 1 < len(lines) and lines[i + 1].startswith('|') and '-' in lines[i + 1]:
+            html_lines.append('<table border="1" cellspacing="0" cellpadding="3" style="border-collapse:collapse; width: 100%;">')
+            
+            # Header row
+            header_cells = [cell.strip() for cell in line.split('|')[1:-1]]
+            html_lines.append('<tr style="background-color:#f0f0f0;">')
+            for cell in header_cells:
+                html_lines.append(f'<th>{cell}</th>')
+            html_lines.append('</tr>')
+            
+            # Skip separator row
+            i += 2
+            
+            # Process data rows
+            while i < len(lines) and lines[i].startswith('|'):
+                data_cells = [cell.strip() for cell in lines[i].split('|')[1:-1]]
+                html_lines.append('<tr>')
+                for cell in data_cells:
+                    html_lines.append(f'<td>{cell}</td>')
+                html_lines.append('</tr>')
+                i += 1
+            html_lines.append('</table>')
+            continue
+        # Lists (unordered)
+        elif line.startswith('- ') or line.startswith('* '):
+            html_lines.append('<ul>')
+            while i < len(lines) and (lines[i].startswith('- ') or lines[i].startswith('* ')):
+                content = lines[i][2:]
+                # Process inline formatting
+                content = _process_inline_formatting(content)
+                html_lines.append(f'<li>{content}</li>')
+                i += 1
+            html_lines.append('</ul>')
+            continue
+        # Lists (ordered)
+        elif line.startswith('1. ') or line.startswith('2. ') or line.startswith('3. '):
+            html_lines.append('<ol>')
+            while i < len(lines) and lines[i][0].isdigit() and '.' in lines[i]:
+                content = lines[i].split('. ', 1)[1] if '. ' in lines[i] else lines[i]
+                # Process inline formatting
+                content = _process_inline_formatting(content)
+                html_lines.append(f'<li>{content}</li>')
+                i += 1
+            html_lines.append('</ol>')
+            continue
+        # Code blocks
+        elif line.startswith('```'):
+            html_lines.append('<pre><code>')
+            i += 1
+            while i < len(lines) and not lines[i].startswith('```'):
+                html_lines.append(lines[i])
+                i += 1
+            html_lines.append('</code></pre>')
+        # Paragraph with inline formatting
+        else:
+            if line.strip():
+                # Process inline formatting
+                line = _process_inline_formatting(line)
+                html_lines.append(f'<p>{line}</p>')
+            else:
+                html_lines.append('<br>')
+        i += 1
+    
+    # Combine with basic styling
+    html_content = '\n'.join(html_lines)
+    return f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="utf-8">
+    <style>
+      body {{ font-family: Arial, sans-serif; line-height: 1.6; padding: 10px; }}
+      h1, h2, h3, h4, h5, h6 {{ color: #333; margin-top: 20px; margin-bottom: 10px; }}
+      pre {{ background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }}
+      code {{ font-family: monospace; }}
+      ul, ol {{ padding-left: 30px; }}
+      table {{ margin: 15px 0; }}
+      th {{ font-weight: bold; text-align: left; }}
+    </style>
+    </head>
+    <body>
+    {html_content}
+    </body>
+    </html>
+    """    

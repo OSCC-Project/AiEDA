@@ -9,7 +9,7 @@ import os
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QGroupBox,
     QGridLayout, QScrollArea, QTableWidget, QTableWidgetItem,
-    QHeaderView, QPushButton, QComboBox, QCheckBox, QTextEdit, QLineEdit
+    QHeaderView, QPushButton, QComboBox, QCheckBox, QTextEdit, QLineEdit, QSizePolicy
 )
 from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush, QIcon
 from PyQt5.QtCore import Qt, QSize
@@ -94,25 +94,21 @@ class WorkspaceFlows(QWidget):
         layout.addWidget(icon_label, alignment=Qt.AlignCenter)
         
         # 添加间隔符（白色）
-        # if not b_last:
-        #     separator = QLabel("......")
-        #     separator.setAlignment(Qt.AlignCenter)
-        #     separator.setStyleSheet("color: white;")
-        #     layout.addWidget(separator)
+        if not b_last:
+            separator = QLabel("...")
+            separator.setAlignment(Qt.AlignCenter)
+            separator.setStyleSheet("color: white;")
+            layout.addWidget(separator)
         
         return container
         
     def _handle_flow_click(self, flow):
-        """处理图标标签点击事件，使用flow数据执行相应操作
-        
-        Args:
-            flow: Flow对象，包含步骤和状态信息
-        """
-        # 使用flow数据进行相应操作
         print(f"Flow clicked: Step={flow.step.value}, State={flow.state.value}")
-        # 示例：显示一个消息框或执行其他操作
-        # QMessageBox.information(self, "Flow Info", f"Step: {flow.step.value}\nState: {flow.state.value}")
         
+        parent_widget = self.parent()
+        if parent_widget.workspace_info is not None:
+            parent_widget.workspace_info.on_flow_selected(flow)
+                
     def _init_ui(self):
         """Initialize the UI by creating a horizontal layout with evenly distributed flow buttons"""
         # Create a horizontal layout for the buttons

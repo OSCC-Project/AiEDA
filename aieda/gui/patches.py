@@ -404,6 +404,7 @@ class PatchesLayout(QWidget):
         Args:
             rect_id: ID of the double-clicked rectangle
         """
+        from aieda.report.module.summary import ReportSummary
         # Display rectangle ID in status bar
         current_text = self.coord_label.text()
         self.coord_label.setText(f"ID: {rect_id} | {current_text}")
@@ -428,76 +429,8 @@ class PatchesLayout(QWidget):
         
         # Create table with all VectorPatch data except patch_layer and display in self.text_display from info.py
         if selected_patch is not None and hasattr(self.patch_layout, 'info') and self.patch_layout.info is not None:
-            info_str = []
+            info_str = ReportSummary.ReportHtml(None).summary_patch(selected_patch)
             
-            # Add title
-            info_str += self.patch_layout.info.make_title(f"Patch information : ID-{rect_id_key}")
-            info_str += self.patch_layout.info.make_line_space()
-            
-            # Prepare table data
-            headers = ["Feature", "Value"]
-            values = []
-            
-            # Add all VectorPatch attributes except patch_layer
-            # Required attributes
-            if hasattr(selected_patch, 'id'):
-                values.append(("ID", selected_patch.id))
-            if hasattr(selected_patch, 'patch_id_row'):
-                values.append(("Row ID", selected_patch.patch_id_row))
-            if hasattr(selected_patch, 'patch_id_col'):
-                values.append(("Column ID", selected_patch.patch_id_col))
-            if hasattr(selected_patch, 'llx'):
-                values.append(("llx", selected_patch.llx))
-            if hasattr(selected_patch, 'lly'):
-                values.append(("lly", selected_patch.lly))
-            if hasattr(selected_patch, 'urx'):
-                values.append(("urx", selected_patch.urx))
-            if hasattr(selected_patch, 'ury'):
-                values.append(("ury", selected_patch.ury))
-            if hasattr(selected_patch, 'row_min'):
-                values.append(("Row min", selected_patch.row_min))
-            if hasattr(selected_patch, 'row_max'):
-                values.append(("Row max", selected_patch.row_max))
-            if hasattr(selected_patch, 'col_min'):
-                values.append(("Column min", selected_patch.col_min))
-            if hasattr(selected_patch, 'col_max'):
-                values.append(("Column max", selected_patch.col_max))
-            
-            # Calculate width and height
-            if all(hasattr(selected_patch, attr) for attr in ['llx', 'urx']):
-                width = selected_patch.urx - selected_patch.llx
-                values.append(("width", width))
-            if all(hasattr(selected_patch, attr) for attr in ['lly', 'ury']):
-                height = selected_patch.ury - selected_patch.lly
-                values.append(("height", height))
-            
-            # Add patch_layer information
-            if hasattr(selected_patch, 'patch_layer'):
-                values.append(("Layer count", len(selected_patch.patch_layer)))
-            
-            # Add all other VectorPatch attributes
-            vector_patch_attrs = ['cell_density', 'pin_density', 'net_density', 'macro_margin', 
-                                 'RUDY_congestion', 'EGR_congestion', 'timing_map', 'power_map', 'ir_drop_map']
-            for attr_name in vector_patch_attrs:
-                if hasattr(selected_patch, attr_name):
-                    attr_value = getattr(selected_patch, attr_name)
-                    # Format with proper labels
-                    label_map = {
-                        'cell_density': 'Cell density',
-                        'pin_density': 'Pin density',
-                        'net_density': 'Net density',
-                        'macro_margin': 'Macro margin',
-                        'RUDY_congestion': 'RUDY congestion',
-                        'EGR_congestion': 'EGR congestion',
-                        'timing_map': 'Timing map',
-                        'power_map': 'Power map',
-                        'ir_drop_map': 'IR drop map'
-                    }
-                    display_label = label_map.get(attr_name, attr_name)
-                    values.append((display_label, attr_value))
-            
-            # Create table and set HTML
-            info_str += self.patch_layout.info.make_table(headers, values)
             self.patch_layout.info.make_html(info_str)
 
     
