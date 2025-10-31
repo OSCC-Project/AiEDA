@@ -47,7 +47,39 @@ def find_designs_with_route(dataset_dir):
 
     return sorted(designs)
 
-def create_workspace_sky130_design(workspace_dir, design_name, dataset_dir, aieda_root=None):
+def get_design_files(dataset_dir, design_name, design_type):
+    """Get paths to def and sdc files for a design."""
+    design_dir = Path(dataset_dir) / design_name
+
+    # Find def file
+    route_dir = design_dir / "route"
+    def_files = list(route_dir.glob("*.def")) + list(route_dir.glob("*.def.gz"))
+    if not def_files:
+        return None, None, None
+    
+    def_file = None
+    for one_def_file in def_files:
+        if design_type in one_def_file.name:
+            def_file = one_def_file
+            break
+        
+    if def_file is None:
+        raise ValueError(f"DEF file for design '{design_name}' with design type '{design_type}' not found")
+
+    # Find sdc file - look in place directory
+    sdc_files = list(route_dir.glob("*.sdc"))
+    if not sdc_files:
+        return None, None, None
+    sdc_file = sdc_files[0]
+    
+    # Find spef file
+    spef_dir = design_dir / "route" / "rpt"
+    spef_file = os.path.basename(def_file).replace(".def", ".spef")
+    spef_file = os.path.join(spef_dir, spef_file)
+
+    return str(def_file), str(sdc_file), str(spef_file)
+
+def create_workspace_sky130_design(workspace_dir, design_name, def_file, sdc_file, spef_file, dataset_dir, aieda_root=None):
     """Create workspace for specified design."""
     flow_db_list = [
         DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.floorplan, state=DbFlow.FlowState.Unstart),
@@ -136,13 +168,9 @@ def create_workspace_sky130_design(workspace_dir, design_name, dataset_dir, aied
     design_dir = os.path.join(dataset_dir, design_name)
 
     # 自动查找SDC文件 - 从route目录
-    sdc_files = glob.glob(os.path.join(design_dir, "route", "*.sdc"))
-    if sdc_files:
-        workspace.set_sdc(sdc_files[0])
-    else:
-        raise FileNotFoundError(f"No SDC file found in {design_dir}/route/")
+    workspace.set_sdc(sdc_file)
 
-    workspace.set_spef(os.path.join(design_dir, "route", "rpt", f"{design_name}.spef"))
+    workspace.set_spef(spef_file)
 
     # 设置workspace信息
     workspace.set_process_node("sky130")
@@ -196,7 +224,7 @@ def generate_vectors(workspace: Workspace, patch_row_step: int, patch_col_step: 
     )
 
 
-def batch_extract_features(dataset_dir, output_base_dir, designs=None, aieda_root=None,
+def batch_extract_features(dataset_dir, design_type, output_base_dir, designs=None, aieda_root=None,
                           patch_row_step=18, patch_col_step=18):
     """Batch extract routing features."""
     if designs is None:
@@ -211,28 +239,19 @@ def batch_extract_features(dataset_dir, output_base_dir, designs=None, aieda_roo
 
         try:
             # Check if files exist
-            design_dir = os.path.join(dataset_dir, design_name)
-            def_file = os.path.join(design_dir, "route", f"{design_name}.def")
-            spef_file = os.path.join(design_dir, "route", "rpt", f"{design_name}.spef")
-
-            # Check SDC files (from route directory)
-            sdc_files = glob.glob(os.path.join(design_dir, "route", "*.sdc"))
-
-            if not os.path.exists(def_file):
-                print(f"WARNING: Missing DEF file for {design_name}, skipping...")
+            def_file, sdc_file, spef_file = get_design_files(dataset_dir, design_name, design_type)
+            
+            if not def_file or not sdc_file or not spef_file:
+                print(f"  Skipping: Missing required files")
                 continue
-            if not os.path.exists(spef_file):
-                print(f"WARNING: Missing SPEF file for {design_name}, skipping...")
-                continue
-            if not sdc_files:
-                print(f"WARNING: Missing SDC file for {design_name}, skipping...")
-                continue
-
-            print(f"Found files: DEF, SPEF, SDC({os.path.basename(sdc_files[0])})")
+            
+            print(f"  DEF file: {def_file}")
+            print(f"  SDC file: {sdc_file}")
+            print(f"  SPEF file: {spef_file}")
 
             # Create workspace
             workspace_dir = os.path.join(output_base_dir, f"workspace_{design_name}")
-            workspace = create_workspace_sky130_design(workspace_dir, design_name, dataset_dir, aieda_root)
+            workspace = create_workspace_sky130_design(workspace_dir, design_name, def_file, sdc_file, spef_file, dataset_dir, aieda_root)
 
             # Generate feature vectors
             # sta_mode = 1: use spef for STA
@@ -263,9 +282,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python batch_extract_route_features.py /path/to/dataset_skywater130
-  python batch_extract_route_features.py --dataset-dir /path/to/dataset --output-dir /path/to/output
-  python batch_extract_route_features.py --dataset-dir /path/to/dataset --patch-step 24
+  python batch_extract_route_features.py /path/to/dataset_skywater130 --design-type _a_route_congestion_best
+  python batch_extract_route_features.py --dataset-dir /path/to/dataset --output-dir /path/to/output --design-type _a_route_congestion_best
+  python batch_extract_route_features.py --dataset-dir /path/to/dataset --patch-step 24 --design-type _a_route_congestion_best
         """
     )
 
@@ -284,6 +303,11 @@ Examples:
     parser.add_argument(
         '--output-dir',
         help='Output directory for extracted features (default: ./example/batch_route_features)'
+    )
+    
+    parser.add_argument(
+        '--design-type',
+        help='Design type of place def'
     )
 
     parser.add_argument(
@@ -324,6 +348,12 @@ Examples:
         current_dir = os.path.split(os.path.abspath(__file__))[0]
         root = current_dir.rsplit("/", 1)[0]
         output_base_dir = f"{root}/example/batch_route_features"
+        
+    if args.design_type:
+        design_type = args.design_type
+    else:
+        design_type = None
+        raise ValueError("Please specify design type")
 
     # Dynamically discover designs with route files
     designs = find_designs_with_route(dataset_dir)
@@ -348,7 +378,7 @@ Examples:
 
     # Start batch processing
     success_count = batch_extract_features(
-        dataset_dir, output_base_dir, designs, args.aieda_root,
+        dataset_dir, design_type, output_base_dir, designs, args.aieda_root,
         args.patch_row_step, args.patch_col_step
     )
 
