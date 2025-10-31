@@ -5,9 +5,9 @@ import sys
 import os
 from PyQt5.QtWidgets import (
     QWidget, QGraphicsScene, QGraphicsView, QHBoxLayout, QVBoxLayout, 
-    QGraphicsRectItem, QGraphicsLineItem, QLabel, QGraphicsItem
+    QGraphicsRectItem, QGraphicsLineItem, QGraphicsPathItem, QLabel, QGraphicsItem
 )
-from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush
+from PyQt5.QtGui import QFont, QPainter, QColor, QPen, QBrush, QPainterPath
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QThreadPool, QRunnable, QObject
 
 from .basic import ZoomableGraphicsView
@@ -344,15 +344,39 @@ class PatchesLayout(QWidget):
             if layer_id not in self.layer_items:
                 self.layer_items[layer_id] = []
                 
-            # 根据数据创建GUI元素
+            # Group items by color to reduce number of QGraphicsItems
+            items_by_color = {}
+            
+            # Organize items by color
             for item_data in items_data:
-                wire_pen = QPen(item_data['color'], 30)
-                line_item = QGraphicsLineItem(
-                    item_data['x1'], item_data['y1'],
-                    item_data['x2'], item_data['y2']
-                )
-                line_item.setPen(wire_pen)
-                self.layer_items[layer_id].append(line_item)
+                color = item_data['color']
+                # Convert QColor to hashable key (using string representation)
+                color_key = str(color)
+                if color_key not in items_by_color:
+                    # Store both the key and the original color
+                    items_by_color[color_key] = {'color': color, 'items': []}
+                items_by_color[color_key]['items'].append(item_data)
+            
+            # Create merged QGraphicsPathItems instead of individual items
+            for _, color_data in items_by_color.items():
+                color = color_data['color']
+                color_items = color_data['items']
+                path = QPainterPath()
+                
+                # For wires, create lines in the path
+                for item_data in color_items:
+                    if not path.isEmpty():
+                        path.moveTo(item_data['x1'], item_data['y1'])
+                        path.lineTo(item_data['x2'], item_data['y2'])
+                    else:
+                        # First segment - start with moveTo
+                        path.moveTo(item_data['x1'], item_data['y1'])
+                        path.lineTo(item_data['x2'], item_data['y2'])
+                
+                # Create path item for wires
+                path_item = QGraphicsPathItem(path)
+                path_item.setPen(QPen(color, 30))
+                self.layer_items[layer_id].append(path_item)
             
             # 添加到场景
             should_add_to_scene = True
@@ -380,6 +404,7 @@ class PatchesLayout(QWidget):
         Args:
             rect_id: ID of the double-clicked rectangle
         """
+        from aieda.report.module.summary import ReportSummary
         # Display rectangle ID in status bar
         current_text = self.coord_label.text()
         self.coord_label.setText(f"ID: {rect_id} | {current_text}")
@@ -404,76 +429,8 @@ class PatchesLayout(QWidget):
         
         # Create table with all VectorPatch data except patch_layer and display in self.text_display from info.py
         if selected_patch is not None and hasattr(self.patch_layout, 'info') and self.patch_layout.info is not None:
-            info_str = []
+            info_str = ReportSummary.ReportHtml(None).summary_patch(selected_patch)
             
-            # Add title
-            info_str += self.patch_layout.info.make_title(f"Patch information : ID-{rect_id_key}")
-            info_str += self.patch_layout.info.make_line_space()
-            
-            # Prepare table data
-            headers = ["Feature", "Value"]
-            values = []
-            
-            # Add all VectorPatch attributes except patch_layer
-            # Required attributes
-            if hasattr(selected_patch, 'id'):
-                values.append(("ID", selected_patch.id))
-            if hasattr(selected_patch, 'patch_id_row'):
-                values.append(("Row ID", selected_patch.patch_id_row))
-            if hasattr(selected_patch, 'patch_id_col'):
-                values.append(("Column ID", selected_patch.patch_id_col))
-            if hasattr(selected_patch, 'llx'):
-                values.append(("llx", selected_patch.llx))
-            if hasattr(selected_patch, 'lly'):
-                values.append(("lly", selected_patch.lly))
-            if hasattr(selected_patch, 'urx'):
-                values.append(("urx", selected_patch.urx))
-            if hasattr(selected_patch, 'ury'):
-                values.append(("ury", selected_patch.ury))
-            if hasattr(selected_patch, 'row_min'):
-                values.append(("Row min", selected_patch.row_min))
-            if hasattr(selected_patch, 'row_max'):
-                values.append(("Row max", selected_patch.row_max))
-            if hasattr(selected_patch, 'col_min'):
-                values.append(("Column min", selected_patch.col_min))
-            if hasattr(selected_patch, 'col_max'):
-                values.append(("Column max", selected_patch.col_max))
-            
-            # Calculate width and height
-            if all(hasattr(selected_patch, attr) for attr in ['llx', 'urx']):
-                width = selected_patch.urx - selected_patch.llx
-                values.append(("width", width))
-            if all(hasattr(selected_patch, attr) for attr in ['lly', 'ury']):
-                height = selected_patch.ury - selected_patch.lly
-                values.append(("height", height))
-            
-            # Add patch_layer information
-            if hasattr(selected_patch, 'patch_layer'):
-                values.append(("Layer count", len(selected_patch.patch_layer)))
-            
-            # Add all other VectorPatch attributes
-            vector_patch_attrs = ['cell_density', 'pin_density', 'net_density', 'macro_margin', 
-                                 'RUDY_congestion', 'EGR_congestion', 'timing_map', 'power_map', 'ir_drop_map']
-            for attr_name in vector_patch_attrs:
-                if hasattr(selected_patch, attr_name):
-                    attr_value = getattr(selected_patch, attr_name)
-                    # Format with proper labels
-                    label_map = {
-                        'cell_density': 'Cell density',
-                        'pin_density': 'Pin density',
-                        'net_density': 'Net density',
-                        'macro_margin': 'Macro margin',
-                        'RUDY_congestion': 'RUDY congestion',
-                        'EGR_congestion': 'EGR congestion',
-                        'timing_map': 'Timing map',
-                        'power_map': 'Power map',
-                        'ir_drop_map': 'IR drop map'
-                    }
-                    display_label = label_map.get(attr_name, attr_name)
-                    values.append((display_label, attr_value))
-            
-            # Create table and set HTML
-            info_str += self.patch_layout.info.make_table(headers, values)
             self.patch_layout.info.make_html(info_str)
 
     

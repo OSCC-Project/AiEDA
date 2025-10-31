@@ -44,7 +44,7 @@ class Chip3D(QWidget):
         main_layout = QHBoxLayout(self)
         control_layout = QVBoxLayout()
         
-        # Add reset camera button
+        # Add reset camera button and top view button
         import os
         current_dir = os.path.split(os.path.abspath(__file__))[0]
         
@@ -52,6 +52,18 @@ class Chip3D(QWidget):
         self.reset_camera_btn.setToolTip("Reset Camera")
         self.reset_camera_btn.clicked.connect(self.reset_camera)
         control_layout.addWidget(self.reset_camera_btn)
+        
+        # Add top view button
+        self.top_view_btn = QPushButton(QIcon("{}/icon/top_view.png".format(current_dir)), "")
+        self.top_view_btn.setToolTip("Top View")
+        self.top_view_btn.clicked.connect(self.top_view)
+        control_layout.addWidget(self.top_view_btn)
+        
+        # Add left view button
+        self.left_view_btn = QPushButton(QIcon("{}/icon/left_view.png".format(current_dir)), "")
+        self.left_view_btn.setToolTip("Left View")
+        self.left_view_btn.clicked.connect(self.left_view)
+        control_layout.addWidget(self.left_view_btn)
         
         # Add data roate button
         self.rotate_btn = QPushButton(QIcon("{}/icon/rotate_off.png".format(current_dir)), "")
@@ -136,6 +148,12 @@ class Chip3D(QWidget):
         # 调用JavaScript函数切换旋转模式
         self.web_view.page().runJavaScript("if (typeof rotation_mode !== 'undefined') { rotation_mode(); }")
     
+    def top_view(self):
+        self.web_view.page().runJavaScript("if (typeof top_view !== 'undefined') { top_view(); }")
+        
+    def left_view(self):
+        self.web_view.page().runJavaScript("if (typeof left_view !== 'undefined') { left_view(); }")
+    
     def on_page_loaded(self, success):
         """callback to load data"""
         if success:
@@ -173,7 +191,7 @@ class Chip3D(QWidget):
                             'z2': path.node2.layer,
                             'color': color,
                             'comment': f'Net_{vec_net.name}',
-                            'shapeClass': f'Net_Class_{path.node1.layer}'
+                            'shapeClass': f'Layer_{path.node1.layer}'
                         }
                             
                         json_nets.append(path_data)

@@ -18,6 +18,7 @@ from aieda.gui.patches import PatchesLayout
 from aieda.gui.layer import LayerLayout
 from aieda.workspace import Workspace
 from aieda.gui.info import WorkspaceInformation
+from aieda.gui.flows import WorkspaceFlows
 
 class WorkspaceUI(QWidget):
     """Workspace UI for AiEDA system
@@ -177,7 +178,7 @@ class WorkspaceUI(QWidget):
     def load_data(self):
         """Load design data from the workspace"""
         from ..data import DataVectors
-        data_loader = DataVectors(self.workspace)
+        data_loader = DataVectors(self.workspace, vectors_paths=self.workspace.get_vectors())
         self.vec_instances = data_loader.load_instances()
         self.vec_cells = data_loader.load_cells()
         self.vec_nets = data_loader.load_nets()
@@ -185,99 +186,162 @@ class WorkspaceUI(QWidget):
         self.vec_layers = data_loader.load_layers()
 
     def _init_ui(self):
-        """Placeholder for UI initialization"""
+        """Initialize the UI layout structure and configuration.
+        
+        This method sets up the grid layout structure, configures stretch factors,
+        and initializes the basic layout organization without adding specific content widgets.
+        """
+        # Clear existing layout and widget references
+        self._clear_layout()
+        
+        # Configure grid layout structure and stretch factors
+        self._setup_layout_structure()
+        
+        # Initialize the workspace flows component at the top
+        self._initialize_flows_ui()
+    
+    def _clear_layout(self):
+        """Clear all widgets from the main layout and reset widget references."""
         # Clear previous display
         for i in reversed(range(self.main_layout.count())):
-            widget = self.main_layout.itemAt(i).widget()
-            if widget:
-                widget.setParent(None)
+            item = self.main_layout.itemAt(i)
+            if item.widget():
+                item.widget().setParent(None)
         
         # Clear widgets grid dictionary
         self.widgets_grid.clear()
         
+        # Reset UI component references
+        self.flows_ui = None
+        self.chip_ui = None
+        self.patches_ui = None
+        self.patch_ui = None
+        self.layer_ui = None
+        self.net_ui = None
+        self.workspace_info = None
+    
+    def _setup_layout_structure(self):
+        """Configure grid layout structure and stretch factors."""
         # Set column stretch factors to control width proportions
         self.main_layout.setColumnStretch(0, int(self.left_width_ratio * 10))
         self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10 * 0.2)) 
         self.main_layout.setColumnStretch(2, int(self.right_width_ratio * 10 * 0.8)) 
         
-        # Set row stretch factors to make top and bottom rows equal height
-        self.main_layout.setRowStretch(0, 1)  # Top row
-        self.main_layout.setRowStretch(1, 1)  # Bottom row
+        # Set row stretch factors
+        self.main_layout.setRowStretch(0, 1)  # Flows row (smaller ratio)
+        self.main_layout.setRowStretch(1, 5)  # Top content row
+        self.main_layout.setRowStretch(2, 5)  # Bottom content row
+    
+    def _initialize_flows_ui(self):
+        """Initialize and add the WorkspaceFlows component at the top of the layout."""
+        try:
+            self.flows_ui = WorkspaceFlows(self.workspace)
+            # Use smaller stretch factor for flows UI in vertical direction
+            self.add_widget_to_grid(self.flows_ui, 0, 0, 1, 3, (1, 10))
+        except Exception as e:
+            # Handle case where flows UI initialization fails
+            error_widget = QWidget()
+            error_layout = QVBoxLayout(error_widget)
+            error_label = QLabel(f"Failed to initialize flows: {str(e)}")
+            error_label.setAlignment(Qt.AlignCenter)
+            error_layout.addWidget(error_label)
+            self.add_widget_to_grid(error_widget, 0, 0, 1, 3, (1, 10))
+        
         
     def load_layout(self):
-        """Load and initialize the chip layout UI components"""
+        """Load and initialize the chip layout UI components and their arrangement.
+        
+        This method creates all necessary UI components, organizes them in the layout,
+        sets up component relationships and signal-slot connections, and handles errors.
+        """
         if not self.workspace:
             QMessageBox.warning(self, "Warning", "Please select a workspace first")
             return
         
         try:
+            # Initialize basic layout structure
             self._init_ui()
             
-            # Create UI components
-            self.chip_ui = ChipLayout(self.vec_cells, self.vec_instances, self.vec_nets, self.color_list)
-            self.patch_ui = PatchLayout(self.vec_layers, self.color_list)
-            self.patches_ui = PatchesLayout(self.vec_patch, self.color_list, self.patch_ui)
-            self.layer_ui = LayerLayout(self.vec_layers, self.color_list, self.chip_ui, self.patches_ui)
-            self.net_ui = NetLayout(self.vec_nets)
-            self.workspace_info = WorkspaceInformation(self.workspace)
+            # Create and configure UI components
+            self._create_ui_components()
             
-            # Set the info attribute of patch_ui to workspace_info for displaying patch details
-            self.patch_ui.info = self.workspace_info
+            # Arrange components in the layout
+            self._arrange_layout_components()
             
-            # Set workspace information
-            # workspace_details = []
-            # workspace_details.append(f"Workspace: {self.workspace.name}\n" if hasattr(self.workspace, 'name') else "Workspace loaded\n")
-            # workspace_details.append(f"Layers: {self.vec_layers.layer_num}\n")
-            # workspace_details.append(f"Cells: {self.vec_cells.cell_num}\n")
-            # workspace_details.append(f"Instances: {self.vec_instances.instance_num}\n")
-            # workspace_details.append(f"Nets: {len(self.vec_nets) if self.vec_nets else 0}\n")
-            # workspace_details.append(f"Patches: {len(self.vec_patch) if self.vec_patch else 0}\n")
-            
-            # self.workspace_info.text_display.setText('\n'.join(workspace_details))
-            
-            
-            # Create vertical layout for chip/patches
-            top_left_layout = QVBoxLayout()
-            top_left_widget = QWidget()
-            top_left_widget.setLayout(top_left_layout)
-            
-            # Create horizontal layout for chip_ui and patches_ui
-            chips_patches_layout = QHBoxLayout()
-            chips_patches_layout.addWidget(self.chip_ui)
-            chips_patches_layout.addWidget(self.patches_ui)
-            
-            # Make chip_ui and patches_ui each take half of the view
-            chips_patches_layout.setStretch(0, 1)  # chip_ui takes 1 part
-            chips_patches_layout.setStretch(1, 1)  # patches_ui takes 1 part
-            
-            # Add chips_patches_layout to top_left_layout
-            top_left_layout.addLayout(chips_patches_layout)
-            
-            # Install event filters for synchronized zooming
-            self._setup_synchronized_zooming()
-            
-            # Add widgets to grid layout according to the specified arrangement
-            self.add_widget_to_grid(top_left_widget, 0, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
-            self.add_widget_to_grid(self.patch_ui,   1, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
-            # workspace_info now occupies the entire second column
-            self.add_widget_to_grid(self.workspace_info, 0, 2, 2, 1, (1, int(self.right_width_ratio * 10 * 0.8)))
-            # layer_ui and net_ui are moved to the third column
-            self.add_widget_to_grid(self.layer_ui,   0, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.2)))
-            self.add_widget_to_grid(self.net_ui,     1, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.2)))
-            
-            # Connect NetLayout's net_selected signal to ChipLayout and PatchesLayout slots
-            self.net_ui.net_selected.connect(self.chip_ui.on_net_selected)
-            self.net_ui.net_selected.connect(self.patches_ui.on_net_selected)
-            self.net_ui.net_selected.connect(self.workspace_info.on_net_selected)
+            # Set up component relationships and connections
+            self._setup_component_relationships()
+            self._setup_signals_connections()
             
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load chip layout:\n{str(e)}")
-            
-            # Add error message to display area
-            error_label = QLabel(f"Loading failed: {str(e)}")
-            error_label.setAlignment(Qt.AlignCenter)
-            error_label.setStyleSheet("color: red;")
-            self.main_layout.addWidget(error_label)
+            error_msg = f"Failed to load chip layout:\n{str(e)}"
+            QMessageBox.critical(self, "Error", error_msg)
+            self._show_error_message(error_msg)
+    
+    def _create_ui_components(self):
+        """Create all necessary UI components with their respective data sources."""
+        # Create main UI components with their required data
+        self.chip_ui = ChipLayout(self.vec_cells, self.vec_instances, self.vec_nets, self.color_list)
+        self.patch_ui = PatchLayout(self.vec_layers, self.color_list)
+        self.patches_ui = PatchesLayout(self.vec_patch, self.color_list, self.patch_ui)
+        self.layer_ui = LayerLayout(self.vec_layers, self.color_list, self.chip_ui, self.patches_ui)
+        self.net_ui = NetLayout(self.vec_nets)
+        self.workspace_info = WorkspaceInformation(self.workspace)
+    
+    def _arrange_layout_components(self):
+        """Arrange UI components in the grid layout with proper organization."""
+        # Create combined layout for chip and patches views
+        self._create_chip_patches_combined_view()
+        
+        # Install event filters for synchronized zooming
+        self._setup_synchronized_zooming()
+        
+        # Add all widgets to the grid layout
+        self.add_widget_to_grid(self.top_left_widget, 1, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
+        self.add_widget_to_grid(self.patch_ui,        2, 0, 1, 1, (1, int(self.left_width_ratio * 10)))
+        self.add_widget_to_grid(self.workspace_info,  1, 2, 2, 1, (1, int(self.right_width_ratio * 10 * 0.8)))
+        self.add_widget_to_grid(self.layer_ui,        1, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.2)))
+        self.add_widget_to_grid(self.net_ui,          2, 1, 1, 1, (1, int(self.right_width_ratio * 10 * 0.2)))
+    
+    def _create_chip_patches_combined_view(self):
+        """Create a combined view with chip_ui and patches_ui side by side."""
+        # Create container widget and layouts
+        self.top_left_widget = QWidget()
+        top_left_layout = QVBoxLayout(self.top_left_widget)
+        
+        # Create horizontal layout for chip_ui and patches_ui
+        chips_patches_layout = QHBoxLayout()
+        chips_patches_layout.addWidget(self.chip_ui)
+        chips_patches_layout.addWidget(self.patches_ui)
+        
+        # Make chip_ui and patches_ui each take half of the view
+        chips_patches_layout.setStretch(0, 1)  # chip_ui takes 1 part
+        chips_patches_layout.setStretch(1, 1)  # patches_ui takes 1 part
+        
+        # Add chips_patches_layout to top_left_layout
+        top_left_layout.addLayout(chips_patches_layout)
+    
+    def _setup_component_relationships(self):
+        """Establish relationships between UI components."""
+        # Set the info attribute of patch_ui to workspace_info for displaying patch details
+        self.patch_ui.info = self.workspace_info
+    
+    def _setup_signals_connections(self):
+        """Connect signals and slots between UI components."""
+        # Connect NetLayout's net_selected signal to various components
+        self.net_ui.net_selected.connect(self.chip_ui.on_net_selected)
+        self.net_ui.net_selected.connect(self.patches_ui.on_net_selected)
+        self.net_ui.net_selected.connect(self.workspace_info.on_net_selected)
+    
+    def _show_error_message(self, error_msg):
+        """Display an error message in the main layout.
+        
+        Args:
+            error_msg: The error message to display
+        """
+        error_label = QLabel(f"Loading failed: {error_msg}")
+        error_label.setAlignment(Qt.AlignCenter)
+        error_label.setStyleSheet("color: red;")
+        self.main_layout.addWidget(error_label)
     
     def _apply_to_both_views(self, method_name):
         """Apply a method to both chip_ui and patches_ui views
@@ -471,9 +535,10 @@ class WorkspaceUI(QWidget):
         self.main_layout.setColumnStretch(1, int(self.right_width_ratio * 10 * 0.2)) 
         self.main_layout.setColumnStretch(2, int(self.right_width_ratio * 10 * 0.8)) 
         
-        # Set row stretch factors to make top and bottom rows equal height
-        self.main_layout.setRowStretch(0, 1)  # Top row
-        self.main_layout.setRowStretch(1, 1)  # Bottom row
+        # Set row stretch factors
+        self.main_layout.setRowStretch(0, 1)  # Flows row (smaller ratio)
+        self.main_layout.setRowStretch(1, 5)  # Top content row
+        self.main_layout.setRowStretch(2, 5)  # Bottom content row
         
         # Force layout update
         self.updateGeometry()

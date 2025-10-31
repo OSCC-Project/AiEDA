@@ -20,30 +20,56 @@ from .base import ReportBase
 
 
 class ReportDesign(ReportBase):
-    def __init__(self, workspace: Workspace, flow : DbFlow):
+    def __init__(self, workspace: Workspace, flow : DbFlow, b_markdown=True):
         super().__init__(workspace=workspace)
         self.flow = flow
+        self.b_markdown = b_markdown
         
     def generate_markdown(self, path : str):
         pass
     
-    def common_report(self):  
-        table = self.TableParameters(max_num=7) 
-
+    def common_report(self, flow=None):  
+        if flow is None:
+            flow = DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)
         feature = DataFeature(workspace=self.workspace)
-        feature_db = feature.load_feature_summary(
-            flow=DbFlow(eda_tool="iEDA", step=DbFlow.FlowStep.fixFanout)
-        )
+        feature_db = feature.load_feature_summary(flow=flow)
         
-        table.add_parameter("dbu", feature_db.layout.design_dbu)
-        table.add_parameter("die area", feature_db.layout.die_area)
-        table.add_parameter("core area", feature_db.layout.core_area)
-        table.add_parameter("layer num", feature_db.statis.num_layers)
-        table.add_parameter("routing layer", feature_db.statis.num_layers_routing)
-        table.add_parameter("cut layer", feature_db.statis.num_layers_cut)
-        table.add_parameter("io pin num", feature_db.statis.num_iopins)
+        if feature_db is None:
+            return []
             
-        return table.make_table()
+        if self.b_markdown:
+            table = self.TableParameters(max_num=7) 
+            
+            table.add_parameter("dbu", feature_db.layout.design_dbu)
+            table.add_parameter("die area", feature_db.layout.die_area)
+            table.add_parameter("core area", feature_db.layout.core_area)
+            table.add_parameter("layer num", feature_db.statis.num_layers)
+            table.add_parameter("routing layer", feature_db.statis.num_layers_routing)
+            table.add_parameter("cut layer", feature_db.statis.num_layers_cut)
+            table.add_parameter("io pin num", feature_db.statis.num_iopins)
+                
+            return table.make_table()
+        else:
+            html_maker = self.BaseHtml(self.workspace)
+            info_str = []
+            
+            info_str += html_maker.make_title(f"Feature summary")
+            info_str += html_maker.make_line_space()
+            
+            headers = ["Feature", "Value"]
+            values = []
+            
+            values.append(("dbu", feature_db.layout.design_dbu))
+            values.append(("die area", feature_db.layout.die_area))
+            values.append(("core area", feature_db.layout.core_area))
+            values.append(("layer num", feature_db.statis.num_layers))
+            values.append(("routing layer", feature_db.statis.num_layers_routing))
+            values.append(("cut layer", feature_db.statis.num_layers_cut))
+            values.append(("io pin num", feature_db.statis.num_iopins))
+            
+            info_str += html_maker.make_table(headers, values)
+            
+            return info_str
     
             
     def cell_type_report(self, display_names_map):

@@ -19,8 +19,9 @@ from ...flows import DbFlow
 from .base import ReportBase
 
 class ReportFlow(ReportBase):
-    def __init__(self, workspace: Workspace):
+    def __init__(self, workspace: Workspace, b_markdown=True):
         super().__init__(workspace=workspace)
+        self.b_markdown = b_markdown
         
     def generate_markdown(self, path : str):
         pass
@@ -104,7 +105,7 @@ class ReportFlow(ReportBase):
         if flow.step is DbFlow.FlowStep.drc:
             return self.make_drc_content()
         
-        table = self.TableParameters(max_num=5)   
+        table = self.TableParameters(max_num=2)   
         
         feature = DataFeature(workspace=self.workspace)
         
@@ -158,8 +159,6 @@ class ReportFlow(ReportBase):
     
     def make_drc_content(self):
         import copy
-
-        
         
         # make layer
         feature = DataFeature(workspace=self.workspace)
