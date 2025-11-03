@@ -110,13 +110,155 @@ class DataManager {
     loadFromJSON(jsonData) {
         this.clear();
         
-        this.load_shapes(jsonData.instances)
-        this.load_shapes(jsonData.nets)
-
-        this.autoScale();
+        // 保存实例引用，避免在Promise回调中丢失this上下文
+        const self = this;
+        
+        // 转换为异步Promise形式
+        const loadPromises = [];
+        
+        // 为每个shapes数组创建加载Promise
+        const loadShapesAsync = (shapes) => {
+            return new Promise((resolve) => {
+                // 创建并行处理任务
+                const shapePromises = shapes.map(item => {
+                    return new Promise(resolveItem => {
+                        const color = item.color || { r: 1, g: 1, b: 1 };
+                        
+                        // 构建形状对象，但不立即添加到共享状态
+                        let shape;
+                        const shapeClass = item.shapeClass || 'default';
+                        
+                        switch (item.type) {
+                            case 'Wire':
+                                shape = {
+                                    type: 'Wire',
+                                    x1: item.x1, y1: item.y1, z1: item.z1,
+                                    x2: item.x2, y2: item.y2, z2: item.z2,
+                                    comment: item.comment || '',
+                                    shapeClass,
+                                    width: 5.0
+                                };
+                                break;
+                            case 'Rect':
+                                shape = {
+                                    type: 'Rect',
+                                    x1: item.x1, y1: item.y1, z1: item.z1,
+                                    x2: item.x2, y2: item.y2, z2: item.z2,
+                                    comment: item.comment || '',
+                                    shapeClass,
+                                    width: 0.0
+                                };
+                                break;
+                            case 'Via':
+                                shape = {
+                                    type: 'Via',
+                                    x1: item.x1, y1: item.y1, z1: item.z1,
+                                    x2: item.x1, y2: item.y1, z2: item.z2,
+                                    comment: item.comment || '',
+                                    shapeClass,
+                                    width: 5.0
+                                };
+                                break;
+                            default:
+                                resolveItem(null);
+                                return;
+                        }
+                        
+                        resolveItem({ shape, shapeClass, color });
+                    });
+                });
+                
+                // 并行处理所有形状
+                Promise.all(shapePromises).then(results => {
+                    // 确保所有类都被初始化
+                    const uniqueClasses = new Set();
+                    results.forEach(result => {
+                        if (result) uniqueClasses.add(result.shapeClass);
+                    });
+                    
+                    uniqueClasses.forEach(shapeClass => {
+                        if (!self.shapes.has(shapeClass)) {
+                            self.shapes.set(shapeClass, []);
+                            self.classVisibility.set(shapeClass, true);
+                            // 为每个类保存第一个遇到的颜色
+                            const firstColor = results.find(r => r && r.shapeClass === shapeClass)?.color || { r: 1, g: 1, b: 1 };
+                            self.classColors.set(shapeClass, firstColor);
+                        }
+                    });
+                    
+                    // 批量添加形状并更新边界
+                    results.forEach(result => {
+                        if (!result) return;
+                        
+                        const { shape, shapeClass } = result;
+                        self.shapes.get(shapeClass).push(shape);
+                        self._updateBounds(shape);
+                    });
+                    
+                    resolve();
+                }).catch(error => {
+                    console.error('Error loading shapes in parallel:', error);
+                    // 错误情况下回退到顺序处理
+                    try {
+                        shapes.forEach(item => {
+                            const color = item.color || { r: 1, g: 1, b: 1 };
+                            
+                            switch (item.type) {
+                                case 'Wire':
+                                    self.addWire(
+                                        item.x1, item.y1, item.z1,
+                                        item.x2, item.y2, item.z2,
+                                        item.comment || '',
+                                        item.shapeClass || 'default',
+                                        color
+                                    );
+                                    break;
+                                case 'Rect':
+                                    self.addRect(
+                                        item.x1, item.y1, item.z1,
+                                        item.x2, item.y2, item.z2,
+                                        item.comment || '',
+                                        item.shapeClass || 'default',
+                                        color
+                                    );
+                                    break;
+                                case 'Via':
+                                    self.addVia(
+                                        item.x1, item.y1, item.z1, item.z2,
+                                        item.comment || '',
+                                        item.shapeClass || 'default',
+                                        color
+                                    );
+                                    break;
+                            }
+                        });
+                    } catch (fallbackError) {
+                        console.error('Fallback sequential loading also failed:', fallbackError);
+                    } finally {
+                        resolve(); // 即使出错也要继续执行，避免阻塞
+                    }
+                });
+            });
+        };
+        
+        // 添加实例和网络形状的加载Promise
+        if (jsonData.instances) {
+            loadPromises.push(loadShapesAsync(jsonData.instances));
+        }
+        if (jsonData.nets) {
+            loadPromises.push(loadShapesAsync(jsonData.nets));
+        }
+        
+        // 等待所有形状加载完成后再执行自动缩放
+        return Promise.all(loadPromises).then(() => {
+            self.autoScale();
+        }).catch(error => {
+            console.error('Error in loadFromJSON:', error);
+        });
     }
 
     load_shapes(shapes){
+        // 保持原有的同步实现以兼容现有代码
         shapes.forEach(item => {
             const color = item.color || { r: 1, g: 1, b: 1 };
             

@@ -56,11 +56,14 @@ def get_design_files(dataset_dir, design_name, design_type):
     if not def_files:
         return None, None
     
-    def_file = def_files[0]
+    def_file = None
     for one_def_file in def_files:
-        if "_" + design_type + "_" in one_def_file.name:
+        if design_type in one_def_file.name:
             def_file = one_def_file
             break
+        
+    if def_file is None:
+        raise ValueError(f"DEF file for design '{design_name}' with design type '{design_type}' not found")
 
     # Find sdc file - look in place directory
     sdc_files = list(place_dir.glob("*.sdc"))
@@ -261,9 +264,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python batch_extract_place_features.py /path/to/dataset_skywater130
-  python batch_extract_place_features.py --dataset-dir /path/to/dataset --output-dir /path/to/output
-  python batch_extract_place_features.py --dataset-dir /path/to/dataset --patch-step 24
+  python batch_extract_place_features.py /path/to/dataset_skywater130 --design-type _a_place_congestion_best
+  python batch_extract_place_features.py --dataset-dir /path/to/dataset --output-dir /path/to/output --design-type _a_place_congestion_best
+  python batch_extract_place_features.py --dataset-dir /path/to/dataset --patch-step 24 --design-type _a_place_congestion_best
         """
     )
 

@@ -6,10 +6,10 @@ from typing import List, Dict, Optional, Tuple
 
 from PyQt5.QtWidgets import (
     QGraphicsScene, QGraphicsView, QGraphicsRectItem, QGraphicsLineItem,
-    QGraphicsItemGroup, QGraphicsTextItem, QWidget, QVBoxLayout, QHBoxLayout,
+    QGraphicsItemGroup, QGraphicsTextItem, QGraphicsPathItem, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QSlider, QComboBox, QPushButton
 )
-from PyQt5.QtGui import QPen, QBrush, QColor, QFont, QPainter
+from PyQt5.QtGui import QPen, QBrush, QColor, QFont, QPainter, QPainterPath
 from PyQt5.QtCore import Qt, QRectF, QPointF, QThreadPool, QRunnable, pyqtSignal, QObject
 
 from ..data import DataVectors
@@ -362,25 +362,53 @@ class ChipLayout(QWidget):
         for layer_id, items_data in nets_data.items():
             self.layer_items[layer_id] = []
             
-            # Create GUI elements based on data
+            # Group items by color to reduce number of QGraphicsItems
+            items_by_color = {}
+            
+            # Organize items by color
             for item_data in items_data:
+                color = item_data['color']
+                # Convert QColor to hashable key (using string representation)
+                color_key = str(color)
+                if color_key not in items_by_color:
+                    # Store both the key and the original color
+                    items_by_color[color_key] = {'color': color, 'items': []}
+                items_by_color[color_key]['items'].append(item_data)
+            
+            # Create merged QGraphicsPathItems instead of individual items
+            for _, color_data in items_by_color.items():
+                color = color_data['color']
+                color_items = color_data['items']
+                path = QPainterPath()
+                
                 if layer_id == "nodes":
-                    # Create node rectangles
-                    rect_item = QGraphicsRectItem(
-                        item_data['x']-25, item_data['y']-25, 50, 50
-                    )
-                    rect_item.setBrush(QBrush(item_data['color']))
-                    rect_item.setPen(QPen(item_data['color'], 1.0))
-                    self.layer_items[layer_id].append(rect_item)
+                    # For nodes, create rectangles in the path
+                    for item_data in color_items:
+                        rect = QRectF(
+                            item_data['x']-25, item_data['y']-25, 50, 50
+                        )
+                        path.addRect(rect)
+                    
+                    # Create path item for nodes
+                    path_item = QGraphicsPathItem(path)
+                    path_item.setBrush(QBrush(color))
+                    path_item.setPen(QPen(color, 1.0))
                 else:
-                    # Create wires
-                    wire_pen = QPen(item_data['color'], 30)
-                    line_item = QGraphicsLineItem(
-                        item_data['x1'], item_data['y1'],
-                        item_data['x2'], item_data['y2']
-                    )
-                    line_item.setPen(wire_pen)
-                    self.layer_items[layer_id].append(line_item)
+                    # For wires, create lines in the path
+                    for item_data in color_items:
+                        if not path.isEmpty():
+                            path.moveTo(item_data['x1'], item_data['y1'])
+                            path.lineTo(item_data['x2'], item_data['y2'])
+                        else:
+                            # First segment - start with moveTo
+                            path.moveTo(item_data['x1'], item_data['y1'])
+                            path.lineTo(item_data['x2'], item_data['y2'])
+                    
+                    # Create path item for wires
+                    path_item = QGraphicsPathItem(path)
+                    path_item.setPen(QPen(color, 30))
+                
+                self.layer_items[layer_id].append(path_item)
             
             # Add to scene
             # Node layer is always visible
