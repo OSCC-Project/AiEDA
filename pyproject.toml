@@ -21,6 +21,7 @@ dependencies = [
     "tqdm>=4.67.1",
     "markdown2>=2.5.4",
     "PyQt5>=5.15.0",
+    "PyQtWebEngine>=5.15.0",
 ]
 
 [dependency-groups]
