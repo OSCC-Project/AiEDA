@@ -394,6 +394,15 @@ As a key outcome of the AiEDA library, we are proud to introduce **iDATA**, a la
 - **iEDA: An Open-source infrastructure of EDA**, ASPDAC, 2024
 - **iPD: An Open-source intelligent Physical Design Tool Chain**, ASPDAC, 2024
 
+```
+@article{qiu2025aieda,
+title={AiEDA: An Open-Source AI-Aided Design Library for Design-to-Vector},
+author={Qiu, Yihang and Huang, Zengrong and Tao, Simin and Zhang, Hongda and Li, Weiguo and Lai, Xinhua and Wang, Rui and Wang, Weiqiang and Li, Xingquan},
+journal={IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems (TCAD)},
+year={2025},
+organization={IEEE}
+}
+```
 ## Contributing
 
 We welcome contributions! Please see our contributing guidelines and feel free to submit issues and pull requests.
