@@ -282,7 +282,7 @@ Docker provides a containerized environment with all dependencies pre-configured
 
 #### Prerequisites
 - Docker installed on your system
-- At least 20GB of available disk space (this will be optimized in future versions)
+- At least 10GB of available disk space (this will be optimized in future versions)
 
 #### Build Steps
 
@@ -298,19 +298,31 @@ Docker provides a containerized environment with all dependencies pre-configured
    docker build -t aieda:latest .
    ```
 
-3. **Run the container:**
-   ```bash
-   # Test the installation
-   docker run --rm aieda:latest python3 test/test_sky130_gcd.py
-
-   # Run in detached mode for interactive use
-   docker run -dit --name myaieda aieda:latest bash
-   
-   # Enter the running container
-   docker exec -it myaieda bash
-   ```
-
 **Note:** For detailed Docker instructions, refer to the build script and Dockerfile in the repository.
+
+#### GUI in Docker (X11)
+
+To launch the GUI from inside the Docker container, ensure X11 permission on the host and run:
+
+```bash
+# On host (enable local docker X11 access)
+xhost +local:docker
+
+# Start container with X11 bindings
+docker run -it --rm \
+  --name aieda_container \
+  -e DISPLAY=$DISPLAY \
+  -e XAUTHORITY=/tmp/.Xauthority \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+  -v ~/.Xauthority:/tmp/.Xauthority:rw \
+  --network host \
+  aieda:latest bash
+
+# Inside container: test GUI
+python3 test/test_ieda_gui.py
+```
+
+Tip: Use MobaXterm to start visualization since it ships with an X Server.
 
 
 ## Getting Started
@@ -393,6 +405,11 @@ As a key outcome of the AiEDA library, we are proud to introduce **iDATA**, a la
 - **AiEDA2.0: An Open-source AI-Aided Design (AAD) Library for Design-to-Vector**, ISEDA, 2025
 - **iEDA: An Open-source infrastructure of EDA**, ASPDAC, 2024
 - **iPD: An Open-source intelligent Physical Design Tool Chain**, ASPDAC, 2024
+
+
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=OSCC-Project/AiEDA&type=Date)](https://star-history.com/#OSCC-Project/AiEDA)
+
 
 ## Contributing
 
