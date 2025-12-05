@@ -80,12 +80,60 @@ RUN ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime && \
     apt-get install -y --no-install-recommends libgflags2.2 libgoogle-glog0v5 libtbb12 libhwloc15 && \
     apt-get install -y --no-install-recommends libboost-system1.74.0 libboost-filesystem1.74.0 libboost-thread1.74.0 && \
     apt-get install -y --no-install-recommends libboost-program-options1.74.0 libboost-regex1.74.0 && \
+    # X11 and GUI support
+    apt-get install -y --no-install-recommends \
+        x11-apps \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender1 \
+        libdbus-1-3 && \
+    # XCB libraries (Qt platform plugin dependencies)
+    apt-get install -y --no-install-recommends \
+        libxcb-xinerama0 \
+        libxcb-icccm4 \
+        libxcb-image0 \
+        libxcb-keysyms1 \
+        libxcb-randr0 \
+        libxcb-render-util0 \
+        libxcb-xfixes0 \
+        libxcb-shape0 \
+        libxcb-shm0 \
+        libxcb-sync1 \
+        libxcb-xkb1 \
+        libxcb-util1 \
+        libxkbcommon-x11-0 \
+        libxkbcommon0 && \
+    # QtWebEngine (Chromium) dependencies
+    apt-get install -y --no-install-recommends \
+        libnss3 \
+        libnspr4 \
+        libasound2 \
+        libxcomposite1 \
+        libxdamage1 \
+        libxrandr2 \
+        libxtst6 \
+        libxcursor1 \
+        libxi6 \
+        libxss1 \
+        libpci3 \
+        libxshmfence1 \
+        libxkbfile1 \
+        libdrm2 \
+        libgbm1 \
+        libatk-bridge2.0-0 \
+        libgtk-3-0 \
+        libcups2 \
+        libpango-1.0-0 && \
     # Cleanup
     apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ARG AIEDA_WORKSPACE=/opt/aieda
 ENV PYTHONPATH="${AIEDA_WORKSPACE}"
 ENV PATH="${AIEDA_WORKSPACE}/aieda/third_party/iEDA/bin:$PATH"
+# Set Qt environment variables for better X11 compatibility
+ENV QT_X11_NO_MITSHM=1
 
 WORKDIR ${AIEDA_WORKSPACE}
 
