@@ -84,7 +84,13 @@ def run_eda_flow_with_def(workspace, def_file):
     # 复制def文件到正确的位置和名称
     target_def = os.path.join(output_dir, f"{workspace.design}_place.def.gz")
     shutil.copy2(def_file, target_def)
-    print(f"已复制DEF文件到: {target_def}")
+    # print(f"已复制DEF文件到: {target_def}")
+    
+    run_ieda.run_legalization(
+        input_def=target_def
+    )    
+    
+    target_def = os.path.join(output_dir, f"{workspace.design}_legalization.def.gz")
     run_ieda.run_CTS(
         input_def=target_def
     )

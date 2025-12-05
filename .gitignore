@@ -151,3 +151,7 @@ cython_debug/
 /example/sky130_test/
 /example/sky130_test_des/
 *.gitmodules
+test/output_test/
+/aieda/ai/multi_tools_analysis
+/aieda/ai/net_embedding
+
