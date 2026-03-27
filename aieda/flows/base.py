@@ -225,7 +225,7 @@ class RunFlowBase:
                     flow=flow, compressed=True
                 )
                 output_verilog = self.workspace.configs.get_output_verilog(
-                    flow=flow, compressed=True
+                    flow=flow, compressed=False
                 )
 
                 return os.path.exists(output_def) and os.path.exists(output_verilog)

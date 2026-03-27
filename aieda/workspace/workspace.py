@@ -1154,7 +1154,7 @@ class Workspace:
 
             return def_file
 
-        def get_output_verilog(self, flow, compressed: bool = True):
+        def get_output_verilog(self, flow, compressed: bool = False):
             """get ouput def"""
             step_value = "route" if flow.step.value == "full_flow" else flow.step.value
             if flow.eda_tool == "iEDA":
