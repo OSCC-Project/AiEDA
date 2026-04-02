@@ -79,27 +79,19 @@ Notes:
 - Build `ieda_py` from the AiEDA repository root, not from `aieda/third_party/iEDA/`.
 - Some environments may require elevated privileges to fetch extra system dependencies during the native build.
 
-### Minimal Example
-
-```python
-from aieda.workspace import workspace_create
-from aieda.flows import RunIEDA, DataGeneration
-
-workspace = workspace_create(directory="./my_design", design="gcd")
-
-run_ieda = RunIEDA(workspace)
-run_ieda.run_flow()
-
-data_gen = DataGeneration(workspace)
-data_gen.generate_vectors()
-```
 
 ### Common Checks
 
-```bash
-# End-to-end example flow
-uv run python test/test_sky130_gcd.py
+To verify your installation, run the following command as the **recommended minimal example** for an end-to-end flow:
 
+```bash
+# Recommended minimal runnable example (End-to-end flow)
+uv run python test/test_sky130_gcd.py
+```
+
+Other verification scripts:
+
+```bash
 # iEDA-backed physical design flow
 uv run python test/test_ieda_flows.py
 
